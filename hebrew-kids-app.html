@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aleph-Bet</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #0d0a1e; }</style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+const { useState } = React;
+
+const ALEPH_BET = [
+  { hebrew: "א", name: "Aleph", sound: "silent", word: "Aryeh", wordHebrew: "אַרְיֵה", emoji: "🦁", wordMeaning: "Lion" },
+  { hebrew: "ב", name: "Bet", sound: "B", word: "Bayit", wordHebrew: "בַּיִת", emoji: "🏠", wordMeaning: "House" },
+  { hebrew: "ג", name: "Gimel", sound: "G", word: "Gamal", wordHebrew: "גָּמָל", emoji: "🐪", wordMeaning: "Camel" },
+  { hebrew: "ד", name: "Dalet", sound: "D", word: "Dag", wordHebrew: "דָּג", emoji: "🐟", wordMeaning: "Fish" },
+  { hebrew: "ה", name: "Hey", sound: "H", word: "Har", wordHebrew: "הַר", emoji: "⛰️", wordMeaning: "Mountain" },
+  { hebrew: "ו", name: "Vav", sound: "V", word: "Vered", wordHebrew: "וֶרֶד", emoji: "🌹", wordMeaning: "Rose" },
+  { hebrew: "ז", name: "Zayin", sound: "Z", word: "Zahav", wordHebrew: "זָהָב", emoji: "⭐", wordMeaning: "Gold" },
+  { hebrew: "ח", name: "Chet", sound: "Ch", word: "Chatul", wordHebrew: "חָתוּל", emoji: "🐱", wordMeaning: "Cat" },
+  { hebrew: "ט", name: "Tet", sound: "T", word: "Taus", wordHebrew: "טַוָּס", emoji: "🦚", wordMeaning: "Peacock" },
+  { hebrew: "י", name: "Yod", sound: "Y", word: "Yam", wordHebrew: "יָם", emoji: "🌊", wordMeaning: "Sea" },
+  { hebrew: "כ", name: "Kaf", sound: "K", word: "Kelev", wordHebrew: "כֶּלֶב", emoji: "🐶", wordMeaning: "Dog" },
+  { hebrew: "ל", name: "Lamed", sound: "L", word: "Lev", wordHebrew: "לֵב", emoji: "❤️", wordMeaning: "Heart" },
+  { hebrew: "מ", name: "Mem", sound: "M", word: "Mayim", wordHebrew: "מַיִם", emoji: "💧", wordMeaning: "Water" },
+  { hebrew: "נ", name: "Nun", sound: "N", word: "Namer", wordHebrew: "נָמֵר", emoji: "🐆", wordMeaning: "Leopard" },
+  { hebrew: "ס", name: "Samech", sound: "S", word: "Soos", wordHebrew: "סוּס", emoji: "🐴", wordMeaning: "Horse" },
+  { hebrew: "ע", name: "Ayin", sound: "silent", word: "Etz", wordHebrew: "עֵץ", emoji: "🌳", wordMeaning: "Tree" },
+  { hebrew: "פ", name: "Pey", sound: "P", word: "Pil", wordHebrew: "פִּיל", emoji: "🐘", wordMeaning: "Elephant" },
+  { hebrew: "צ", name: "Tzadi", sound: "Tz", word: "Tzipor", wordHebrew: "צִפּוֹר", emoji: "🐦", wordMeaning: "Bird" },
+  { hebrew: "ק", name: "Kuf", sound: "K", word: "Kof", wordHebrew: "קוֹף", emoji: "🐒", wordMeaning: "Monkey" },
+  { hebrew: "ר", name: "Resh", sound: "R", word: "Rachev", wordHebrew: "רֶכֶב", emoji: "🚗", wordMeaning: "Car" },
+  { hebrew: "ש", name: "Shin", sound: "Sh", word: "Shemesh", wordHebrew: "שֶׁמֶשׁ", emoji: "☀️", wordMeaning: "Sun" },
+  { hebrew: "ת", name: "Tav", sound: "T", word: "Tapuz", wordHebrew: "תַּפּוּז", emoji: "🍊", wordMeaning: "Orange" },
+];
+
+const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+const speakHebrew = (text) => {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'he-IL';
+  utt.rate = 0.8;
+  window.speechSynthesis.speak(utt);
+};
+
+const speakLetter = (letter) => {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt1 = new SpeechSynthesisUtterance(letter.name);
+  utt1.lang = 'en-US';
+  utt1.rate = 0.9;
+  const utt2 = new SpeechSynthesisUtterance(letter.wordHebrew);
+  utt2.lang = 'he-IL';
+  utt2.rate = 0.8;
+  window.speechSynthesis.speak(utt1);
+  window.speechSynthesis.speak(utt2);
+};
+
+function SpeakButton({ onClick, style = {} }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{
+        background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)',
+        borderRadius: 50, width: 36, height: 36,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', fontSize: 18, color: '#a78bfa',
+        ...style,
+      }}
+    >🔊</button>
+  );
+}
+
+function Stars({ count }) {
+  return (
+    <div style={{ display: "flex", gap: 4 }}>
+      {[...Array(3)].map((_, i) => (
+        <span key={i} style={{ fontSize: 20, filter: i < count ? "none" : "grayscale(1) opacity(0.3)" }}>⭐</span>
+      ))}
+    </div>
+  );
+}
+
+function Flashcards({ onXP }) {
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [seen, setSeen] = useState(new Set());
+  const letters = ALEPH_BET;
+
+  const flip = () => {
+    if (!flipped) {
+      setFlipped(true);
+      speakLetter(letters[idx]);
+      if (!seen.has(idx)) {
+        setSeen(s => new Set(s).add(idx));
+        onXP(5);
+      }
+    }
+  };
+
+  const go = (dir) => {
+    setIdx(i => (i + dir + letters.length) % letters.length);
+    setFlipped(false);
+  };
+
+  const L = letters[idx];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
+      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, letterSpacing: 2 }}>
+        {idx + 1} / {letters.length} · {seen.size} seen
+      </div>
+      <div
+        onClick={flip}
+        style={{
+          width: 300, height: 360, borderRadius: 28,
+          background: flipped
+            ? "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)"
+            : "linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)",
+          border: "3px solid rgba(167,139,250,0.4)",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", gap: 12, padding: 24,
+          boxShadow: "0 20px 60px rgba(124,58,237,0.4)",
+          transition: "all 0.3s ease",
+          userSelect: "none",
+        }}
+      >
+        <div style={{ fontSize: 110, lineHeight: 1, fontFamily: "'Noto Serif Hebrew', serif", color: "#f0e6ff" }}>
+          {L.hebrew}
+        </div>
+        {!flipped ? (
+          <div style={{ color: "#a78bfa", fontSize: 13, marginTop: 8 }}>👆 tap to flip</div>
+        ) : (
+          <div style={{ textAlign: "center", color: "white" }}>
+            <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: 1 }}>{L.name}</div>
+            <div style={{ fontSize: 16, opacity: 0.85, marginTop: 4 }}>Sound: "{L.sound}"</div>
+            <SpeakButton onClick={() => speakLetter(L)} style={{ margin: '8px auto 0' }} />
+            <div style={{ fontSize: 40, marginTop: 8 }}>{L.emoji}</div>
+            <div style={{ fontSize: 15, marginTop: 4, opacity: 0.9 }}>
+              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 20 }}>{L.wordHebrew}</span>
+              {" "} = {L.wordMeaning}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: 16 }}>
+        {[["← Prev", -1], ["Next →", 1]].map(([label, dir]) => (
+          <button key={dir} onClick={() => go(dir)} style={{
+            padding: "12px 28px", borderRadius: 50, border: "none",
+            background: "rgba(124,58,237,0.25)", color: "#c4b5fd",
+            fontSize: 15, fontWeight: 700, cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+            onMouseEnter={e => e.target.style.background = "rgba(124,58,237,0.5)"}
+            onMouseLeave={e => e.target.style.background = "rgba(124,58,237,0.25)"}
+          >{label}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MatchingGame({ onXP }) {
+  const SIZE = 6;
+  const [pool] = useState(() => shuffle(ALEPH_BET).slice(0, SIZE));
+  const [cards, setCards] = useState(() => {
+    const pairs = pool.flatMap(l => [
+      { id: l.name + "-heb", type: "hebrew", value: l.hebrew, name: l.name },
+      { id: l.name + "-eng", type: "english", value: l.name, name: l.name, emoji: l.emoji },
+    ]);
+    return shuffle(pairs).map((c, i) => ({ ...c, pos: i, matched: false, selected: false }));
+  });
+  const [selected, setSelected] = useState([]);
+  const [matches, setMatches] = useState(0);
+  const [shake, setShake] = useState(null);
+
+  const select = (pos) => {
+    const card = cards[pos];
+    if (card.matched || selected.length === 2) return;
+    if (selected.length === 1 && selected[0].pos === pos) return;
+    const newSel = [...selected, { pos, name: card.name }];
+    setCards(prev => prev.map(c => c.pos === pos ? { ...c, selected: true } : c));
+    setSelected(newSel);
+    if (newSel.length === 2) {
+      if (newSel[0].name === newSel[1].name) {
+        setTimeout(() => {
+          setCards(prev => prev.map(c =>
+            c.name === newSel[0].name ? { ...c, matched: true, selected: false } : c
+          ));
+          setSelected([]);
+          setMatches(m => m + 1);
+          onXP(15);
+        }, 400);
+      } else {
+        setShake(newSel[1].pos);
+        setTimeout(() => {
+          setCards(prev => prev.map(c => ({ ...c, selected: false })));
+          setSelected([]);
+          setShake(null);
+        }, 600);
+      }
+    }
+  };
+
+  const done = matches === SIZE;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, letterSpacing: 2 }}>
+        Match Hebrew letters to their names! · {matches}/{SIZE} matched
+      </div>
+      {done && (
+        <div style={{ background: "linear-gradient(135deg,#7c3aed,#db2777)", borderRadius: 16, padding: "14px 32px", color: "white", fontWeight: 900, fontSize: 20, textAlign: "center" }}>
+          🎉 Amazing! All matched!
+        </div>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, maxWidth: 440 }}>
+        {cards.map(card => (
+          <div
+            key={card.id}
+            onClick={() => {
+              select(card.pos);
+              if (card.type === 'hebrew') {
+                const l = ALEPH_BET.find(a => a.name === card.name);
+                if (l) speakHebrew(l.wordHebrew);
+              }
+            }}
+            style={{
+              width: 90, height: 90, borderRadius: 16, display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", cursor: card.matched ? "default" : "pointer",
+              background: card.matched
+                ? "linear-gradient(135deg,#065f46,#047857)"
+                : card.selected
+                  ? "linear-gradient(135deg,#7c3aed,#db2777)"
+                  : "rgba(255,255,255,0.07)",
+              border: card.matched ? "2px solid #34d399" : card.selected ? "2px solid #f0abfc" : "2px solid rgba(255,255,255,0.12)",
+              transition: "all 0.3s",
+              animation: shake === card.pos ? "shake 0.5s" : "none",
+              opacity: card.matched ? 0.7 : 1,
+              boxShadow: card.selected ? "0 0 20px rgba(240,171,252,0.5)" : "none",
+            }}
+          >
+            {card.type === "hebrew" ? (
+              <div style={{ fontSize: 38, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff" }}>{card.value}</div>
+            ) : (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 22 }}>{card.emoji}</div>
+                <div style={{ fontSize: 13, color: card.matched ? "#6ee7b7" : "#e9d5ff", fontWeight: 700 }}>{card.value}</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Quiz({ onXP }) {
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [chosen, setChosen] = useState(null);
+  const [done, setDone] = useState(false);
+  const [questions] = useState(() => {
+    return shuffle(ALEPH_BET).slice(0, 8).map(letter => {
+      const wrongs = shuffle(ALEPH_BET.filter(l => l.name !== letter.name)).slice(0, 3);
+      return { letter, options: shuffle([letter, ...wrongs]) };
+    });
+  });
+
+  const answer = (opt) => {
+    if (chosen) return;
+    setChosen(opt.name);
+    if (opt.name === questions[qIdx].letter.name) {
+      setScore(s => s + 1);
+      onXP(20);
+    }
+    setTimeout(() => {
+      if (qIdx + 1 >= questions.length) setDone(true);
+      else { setQIdx(i => i + 1); setChosen(null); }
+    }, 900);
+  };
+
+  if (done) {
+    const pct = Math.round((score / questions.length) * 100);
+    const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
+    return (
+      <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+        <div style={{ fontSize: 60 }}>{pct >= 90 ? "🏆" : pct >= 60 ? "🎉" : "💪"}</div>
+        <div style={{ fontSize: 28, fontWeight: 900, color: "#f0e6ff" }}>Quiz Complete!</div>
+        <div style={{ fontSize: 20, color: "#c4b5fd" }}>{score} / {questions.length} correct</div>
+        <Stars count={stars} />
+        <button onClick={() => { setQIdx(0); setScore(0); setChosen(null); setDone(false); }} style={{
+          marginTop: 8, padding: "12px 32px", borderRadius: 50, border: "none",
+          background: "linear-gradient(135deg,#7c3aed,#db2777)", color: "white",
+          fontWeight: 900, fontSize: 16, cursor: "pointer",
+        }}>Play Again</button>
+      </div>
+    );
+  }
+
+  const Q = questions[qIdx];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, letterSpacing: 2 }}>
+        Question {qIdx + 1} / {questions.length} · Score: {score}
+      </div>
+      <div style={{
+        width: 200, height: 200, borderRadius: 28,
+        background: "linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%)",
+        border: "3px solid rgba(167,139,250,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 20px 50px rgba(124,58,237,0.4)",
+      }}>
+        <div style={{ fontSize: 100, lineHeight: 1, fontFamily: "'Noto Serif Hebrew', serif", color: "#f0e6ff" }}>
+          {Q.letter.hebrew}
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ color: "#e9d5ff", fontSize: 16 }}>What letter is this?</div>
+        <SpeakButton onClick={() => speakHebrew(Q.letter.wordHebrew)} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: 300 }}>
+        {Q.options.map(opt => {
+          const isCorrect = opt.name === Q.letter.name;
+          const isChosen = chosen === opt.name;
+          let bg = "rgba(255,255,255,0.08)";
+          if (chosen) {
+            if (isCorrect) bg = "linear-gradient(135deg,#065f46,#047857)";
+            else if (isChosen) bg = "linear-gradient(135deg,#7f1d1d,#dc2626)";
+          }
+          return (
+            <button key={opt.name} onClick={() => answer(opt)} style={{
+              padding: "16px 12px", borderRadius: 16, border: chosen
+                ? isCorrect ? "2px solid #34d399" : isChosen ? "2px solid #f87171" : "2px solid transparent"
+                : "2px solid rgba(255,255,255,0.12)",
+              background: bg,
+              color: "#f0e6ff", fontWeight: 700, fontSize: 16, cursor: chosen ? "default" : "pointer",
+              transition: "all 0.3s",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+            }}>
+              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 28 }}>{opt.hebrew}</span>
+              <span style={{ fontSize: 13, opacity: 0.8 }}>{opt.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [mode, setMode] = useState("home");
+  const [xp, setXp] = useState(0);
+  const [matchKey, setMatchKey] = useState(0);
+
+  const addXP = (n) => setXp(x => x + n);
+  const level = Math.floor(xp / 100) + 1;
+  const progress = xp % 100;
+
+  const modes = [
+    { id: "flashcards", label: "Flashcards", emoji: "🃏", desc: "Learn each letter" },
+    { id: "matching", label: "Matching", emoji: "🔗", desc: "Match pairs" },
+    { id: "quiz", label: "Quiz", emoji: "🧠", desc: "Test yourself" },
+  ];
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0d0a1e; min-height: 100vh; font-family: 'Nunito', sans-serif; }
+        @keyframes shake {
+          0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
+        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes pulse-ring { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(1.4);opacity:0} }
+        button:hover { transform: scale(1.04); }
+        button { transition: all 0.15s; }
+      `}</style>
+
+      <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at 20% 20%, #2d1b69 0%, #0d0a1e 60%)", padding: "0 0 60px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 28px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {mode !== "home" && (
+              <button onClick={() => { setMode("home"); setMatchKey(k => k + 1); }} style={{
+                background: "rgba(167,139,250,0.15)", border: "none", color: "#a78bfa",
+                borderRadius: 50, padding: "8px 16px", cursor: "pointer", fontWeight: 700, fontSize: 14,
+              }}>← Back</button>
+            )}
+            <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 22, color: "#f0e6ff" }}>
+              🔤 Aleph-Bet
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+            <div style={{ color: "#a78bfa", fontSize: 12, fontWeight: 700 }}>Level {level} · {xp} XP</div>
+            <div style={{ width: 120, height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 99, overflow: "hidden" }}>
+              <div style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg,#7c3aed,#db2777)", borderRadius: 99, transition: "width 0.5s" }} />
+            </div>
+          </div>
+        </div>
+
+        {mode === "home" && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 40, gap: 32 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{
+                fontFamily: "'Noto Serif Hebrew', serif", fontSize: 80, lineHeight: 1,
+                background: "linear-gradient(135deg,#a78bfa,#f0abfc,#fb7185)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                animation: "float 3s ease-in-out infinite",
+              }}>
+                אָלֶף-בֵּית
+              </div>
+              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 28, color: "#f0e6ff", marginTop: 8 }}>
+                Learn the Hebrew Alphabet!
+              </div>
+              <div style={{ color: "#a78bfa", fontSize: 15, marginTop: 6 }}>22 letters · Flashcards · Matching · Quiz</div>
+            </div>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", maxWidth: 500 }}>
+              {modes.map(m => (
+                <button key={m.id} onClick={() => setMode(m.id)} style={{
+                  width: 140, height: 140, borderRadius: 24, border: "2px solid rgba(167,139,250,0.3)",
+                  background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
+                  color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
+                  alignItems: "center", justifyContent: "center", gap: 8,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                }}>
+                  <div style={{ fontSize: 40 }}>{m.emoji}</div>
+                  <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 20, color: "#f0e6ff" }}>{m.label}</div>
+                  <div style={{ fontSize: 12, color: "#a78bfa" }}>{m.desc}</div>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", maxWidth: 440, opacity: 0.5 }}>
+              {ALEPH_BET.map(l => (
+                <div key={l.name} style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: "#c4b5fd" }}>{l.hebrew}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ maxWidth: 520, margin: "32px auto 0", padding: "0 16px" }}>
+          {mode === "flashcards" && <Flashcards onXP={addXP} />}
+          {mode === "matching" && <MatchingGame key={matchKey} onXP={addXP} />}
+          {mode === "quiz" && <Quiz key={matchKey} onXP={addXP} />}
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>

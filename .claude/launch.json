@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hebrew-kids-app",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd /Users/noy/Documents/Claude && . ~/.nvm/nvm.sh && npm run dev -- --port 5173 --host"],
+      "port": 5173
+    }
+  ]
+}
