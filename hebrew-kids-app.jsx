@@ -260,16 +260,9 @@ const speakHebrew = (text) => {
 const speakLetter = (letter) => {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  // Say English name first so kids know what to pronounce, then Hebrew name
-  const utt0 = new SpeechSynthesisUtterance(letter.name);
-  utt0.lang = 'en-US'; utt0.rate = 0.8;
-  const utt1 = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
-  utt1.lang = 'he-IL'; utt1.rate = 0.75;
-  const utt2 = new SpeechSynthesisUtterance(stripNikud(letter.wordHebrew));
-  utt2.lang = 'he-IL'; utt2.rate = 0.75;
-  window.speechSynthesis.speak(utt0);
-  window.speechSynthesis.speak(utt1);
-  window.speechSynthesis.speak(utt2);
+  const utt = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
+  utt.lang = 'he-IL'; utt.rate = 0.75;
+  window.speechSynthesis.speak(utt);
 };
 
 function SpeakButton({ onClick, style = {} }) {
@@ -353,12 +346,8 @@ function Flashcards({ onXP }) {
       utt.lang = 'he-IL'; utt.rate = 0.9;
       window.speechSynthesis.speak(utt);
     } else {
-      // Say English name clearly (so they know what to say), then Hebrew
-      const uEng = new SpeechSynthesisUtterance(letter.name);
-      uEng.lang = 'en-US'; uEng.rate = 0.8;
       const uHeb = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
       uHeb.lang = 'he-IL'; uHeb.rate = 0.75;
-      window.speechSynthesis.speak(uEng);
       window.speechSynthesis.speak(uHeb);
     }
     onXP(correct ? 100 : -50);
@@ -479,7 +468,7 @@ function Flashcards({ onXP }) {
             animation: 'pulse-ring 1s ease-in-out infinite',
           }}>🎤</div>
           <div style={{ color: '#f0abfc', fontSize: 22, fontWeight: 900, fontFamily:"'Noto Serif Hebrew',serif", direction:'rtl' }}>
-            שנ{timeLeft}… מאזין
+            {timeLeft} · מאזין
           </div>
         </div>
       )}
@@ -757,8 +746,7 @@ function Quiz({ onXP }) {
               cursor: chosen ? 'default' : 'pointer', transition: 'all 0.3s',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
             }}>
-              <span style={{ fontSize: 32 }}>{opt.emoji}</span>
-              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 20, direction: 'rtl' }}>{opt.word}</span>
+              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 24, direction: 'rtl' }}>{opt.word}</span>
             </button>
           );
         })}
@@ -1250,7 +1238,7 @@ function SpellingGame({ onXP, profile }) {
           </div>
           <div style={{ fontFamily:"'Noto Serif Hebrew', serif", fontSize:26, fontWeight:900,
             color: phase === 'won' ? '#10b981' : '#ef4444', direction:'rtl' }}>
-            {phase === 'won' ? `!נ.נ ${lastScore}+` : '!נגמרו הלבבות'}
+            {phase === 'won' ? '!נכון מאוד' : '!נגמרו הלבבות'}
           </div>
           {/* Show correct answer */}
           <div style={{ display:'flex', gap:10, direction:'rtl' }}>
@@ -1320,18 +1308,16 @@ function DrawingGame({ onXP }) {
     };
   };
 
-  const onDown = (e) => {
+  const onEnter = (e) => {
     if (phase !== 'drawing') return;
-    e.preventDefault();
-    drawingRef.current = true;
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getPos(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
-  const onMove = (e) => {
-    if (!drawingRef.current || phase !== 'drawing') return;
+  const onHover = (e) => {
+    if (phase !== 'drawing') return;
     e.preventDefault();
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getPos(e);
@@ -1342,8 +1328,6 @@ function DrawingGame({ onXP }) {
     ctx.lineJoin = 'round';
     ctx.stroke();
   };
-
-  const onUp = () => { drawingRef.current = false; };
 
   // O(N) separable dilation via prefix sums
   const dilate = (mask, w, h, r) => {
@@ -1414,7 +1398,7 @@ function DrawingGame({ onXP }) {
 
   const next = () => {
     clearInterval(timerRef.current);
-    drawingRef.current = false;
+    clearCanvas();
     setQIdx(i => (i + 1) % queue.length);
     setPhase('ready');
     setSimScore(0);
@@ -1468,10 +1452,8 @@ function DrawingGame({ onXP }) {
           ref={canvasRef}
           width={CSIZE}
           height={CSIZE}
-          onMouseDown={onDown}
-          onMouseMove={onMove}
-          onMouseUp={onUp}
-          onMouseLeave={onUp}
+          onMouseEnter={onEnter}
+          onMouseMove={onHover}
           style={{
             display: 'block', borderRadius: 22,
             background: 'rgba(20,16,60,0.7)',
