@@ -493,7 +493,7 @@ function MatchingGame({ onXP }) {
   const [pool] = useState(() => shuffle(ALEPH_BET).slice(0, SIZE));
   const [cards, setCards] = useState(() => {
     const pairs = pool.flatMap(l => [
-      { id: l.name + "-heb", type: "hebrew", value: l.hebrew, name: l.name },
+      { id: l.name + "-heb", type: "hebrew", value: l.wordHebrew, name: l.name },
       { id: l.name + "-pic", type: "picture", name: l.name, emoji: l.emoji },
     ]);
     return shuffle(pairs).map((c, i) => ({ ...c, pos: i, matched: false, selected: false }));
@@ -567,7 +567,7 @@ function MatchingGame({ onXP }) {
             }}
           >
             {card.type === "hebrew" ? (
-              <div style={{ fontSize: 64, lineHeight: 1, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff" }}>{card.value}</div>
+              <div style={{ fontSize: 22, lineHeight: 1.3, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff", direction: 'rtl', textAlign: 'center', padding: '0 6px' }}>{card.value}</div>
             ) : (
               <div style={{ fontSize: 62 }}>{card.emoji}</div>
             )}
@@ -1270,7 +1270,7 @@ function DrawingGame({ onXP }) {
   const [queue] = useState(() => shuffle(ALEPH_BET));
   const [qIdx, setQIdx] = useState(0);
   const [phase, setPhase] = useState('ready'); // ready | drawing | result
-  const [timeLeft, setTimeLeft] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(8);
   const [simScore, setSimScore] = useState(0);
   const timerRef = useRef(null);
   const drawingRef = useRef(false);
@@ -1290,8 +1290,9 @@ function DrawingGame({ onXP }) {
 
   const startRound = () => {
     clearCanvas();
+    drawingRef.current = true;  // synchronous flag — onHover can read this immediately
     setPhase('drawing');
-    let t = 5;
+    let t = 8;
     setTimeLeft(t);
     timerRef.current = setInterval(() => {
       t -= 1;
@@ -1309,7 +1310,9 @@ function DrawingGame({ onXP }) {
   };
 
   const onEnter = (e) => {
-    if (phase !== 'drawing') return;
+    // Auto-start the round the moment the mouse enters the canvas
+    if (phase === 'ready') startRound();
+    if (!drawingRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getPos(e);
     ctx.beginPath();
@@ -1317,7 +1320,7 @@ function DrawingGame({ onXP }) {
   };
 
   const onHover = (e) => {
-    if (phase !== 'drawing') return;
+    if (!drawingRef.current) return;
     e.preventDefault();
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getPos(e);
@@ -1387,6 +1390,7 @@ function DrawingGame({ onXP }) {
     const xp = score >= 65 ? 100 : score >= 45 ? 70 : score >= 25 ? 40 : 10;
     onXP(xp);
 
+    drawingRef.current = false;
     window.speechSynthesis.cancel();
     const fb = score >= 65 ? 'מצוין' : score >= 45 ? 'טוב מאוד' : score >= 25 ? 'כל הכבוד' : 'המשך לתרגל';
     const u = new SpeechSynthesisUtterance(fb);
@@ -1398,11 +1402,12 @@ function DrawingGame({ onXP }) {
 
   const next = () => {
     clearInterval(timerRef.current);
+    drawingRef.current = false;
     clearCanvas();
     setQIdx(i => (i + 1) % queue.length);
     setPhase('ready');
     setSimScore(0);
-    setTimeLeft(5);
+    setTimeLeft(8);
   };
 
   const feedbackLabel =
@@ -1466,15 +1471,14 @@ function DrawingGame({ onXP }) {
         />
       </div>
 
-      {/* Ready — start button */}
+      {/* Ready — hover hint */}
       {phase === 'ready' && (
-        <button onClick={startRound} style={{
-          padding: '16px 52px', borderRadius: 50, border: 'none',
-          background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
-          fontWeight: 900, fontSize: 22, cursor: 'pointer',
-          fontFamily: "'Noto Serif Hebrew', serif",
-          boxShadow: '0 8px 28px rgba(124,58,237,0.45)',
-        }}>!צייר</button>
+        <div style={{
+          color: '#a78bfa', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif",
+          direction: 'rtl', opacity: 0.8, textAlign: 'center', lineHeight: 1.5,
+        }}>
+          הנח את העכבר על הלוח כדי להתחיל
+        </div>
       )}
 
       {/* Drawing — timer + clear */}
@@ -1487,7 +1491,7 @@ function DrawingGame({ onXP }) {
           }}>{timeLeft}</div>
           <div style={{ width: CSIZE, height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 99, overflow: 'hidden' }}>
             <div style={{
-              width: `${(timeLeft / 5) * 100}%`, height: '100%',
+              width: `${(timeLeft / 8) * 100}%`, height: '100%',
               background: timeLeft <= 2
                 ? 'linear-gradient(90deg,#ef4444,#f87171)'
                 : 'linear-gradient(90deg,#7c3aed,#db2777)',
