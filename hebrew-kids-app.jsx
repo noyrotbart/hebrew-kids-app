@@ -257,6 +257,23 @@ const speakHebrew = (text) => {
   window.speechSynthesis.speak(utt);
 };
 
+// Spell a word letter-by-letter: says the whole word, then each letter name
+const speakSpelled = (word) => {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const uWord = new SpeechSynthesisUtterance(word.word);
+  uWord.lang = 'he-IL'; uWord.rate = 0.7;
+  window.speechSynthesis.speak(uWord);
+  for (const ch of word.letters) {
+    const entry = ALEPH_BET.find(l => l.hebrew === ch);
+    if (entry) {
+      const uL = new SpeechSynthesisUtterance(stripNikud(entry.nameHebrew));
+      uL.lang = 'he-IL'; uL.rate = 0.75;
+      window.speechSynthesis.speak(uL);
+    }
+  }
+};
+
 const speakLetter = (letter) => {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
@@ -724,6 +741,14 @@ function Quiz({ onXP }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ color: '#e9d5ff', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>?מה המילה בעברית</div>
         <SpeakButton onClick={() => speakHebrew(Q.word.word)} />
+        {/* Spell-it button: says word then each letter name */}
+        <button onClick={() => speakSpelled(Q.word)} title="איות" style={{
+          background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)',
+          borderRadius: 50, width: 36, height: 36,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', fontSize: 14, color: '#a78bfa',
+          fontFamily: "'Noto Serif Hebrew', serif", fontWeight: 900,
+        }}>אבג</button>
       </div>
 
       {/* Answer options */}
@@ -1042,7 +1067,9 @@ function SpellingGame({ onXP, profile }) {
   const [mistakes, setMistakes] = useState(0);
   const [phase, setPhase] = useState('playing'); // 'playing'|'won'|'failed'
   const [lastScore, setLastScore] = useState(null);
+  const [hintVisible, setHintVisible] = useState(false);
   const speakTRef = useRef(null);
+  const hintTimerRef = useRef(null);
   // Stable ref to handleChoice so keyboard listener never goes stale
   const handleChoiceRef = useRef(null);
 
@@ -1121,6 +1148,16 @@ function SpellingGame({ onXP, profile }) {
       }, 600);
     }
   };
+
+  // Delayed hint: light up correct key 3 s after the target letter changes
+  useEffect(() => {
+    setHintVisible(false);
+    clearTimeout(hintTimerRef.current);
+    if (phase === 'playing') {
+      hintTimerRef.current = setTimeout(() => setHintVisible(true), 3000);
+    }
+    return () => clearTimeout(hintTimerRef.current);
+  }, [qPos, slotIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Keep ref current so keyboard handler never captures stale closure
   handleChoiceRef.current = handleChoice;
@@ -1206,21 +1243,22 @@ function SpellingGame({ onXP, profile }) {
         {HEB_KEYBOARD.map((row, ri) => (
           <div key={ri} style={{ display:'flex', gap:6, justifyContent:'center' }}>
             {row.map(letter => {
-              const isCorrectLetter = phase === 'playing' && letter === W.letters[slotIdx];
+              const isCorrectLetter = phase === 'playing' && hintVisible && letter === W.letters[slotIdx];
               return (
                 <button key={letter} onClick={() => handleChoice(letter)}
                   disabled={phase !== 'playing'}
                   style={{
                     width:48, height:52, borderRadius:10,
                     background: phase !== 'playing' ? 'rgba(255,255,255,0.04)'
-                              : isCorrectLetter    ? 'rgba(124,58,237,0.30)'
+                              : isCorrectLetter    ? 'rgba(124,58,237,0.38)'
                               :                      'rgba(124,58,237,0.14)',
-                    border:`2px solid ${phase !== 'playing' ? 'rgba(255,255,255,0.08)' : isCorrectLetter ? 'rgba(167,139,250,0.7)' : 'rgba(167,139,250,0.35)'}`,
+                    border:`2px solid ${phase !== 'playing' ? 'rgba(255,255,255,0.08)' : isCorrectLetter ? 'rgba(167,139,250,0.9)' : 'rgba(167,139,250,0.35)'}`,
                     color: phase !== 'playing' ? 'rgba(255,255,255,0.3)' : '#f0e6ff',
                     fontFamily:"'Noto Serif Hebrew', serif", fontSize:24,
                     cursor: phase === 'playing' ? 'pointer' : 'default',
                     display:'flex', alignItems:'center', justifyContent:'center',
-                    transition:'all 0.15s',
+                    transition:'all 0.3s',
+                    animation: isCorrectLetter ? 'hint-glow 0.7s ease-out forwards' : 'none',
                   }}>{letter}</button>
               );
             })}
@@ -1324,7 +1362,7 @@ function DrawingGame({ onXP }) {
     setTimeLeft(t);
     timerRef.current = setInterval(() => {
       // Check confidence every second — stop early if score is good enough
-      if (computeScore() >= 65) {
+      if (computeScore() >= 30) {
         clearInterval(timerRef.current);
         evaluate();
         return;
@@ -1591,6 +1629,7 @@ export default function App() {
         }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @keyframes pulse-ring { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(1.4);opacity:0} }
+        @keyframes hint-glow { 0%{transform:scale(1);box-shadow:0 0 0 rgba(167,139,250,0)} 40%{transform:scale(1.12);box-shadow:0 0 22px rgba(167,139,250,1)} 100%{transform:scale(1.05);box-shadow:0 0 14px rgba(167,139,250,0.6)} }
         button:hover { transform: scale(1.04); }
         button { transition: all 0.15s; }
       `}</style>
