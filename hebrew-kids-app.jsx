@@ -386,9 +386,7 @@ function Flashcards({ onXP }) {
       utt.lang = 'he-IL'; utt.rate = 0.9;
       window.speechSynthesis.speak(utt);
     } else {
-      const uHeb = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
-      uHeb.lang = 'he-IL'; uHeb.rate = 0.75;
-      window.speechSynthesis.speak(uHeb);
+      speakLetter(letter);
     }
     onXP(correct ? 100 : -50);
   };
@@ -1122,11 +1120,7 @@ function SpellingGame({ onXP, profile }) {
     // Always speak the tapped letter's Hebrew name first
     window.speechSynthesis.cancel();
     const tappedEntry = ALEPH_BET.find(l => l.hebrew === letter);
-    if (tappedEntry) {
-      const uName = new SpeechSynthesisUtterance(stripNikud(tappedEntry.nameHebrew));
-      uName.lang = 'he-IL'; uName.rate = 0.85;
-      window.speechSynthesis.speak(uName);
-    }
+    if (tappedEntry) speakLetter(tappedEntry);
 
     const correct = letter === W.letters[slotIdx];
     if (correct) {
