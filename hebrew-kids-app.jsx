@@ -1288,13 +1288,47 @@ function DrawingGame({ onXP }) {
     if (ctx) ctx.clearRect(0, 0, CSIZE, CSIZE);
   };
 
+  // Pure: compute Jaccard similarity between drawn strokes and reference letter
+  const computeScore = () => {
+    if (!canvasRef.current) return 0;
+    const uData = canvasRef.current.getContext('2d').getImageData(0, 0, CSIZE, CSIZE).data;
+    const ref = document.createElement('canvas');
+    ref.width = CSIZE; ref.height = CSIZE;
+    const rCtx = ref.getContext('2d');
+    rCtx.font = `bold ${Math.round(CSIZE * 0.72)}px "Noto Serif Hebrew", serif`;
+    rCtx.textAlign = 'center'; rCtx.textBaseline = 'middle';
+    rCtx.fillStyle = 'white';
+    rCtx.fillText(L.hebrew, CSIZE / 2, CSIZE / 2 + CSIZE * 0.04);
+    const rData = rCtx.getImageData(0, 0, CSIZE, CSIZE).data;
+    const N = CSIZE * CSIZE;
+    const uMask = new Uint8Array(N);
+    const rMask = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      uMask[i] = uData[i * 4 + 3] > 40 ? 1 : 0;
+      rMask[i] = rData[i * 4 + 3] > 40 ? 1 : 0;
+    }
+    const dilU = dilate(uMask, CSIZE, CSIZE, 22);
+    let inter = 0, union = 0;
+    for (let i = 0; i < N; i++) {
+      if (dilU[i] || rMask[i]) union++;
+      if (dilU[i] && rMask[i]) inter++;
+    }
+    return union > 0 ? Math.round((inter / union) * 100) : 0;
+  };
+
   const startRound = () => {
     clearCanvas();
-    drawingRef.current = true;  // synchronous flag — onHover can read this immediately
+    drawingRef.current = false;
     setPhase('drawing');
     let t = 8;
     setTimeLeft(t);
     timerRef.current = setInterval(() => {
+      // Check confidence every second — stop early if score is good enough
+      if (computeScore() >= 65) {
+        clearInterval(timerRef.current);
+        evaluate();
+        return;
+      }
       t -= 1;
       setTimeLeft(t);
       if (t <= 0) { clearInterval(timerRef.current); evaluate(); }
@@ -1309,17 +1343,18 @@ function DrawingGame({ onXP }) {
     };
   };
 
-  const onEnter = (e) => {
-    // Auto-start the round the moment the mouse enters the canvas
-    if (phase === 'ready') startRound();
-    if (!drawingRef.current) return;
+  const onDown = (e) => {
+    if (phase === 'result') return;
+    if (phase === 'ready') startRound();   // auto-start on first press
+    e.preventDefault();
+    drawingRef.current = true;
     const ctx = canvasRef.current.getContext('2d');
     const { x, y } = getPos(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
-  const onHover = (e) => {
+  const onMove = (e) => {
     if (!drawingRef.current) return;
     e.preventDefault();
     const ctx = canvasRef.current.getContext('2d');
@@ -1331,6 +1366,8 @@ function DrawingGame({ onXP }) {
     ctx.lineJoin = 'round';
     ctx.stroke();
   };
+
+  const onUp = () => { drawingRef.current = false; };
 
   // O(N) separable dilation via prefix sums
   const dilate = (mask, w, h, r) => {
@@ -1354,37 +1391,7 @@ function DrawingGame({ onXP }) {
   };
 
   const evaluate = () => {
-    // User canvas pixels
-    const uData = canvasRef.current.getContext('2d').getImageData(0, 0, CSIZE, CSIZE).data;
-
-    // Reference: render the target letter to an off-screen canvas
-    const ref = document.createElement('canvas');
-    ref.width = CSIZE; ref.height = CSIZE;
-    const rCtx = ref.getContext('2d');
-    rCtx.font = `bold ${Math.round(CSIZE * 0.72)}px "Noto Serif Hebrew", serif`;
-    rCtx.textAlign = 'center';
-    rCtx.textBaseline = 'middle';
-    rCtx.fillStyle = 'white';
-    rCtx.fillText(L.hebrew, CSIZE / 2, CSIZE / 2 + CSIZE * 0.04);
-    const rData = rCtx.getImageData(0, 0, CSIZE, CSIZE).data;
-
-    const N = CSIZE * CSIZE;
-    const uMask = new Uint8Array(N);
-    const rMask = new Uint8Array(N);
-    for (let i = 0; i < N; i++) {
-      uMask[i] = uData[i * 4 + 3] > 40 ? 1 : 0;
-      rMask[i] = rData[i * 4 + 3] > 40 ? 1 : 0;
-    }
-
-    // Dilate user strokes by 22px so near-misses still count
-    const dilU = dilate(uMask, CSIZE, CSIZE, 22);
-
-    let inter = 0, union = 0;
-    for (let i = 0; i < N; i++) {
-      if (dilU[i] || rMask[i]) union++;
-      if (dilU[i] && rMask[i]) inter++;
-    }
-    const score = union > 0 ? Math.round((inter / union) * 100) : 0;
+    const score = computeScore();
     setSimScore(score);
 
     const xp = score >= 65 ? 100 : score >= 45 ? 70 : score >= 25 ? 40 : 10;
@@ -1457,8 +1464,10 @@ function DrawingGame({ onXP }) {
           ref={canvasRef}
           width={CSIZE}
           height={CSIZE}
-          onMouseEnter={onEnter}
-          onMouseMove={onHover}
+          onMouseDown={onDown}
+          onMouseMove={onMove}
+          onMouseUp={onUp}
+          onMouseLeave={onUp}
           style={{
             display: 'block', borderRadius: 22,
             background: 'rgba(20,16,60,0.7)',
@@ -1471,13 +1480,13 @@ function DrawingGame({ onXP }) {
         />
       </div>
 
-      {/* Ready — hover hint */}
+      {/* Ready — draw hint */}
       {phase === 'ready' && (
         <div style={{
           color: '#a78bfa', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif",
           direction: 'rtl', opacity: 0.8, textAlign: 'center', lineHeight: 1.5,
         }}>
-          הנח את העכבר על הלוח כדי להתחיל
+          לחץ וגרור על הלוח כדי לצייר
         </div>
       )}
 
