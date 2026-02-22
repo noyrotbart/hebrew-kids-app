@@ -1,28 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 
 const ALEPH_BET = [
-  { hebrew: "א", name: "Aleph", nameHebrew: "אָלֶף", sound: "silent", word: "Aryeh", wordHebrew: "אַרְיֵה", emoji: "🦁", wordMeaning: "Lion" },
-  { hebrew: "ב", name: "Bet", nameHebrew: "בֵּית", sound: "B", word: "Bayit", wordHebrew: "בַּיִת", emoji: "🏠", wordMeaning: "House" },
-  { hebrew: "ג", name: "Gimel", nameHebrew: "גִּימֶל", sound: "G", word: "Gamal", wordHebrew: "גָּמָל", emoji: "🐪", wordMeaning: "Camel" },
-  { hebrew: "ד", name: "Dalet", nameHebrew: "דָּלֶת", sound: "D", word: "Dag", wordHebrew: "דָּג", emoji: "🐟", wordMeaning: "Fish" },
-  { hebrew: "ה", name: "Hey", nameHebrew: "הֵא", sound: "H", word: "Har", wordHebrew: "הַר", emoji: "⛰️", wordMeaning: "Mountain" },
-  { hebrew: "ו", name: "Vav", nameHebrew: "וָו", sound: "V", word: "Vered", wordHebrew: "וֶרֶד", emoji: "🌹", wordMeaning: "Rose" },
-  { hebrew: "ז", name: "Zayin", nameHebrew: "זַיִן", sound: "Z", word: "Zahav", wordHebrew: "זָהָב", emoji: "⭐", wordMeaning: "Gold" },
-  { hebrew: "ח", name: "Chet", nameHebrew: "חֵית", sound: "Ch", word: "Chatul", wordHebrew: "חָתוּל", emoji: "🐱", wordMeaning: "Cat" },
-  { hebrew: "ט", name: "Tet", nameHebrew: "טֵית", sound: "T", word: "Taus", wordHebrew: "טַוָּס", emoji: "🦚", wordMeaning: "Peacock" },
-  { hebrew: "י", name: "Yod", nameHebrew: "יוֹד", sound: "Y", word: "Yam", wordHebrew: "יָם", emoji: "🌊", wordMeaning: "Sea" },
-  { hebrew: "כ", name: "Kaf", nameHebrew: "כַּף", sound: "K", word: "Kelev", wordHebrew: "כֶּלֶב", emoji: "🐶", wordMeaning: "Dog" },
-  { hebrew: "ל", name: "Lamed", nameHebrew: "לָמֶד", sound: "L", word: "Lev", wordHebrew: "לֵב", emoji: "❤️", wordMeaning: "Heart" },
-  { hebrew: "מ", name: "Mem", nameHebrew: "מֵם", sound: "M", word: "Mayim", wordHebrew: "מַיִם", emoji: "💧", wordMeaning: "Water" },
-  { hebrew: "נ", name: "Nun", nameHebrew: "נוּן", sound: "N", word: "Namer", wordHebrew: "נָמֵר", emoji: "🐆", wordMeaning: "Leopard" },
-  { hebrew: "ס", name: "Samech", nameHebrew: "סָמֶךְ", sound: "S", word: "Soos", wordHebrew: "סוּס", emoji: "🐴", wordMeaning: "Horse" },
-  { hebrew: "ע", name: "Ayin", nameHebrew: "עַיִן", sound: "silent", word: "Etz", wordHebrew: "עֵץ", emoji: "🌳", wordMeaning: "Tree" },
-  { hebrew: "פ", name: "Pey", nameHebrew: "פֵּא", sound: "P", word: "Pil", wordHebrew: "פִּיל", emoji: "🐘", wordMeaning: "Elephant" },
-  { hebrew: "צ", name: "Tzadi", nameHebrew: "צָדִי", sound: "Tz", word: "Tzipor", wordHebrew: "צִפּוֹר", emoji: "🐦", wordMeaning: "Bird" },
-  { hebrew: "ק", name: "Kuf", nameHebrew: "קוֹף", sound: "K", word: "Kof", wordHebrew: "קוֹף", emoji: "🐒", wordMeaning: "Monkey" },
-  { hebrew: "ר", name: "Resh", nameHebrew: "רֵישׁ", sound: "R", word: "Rachev", wordHebrew: "רֶכֶב", emoji: "🚗", wordMeaning: "Car" },
-  { hebrew: "ש", name: "Shin", nameHebrew: "שִׁין", sound: "Sh", word: "Shemesh", wordHebrew: "שֶׁמֶשׁ", emoji: "☀️", wordMeaning: "Sun" },
-  { hebrew: "ת", name: "Tav", nameHebrew: "תָּו", sound: "T", word: "Tapuz", wordHebrew: "תַּפּוּז", emoji: "🍊", wordMeaning: "Orange" },
+  { hebrew: "א", audio: "alef",  name: "Aleph",  nameHebrew: "אָלֶף", sound: "silent", word: "Aryeh",   wordHebrew: "אַרְיֵה", emoji: "🦁", wordMeaning: "Lion" },
+  { hebrew: "ב", audio: "bet",   name: "Bet",    nameHebrew: "בֵּית", sound: "B",      word: "Bayit",   wordHebrew: "בַּיִת", emoji: "🏠", wordMeaning: "House" },
+  { hebrew: "ג", audio: "gimel", name: "Gimel",  nameHebrew: "גִּימֶל", sound: "G",    word: "Gamal",   wordHebrew: "גָּמָל", emoji: "🐪", wordMeaning: "Camel" },
+  { hebrew: "ד", audio: "dalet", name: "Dalet",  nameHebrew: "דָּלֶת", sound: "D",    word: "Dag",     wordHebrew: "דָּג",   emoji: "🐟", wordMeaning: "Fish" },
+  { hebrew: "ה", audio: "he",    name: "Hey",    nameHebrew: "הֵא",   sound: "H",      word: "Har",     wordHebrew: "הַר",    emoji: "⛰️", wordMeaning: "Mountain" },
+  { hebrew: "ו", audio: "vav",   name: "Vav",    nameHebrew: "וָו",   sound: "V",      word: "Vered",   wordHebrew: "וֶרֶד",  emoji: "🌹", wordMeaning: "Rose" },
+  { hebrew: "ז", audio: "zayin", name: "Zayin",  nameHebrew: "זַיִן", sound: "Z",      word: "Zahav",   wordHebrew: "זָהָב",  emoji: "⭐", wordMeaning: "Gold" },
+  { hebrew: "ח", audio: "het",   name: "Chet",   nameHebrew: "חֵית", sound: "Ch",      word: "Chatul",  wordHebrew: "חָתוּל", emoji: "🐱", wordMeaning: "Cat" },
+  { hebrew: "ט", audio: "tet",   name: "Tet",    nameHebrew: "טֵית", sound: "T",       word: "Taus",    wordHebrew: "טַוָּס", emoji: "🦚", wordMeaning: "Peacock" },
+  { hebrew: "י", audio: "yod",   name: "Yod",    nameHebrew: "יוֹד", sound: "Y",       word: "Yam",     wordHebrew: "יָם",    emoji: "🌊", wordMeaning: "Sea" },
+  { hebrew: "כ", audio: "kaf",   name: "Kaf",    nameHebrew: "כַּף", sound: "K",       word: "Kelev",   wordHebrew: "כֶּלֶב", emoji: "🐶", wordMeaning: "Dog" },
+  { hebrew: "ל", audio: "lamed", name: "Lamed",  nameHebrew: "לָמֶד", sound: "L",     word: "Lev",     wordHebrew: "לֵב",    emoji: "❤️", wordMeaning: "Heart" },
+  { hebrew: "מ", audio: "mem",   name: "Mem",    nameHebrew: "מֵם",  sound: "M",       word: "Mayim",   wordHebrew: "מַיִם",  emoji: "💧", wordMeaning: "Water" },
+  { hebrew: "נ", audio: "nun",   name: "Nun",    nameHebrew: "נוּן", sound: "N",       word: "Namer",   wordHebrew: "נָמֵר",  emoji: "🐆", wordMeaning: "Leopard" },
+  { hebrew: "ס", audio: "samex", name: "Samech", nameHebrew: "סָמֶךְ", sound: "S",    word: "Soos",    wordHebrew: "סוּס",   emoji: "🐴", wordMeaning: "Horse" },
+  { hebrew: "ע", audio: "ayin",  name: "Ayin",   nameHebrew: "עַיִן", sound: "silent", word: "Etz",    wordHebrew: "עֵץ",    emoji: "🌳", wordMeaning: "Tree" },
+  { hebrew: "פ", audio: "pe",    name: "Pey",    nameHebrew: "פֵּא", sound: "P",       word: "Pil",     wordHebrew: "פִּיל",  emoji: "🐘", wordMeaning: "Elephant" },
+  { hebrew: "צ", audio: "tsadi", name: "Tzadi",  nameHebrew: "צָדִי", sound: "Tz",    word: "Tzipor",  wordHebrew: "צִפּוֹר", emoji: "🐦", wordMeaning: "Bird" },
+  { hebrew: "ק", audio: "kof",   name: "Kuf",    nameHebrew: "קוֹף", sound: "K",       word: "Kof",     wordHebrew: "קוֹף",   emoji: "🐒", wordMeaning: "Monkey" },
+  { hebrew: "ר", audio: "resh",  name: "Resh",   nameHebrew: "רֵישׁ", sound: "R",     word: "Rachev",  wordHebrew: "רֶכֶב",  emoji: "🚗", wordMeaning: "Car" },
+  { hebrew: "ש", audio: "shin",  name: "Shin",   nameHebrew: "שִׁין", sound: "Sh",    word: "Shemesh", wordHebrew: "שֶׁמֶשׁ", emoji: "☀️", wordMeaning: "Sun" },
+  { hebrew: "ת", audio: "tav",   name: "Tav",    nameHebrew: "תָּו", sound: "T",       word: "Tapuz",   wordHebrew: "תַּפּוּז", emoji: "🍊", wordMeaning: "Orange" },
 ];
 
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
@@ -257,29 +257,52 @@ const speakHebrew = (text) => {
   window.speechSynthesis.speak(utt);
 };
 
-// Spell a word letter-by-letter: says the whole word, then each letter name
-const speakSpelled = (word) => {
-  if (!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const uWord = new SpeechSynthesisUtterance(word.word);
-  uWord.lang = 'he-IL'; uWord.rate = 0.7;
-  window.speechSynthesis.speak(uWord);
-  for (const ch of word.letters) {
-    const entry = ALEPH_BET.find(l => l.hebrew === ch);
-    if (entry) {
-      const uL = new SpeechSynthesisUtterance(stripNikud(entry.nameHebrew));
-      uL.lang = 'he-IL'; uL.rate = 0.75;
-      window.speechSynthesis.speak(uL);
-    }
+// Play a recorded letter audio file; fall back to Web Speech API
+const speakLetter = (letter) => {
+  if (letter.audio) {
+    const a = new Audio(`/audio/${letter.audio}.m4a`);
+    a.play().catch(() => {
+      // File missing or blocked — fall back to TTS
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
+      utt.lang = 'he-IL'; utt.rate = 0.75;
+      window.speechSynthesis.speak(utt);
+    });
+  } else {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
+    utt.lang = 'he-IL'; utt.rate = 0.75;
+    window.speechSynthesis.speak(utt);
   }
 };
 
-const speakLetter = (letter) => {
-  if (!('speechSynthesis' in window)) return;
+// Spell a word: say the whole word (TTS), then each letter name (recorded audio)
+// Chains audio clips sequentially via onended callbacks
+const speakSpelled = (word) => {
+  // First say the whole word via TTS
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
-  utt.lang = 'he-IL'; utt.rate = 0.75;
-  window.speechSynthesis.speak(utt);
+  const uWord = new SpeechSynthesisUtterance(word.word);
+  uWord.lang = 'he-IL'; uWord.rate = 0.7;
+  // After word finishes, play each letter recording in sequence
+  const entries = word.letters
+    .map(ch => ALEPH_BET.find(l => l.hebrew === ch))
+    .filter(Boolean);
+  const playChain = (i) => {
+    if (i >= entries.length) return;
+    const a = new Audio(`/audio/${entries[i].audio}.m4a`);
+    a.onended = () => playChain(i + 1);
+    a.play().catch(() => {
+      // fallback: TTS for this letter then continue
+      const u = new SpeechSynthesisUtterance(stripNikud(entries[i].nameHebrew));
+      u.lang = 'he-IL'; u.rate = 0.75;
+      u.onend = () => playChain(i + 1);
+      window.speechSynthesis.speak(u);
+    });
+  };
+  uWord.onend = () => playChain(0);
+  window.speechSynthesis.speak(uWord);
 };
 
 function SpeakButton({ onClick, style = {} }) {
