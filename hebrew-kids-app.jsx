@@ -82,6 +82,114 @@ const WORD_CODEX = [
   { word:'אכל', letters:['א','כ','ל'], meaning:'Ate',      emoji:'🍴' },
 ];
 
+// ── 4-LETTER WORD CODEX (Advanced) ────────────────────────────
+const WORD_CODEX_4 = [
+  { word:'ילדה', letters:['י','ל','ד','ה'], meaning:'Girl',        emoji:'👧' },
+  { word:'חתול', letters:['ח','ת','ו','ל'], meaning:'Cat',         emoji:'🐱' },
+  { word:'ארנב', letters:['א','ר','נ','ב'], meaning:'Rabbit',      emoji:'🐰' },
+  { word:'כבשה', letters:['כ','ב','ש','ה'], meaning:'Sheep',       emoji:'🐑' },
+  { word:'תפוח', letters:['ת','פ','ו','ח'], meaning:'Apple',       emoji:'🍎' },
+  { word:'חלון', letters:['ח','ל','ו','נ'], meaning:'Window',      emoji:'🪟' },
+  { word:'לילה', letters:['ל','י','ל','ה'], meaning:'Night',       emoji:'🌙' },
+  { word:'בוקר', letters:['ב','ו','ק','ר'], meaning:'Morning',     emoji:'🌅' },
+  { word:'חודש', letters:['ח','ו','ד','ש'], meaning:'Month',       emoji:'📅' },
+  { word:'שבוע', letters:['ש','ב','ו','ע'], meaning:'Week',        emoji:'📆' },
+  { word:'מטוס', letters:['מ','ט','ו','ס'], meaning:'Airplane',    emoji:'✈️' },
+  { word:'כדור', letters:['כ','ד','ו','ר'], meaning:'Ball',        emoji:'⚽' },
+  { word:'כיתה', letters:['כ','י','ת','ה'], meaning:'Classroom',   emoji:'🏫' },
+  { word:'מורה', letters:['מ','ו','ר','ה'], meaning:'Teacher',     emoji:'👩‍🏫' },
+  { word:'אחות', letters:['א','ח','ו','ת'], meaning:'Sister',      emoji:'👧' },
+  { word:'דודה', letters:['ד','ו','ד','ה'], meaning:'Aunt',        emoji:'👩' },
+  { word:'סבתא', letters:['ס','ב','ת','א'], meaning:'Grandma',     emoji:'👵' },
+  { word:'מלכה', letters:['מ','ל','כ','ה'], meaning:'Queen',       emoji:'👑' },
+  { word:'כוכב', letters:['כ','ו','כ','ב'], meaning:'Star',        emoji:'⭐' },
+  { word:'אדמה', letters:['א','ד','מ','ה'], meaning:'Earth',       emoji:'🌍' },
+  { word:'אריה', letters:['א','ר','י','ה'], meaning:'Lion',        emoji:'🦁' },
+  { word:'שחור', letters:['ש','ח','ו','ר'], meaning:'Black',       emoji:'⚫' },
+  { word:'כחול', letters:['כ','ח','ו','ל'], meaning:'Blue',        emoji:'🔵' },
+  { word:'צהוב', letters:['צ','ה','ו','ב'], meaning:'Yellow',      emoji:'🌟' },
+  { word:'ירוק', letters:['י','ר','ו','ק'], meaning:'Green',       emoji:'🌿' },
+  { word:'אדום', letters:['א','ד','ו','מ'], meaning:'Red',         emoji:'🔴' },
+  { word:'ורוד', letters:['ו','ר','ו','ד'], meaning:'Pink',        emoji:'🌸' },
+  { word:'רכבת', letters:['ר','כ','ב','ת'], meaning:'Train',       emoji:'🚂' },
+  { word:'תפוז', letters:['ת','פ','ו','ז'], meaning:'Orange',      emoji:'🍊' },
+  { word:'נמלה', letters:['נ','מ','ל','ה'], meaning:'Ant',         emoji:'🐜' },
+  { word:'פרפר', letters:['פ','ר','פ','ר'], meaning:'Butterfly',   emoji:'🦋' },
+  { word:'דובי', letters:['ד','ו','ב','י'], meaning:'Teddy Bear',  emoji:'🧸' },
+  { word:'בובה', letters:['ב','ו','ב','ה'], meaning:'Doll',        emoji:'🪆' },
+  { word:'שינה', letters:['ש','י','נ','ה'], meaning:'Sleep',       emoji:'😴' },
+  { word:'ריצה', letters:['ר','י','צ','ה'], meaning:'Running',     emoji:'🏃' },
+  { word:'ציור', letters:['צ','י','ו','ר'], meaning:'Drawing',     emoji:'🎨' },
+  { word:'שעון', letters:['ש','ע','ו','נ'], meaning:'Clock',       emoji:'⏰' },
+  { word:'מחשב', letters:['מ','ח','ש','ב'], meaning:'Computer',    emoji:'💻' },
+  { word:'עוגה', letters:['ע','ו','ג','ה'], meaning:'Cake',        emoji:'🎂' },
+  { word:'שמלה', letters:['ש','מ','ל','ה'], meaning:'Dress',       emoji:'👗' },
+  { word:'כובע', letters:['כ','ו','ב','ע'], meaning:'Hat',         emoji:'🎩' },
+  { word:'בלון', letters:['ב','ל','ו','נ'], meaning:'Balloon',     emoji:'🎈' },
+  { word:'טירה', letters:['ט','י','ר','ה'], meaning:'Castle',      emoji:'🏰' },
+  { word:'נרות', letters:['נ','ר','ו','ת'], meaning:'Candles',     emoji:'🕯️' },
+  { word:'שופר', letters:['ש','ו','פ','ר'], meaning:'Shofar',      emoji:'📯' },
+  { word:'חלום', letters:['ח','ל','ו','מ'], meaning:'Dream',       emoji:'💭' },
+  { word:'גדול', letters:['ג','ד','ו','ל'], meaning:'Big',         emoji:'🐘' },
+  { word:'עצוב', letters:['ע','צ','ו','ב'], meaning:'Sad',         emoji:'😢' },
+  { word:'שמחה', letters:['ש','מ','ח','ה'], meaning:'Joy',         emoji:'😊' },
+  { word:'חנות', letters:['ח','נ','ו','ת'], meaning:'Shop',        emoji:'🏪' },
+];
+
+// ── 5-LETTER WORD CODEX (Expert) ──────────────────────────────
+const WORD_CODEX_5 = [
+  { word:'ציפור', letters:['צ','י','פ','ו','ר'], meaning:'Bird',        emoji:'🐦' },
+  { word:'ילדים', letters:['י','ל','ד','י','מ'], meaning:'Children',    emoji:'👦' },
+  { word:'שולחן', letters:['ש','ו','ל','ח','נ'], meaning:'Table',       emoji:'🪑' },
+  { word:'מחברת', letters:['מ','ח','ב','ר','ת'], meaning:'Notebook',    emoji:'📓' },
+  { word:'תלמיד', letters:['ת','ל','מ','י','ד'], meaning:'Student',     emoji:'🎒' },
+  { word:'ספינה', letters:['ס','פ','י','נ','ה'], meaning:'Ship',        emoji:'⛵' },
+  { word:'ברווז', letters:['ב','ר','ו','ו','ז'], meaning:'Duck',        emoji:'🦆' },
+  { word:'עכביש', letters:['ע','כ','ב','י','ש'], meaning:'Spider',      emoji:'🕷️' },
+  { word:'אפרוח', letters:['א','פ','ר','ו','ח'], meaning:'Chick',       emoji:'🐥' },
+  { word:'דבורה', letters:['ד','ב','ו','ר','ה'], meaning:'Bee',         emoji:'🐝' },
+  { word:'לימון', letters:['ל','י','מ','ו','נ'], meaning:'Lemon',       emoji:'🍋' },
+  { word:'אבטיח', letters:['א','ב','ט','י','ח'], meaning:'Watermelon',  emoji:'🍉' },
+  { word:'ענבים', letters:['ע','נ','ב','י','מ'], meaning:'Grapes',      emoji:'🍇' },
+  { word:'נסיכה', letters:['נ','ס','י','כ','ה'], meaning:'Princess',    emoji:'👸' },
+  { word:'גיבור', letters:['ג','י','ב','ו','ר'], meaning:'Hero',        emoji:'🦸' },
+  { word:'ספריה', letters:['ס','פ','ר','י','ה'], meaning:'Library',     emoji:'📚' },
+  { word:'מנורה', letters:['מ','נ','ו','ר','ה'], meaning:'Lamp',        emoji:'🕎' },
+  { word:'שמיכה', letters:['ש','מ','י','כ','ה'], meaning:'Blanket',     emoji:'🛏️' },
+  { word:'מונית', letters:['מ','ו','נ','י','ת'], meaning:'Taxi',        emoji:'🚕' },
+  { word:'משפחה', letters:['מ','ש','פ','ח','ה'], meaning:'Family',      emoji:'👨‍👩‍👦' },
+  { word:'גלידה', letters:['ג','ל','י','ד','ה'], meaning:'Ice Cream',   emoji:'🍦' },
+  { word:'עוגיה', letters:['ע','ו','ג','י','ה'], meaning:'Cookie',      emoji:'🍪' },
+  { word:'נעלים', letters:['נ','ע','ל','י','מ'], meaning:'Shoes',       emoji:'👟' },
+  { word:'חולצה', letters:['ח','ו','ל','צ','ה'], meaning:'Shirt',       emoji:'👕' },
+  { word:'בקבוק', letters:['ב','ק','ב','ו','ק'], meaning:'Bottle',      emoji:'🍼' },
+  { word:'חגיגה', letters:['ח','ג','י','ג','ה'], meaning:'Celebration', emoji:'🎉' },
+  { word:'מסיבה', letters:['מ','ס','י','ב','ה'], meaning:'Party',       emoji:'🎊' },
+  { word:'ארמון', letters:['א','ר','מ','ו','נ'], meaning:'Palace',      emoji:'🏰' },
+  { word:'חנוכה', letters:['ח','נ','ו','כ','ה'], meaning:'Hanukkah',    emoji:'🕎' },
+  { word:'סוכות', letters:['ס','ו','כ','ו','ת'], meaning:'Sukkot',      emoji:'🌿' },
+  { word:'מדינה', letters:['מ','ד','י','נ','ה'], meaning:'Country',     emoji:'🗺️' },
+  { word:'ילדות', letters:['י','ל','ד','ו','ת'], meaning:'Childhood',   emoji:'🧒' },
+  { word:'כלבלב', letters:['כ','ל','ב','ל','ב'], meaning:'Puppy',       emoji:'🐶' },
+  { word:'ארנבת', letters:['א','ר','נ','ב','ת'], meaning:'Bunny',       emoji:'🐰' },
+  { word:'קופים', letters:['ק','ו','פ','י','מ'], meaning:'Monkeys',     emoji:'🐒' },
+  { word:'פילים', letters:['פ','י','ל','י','מ'], meaning:'Elephants',   emoji:'🐘' },
+  { word:'אריות', letters:['א','ר','י','ו','ת'], meaning:'Lions',       emoji:'🦁' },
+  { word:'נמרים', letters:['נ','מ','ר','י','מ'], meaning:'Leopards',    emoji:'🐆' },
+  { word:'לויתן', letters:['ל','ו','י','ת','נ'], meaning:'Whale',       emoji:'🐋' },
+  { word:'נהרות', letters:['נ','ה','ר','ו','ת'], meaning:'Rivers',      emoji:'🌊' },
+  { word:'פרחים', letters:['פ','ר','ח','י','מ'], meaning:'Flowers',     emoji:'🌸' },
+  { word:'שיעור', letters:['ש','י','ע','ו','ר'], meaning:'Lesson',      emoji:'📖' },
+  { word:'אחיות', letters:['א','ח','י','ו','ת'], meaning:'Sisters',     emoji:'👧' },
+  { word:'תמרים', letters:['ת','מ','ר','י','מ'], meaning:'Dates',       emoji:'🌴' },
+  { word:'גיטרה', letters:['ג','י','ט','ר','ה'], meaning:'Guitar',      emoji:'🎸' },
+  { word:'פסנתר', letters:['פ','ס','נ','ת','ר'], meaning:'Piano',       emoji:'🎹' },
+  { word:'חינוך', letters:['ח','י','נ','ו','כ'], meaning:'Education',   emoji:'📚' },
+  { word:'בריכה', letters:['ב','ר','י','כ','ה'], meaning:'Pool',        emoji:'🏊' },
+  { word:'אופנה', letters:['א','ו','פ','נ','ה'], meaning:'Fashion',     emoji:'👗' },
+  { word:'שמחות', letters:['ש','מ','ח','ו','ת'], meaning:'Celebrations',emoji:'🎊' },
+];
+
 // ── HELPERS ───────────────────────────────────────────────────
 // Remove Hebrew nikud (vowel points) so TTS doesn't stumble on them
 const stripNikud = (s) => s.replace(/[\u0591-\u05C7]/g, '');
@@ -397,7 +505,7 @@ function MatchingGame({ onXP }) {
   const [cards, setCards] = useState(() => {
     const pairs = pool.flatMap(l => [
       { id: l.name + "-heb", type: "hebrew", value: l.hebrew, name: l.name },
-      { id: l.name + "-eng", type: "english", value: l.name, name: l.name, emoji: l.emoji },
+      { id: l.name + "-pic", type: "picture", name: l.name, emoji: l.emoji },
     ]);
     return shuffle(pairs).map((c, i) => ({ ...c, pos: i, matched: false, selected: false }));
   });
@@ -416,6 +524,8 @@ function MatchingGame({ onXP }) {
 
     if (newSel.length === 2) {
       if (newSel[0].name === newSel[1].name) {
+        const matched = ALEPH_BET.find(a => a.name === newSel[0].name);
+        if (matched) speakHebrew(matched.wordHebrew);
         setTimeout(() => {
           setCards(prev => prev.map(c =>
             c.name === newSel[0].name ? { ...c, matched: true, selected: false } : c
@@ -439,27 +549,21 @@ function MatchingGame({ onXP }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
-      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, letterSpacing: 2 }}>
-        Match Hebrew letters to their names! · {matches}/{SIZE} matched
+      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+        {matches}/{SIZE} זוגות · !מצא את הזוגות
       </div>
       {done && (
-        <div style={{ background: "linear-gradient(135deg,#7c3aed,#db2777)", borderRadius: 16, padding: "14px 32px", color: "white", fontWeight: 900, fontSize: 20, textAlign: "center" }}>
-          🎉 Amazing! All matched!
+        <div style={{ background: "linear-gradient(135deg,#7c3aed,#db2777)", borderRadius: 16, padding: "14px 32px", color: "white", fontWeight: 900, fontSize: 20, textAlign: "center", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+          !🎉 כל הזוגות נמצאו
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, maxWidth: 440 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, maxWidth: 440 }}>
         {cards.map(card => (
           <div
             key={card.id}
-            onClick={() => {
-              select(card.pos);
-              if (card.type === 'hebrew') {
-                const l = ALEPH_BET.find(a => a.name === card.name);
-                if (l) speakHebrew(l.wordHebrew);
-              }
-            }}
+            onClick={() => select(card.pos)}
             style={{
-              width: 90, height: 90, borderRadius: 16, display: "flex", flexDirection: "column",
+              width: 130, height: 130, borderRadius: 20, display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center", cursor: card.matched ? "default" : "pointer",
               background: card.matched
                 ? "linear-gradient(135deg,#065f46,#047857)"
@@ -474,12 +578,9 @@ function MatchingGame({ onXP }) {
             }}
           >
             {card.type === "hebrew" ? (
-              <div style={{ fontSize: 38, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff" }}>{card.value}</div>
+              <div style={{ fontSize: 64, lineHeight: 1, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff" }}>{card.value}</div>
             ) : (
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 22 }}>{card.emoji}</div>
-                <div style={{ fontSize: 13, color: card.matched ? "#6ee7b7" : "#e9d5ff", fontWeight: 700 }}>{card.value}</div>
-              </div>
+              <div style={{ fontSize: 62 }}>{card.emoji}</div>
             )}
           </div>
         ))}
@@ -489,95 +590,175 @@ function MatchingGame({ onXP }) {
 }
 
 // ── QUIZ MODE ─────────────────────────────────────────────────
+const QUIZ_LEVELS = {
+  1: { codex: null,        label: 'מתחיל',  sublabel: '3 אותיות', emoji: '🌱', color: '#10b981' },
+  2: { codex: 'codex4',   label: 'מתקדם',  sublabel: '4 אותיות', emoji: '🌟', color: '#f59e0b' },
+  3: { codex: 'codex5',   label: 'מומחה',  sublabel: '5 אותיות', emoji: '🏆', color: '#ef4444' },
+};
+
 function Quiz({ onXP }) {
+  const [level, setLevel] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [done, setDone] = useState(false);
-  const [questions] = useState(() => {
-    return shuffle(ALEPH_BET).slice(0, 8).map(letter => {
-      const wrongs = shuffle(ALEPH_BET.filter(l => l.name !== letter.name)).slice(0, 3);
-      return {
-        letter,
-        options: shuffle([letter, ...wrongs]),
-      };
+
+  const buildQuestions = (codex) =>
+    shuffle(codex).slice(0, 8).map(word => {
+      const wrongs = shuffle(codex.filter(w => w.word !== word.word)).slice(0, 3);
+      return { word, options: shuffle([word, ...wrongs]) };
     });
-  });
+
+  const startLevel = (lvl) => {
+    const codex = lvl === 1 ? WORD_CODEX : lvl === 2 ? WORD_CODEX_4 : WORD_CODEX_5;
+    setQuestions(buildQuestions(codex));
+    setLevel(lvl);
+    setQIdx(0);
+    setScore(0);
+    setChosen(null);
+    setDone(false);
+  };
 
   const answer = (opt) => {
     if (chosen) return;
-    setChosen(opt.name);
-    if (opt.name === questions[qIdx].letter.name) {
+    const Q = questions[qIdx];
+    setChosen(opt.word);
+    const correct = opt.word === Q.word.word;
+    if (correct) {
       setScore(s => s + 1);
       onXP(20);
+      speakHebrew(opt.word);
     }
     setTimeout(() => {
       if (qIdx + 1 >= questions.length) setDone(true);
       else { setQIdx(i => i + 1); setChosen(null); }
-    }, 900);
+    }, 1000);
   };
 
-  if (done) {
-    const pct = Math.round((score / questions.length) * 100);
-    const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
+  // ── Level selection ──
+  if (!level) {
     return (
-      <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-        <div style={{ fontSize: 60 }}>{pct >= 90 ? "🏆" : pct >= 60 ? "🎉" : "💪"}</div>
-        <div style={{ fontSize: 28, fontWeight: 900, color: "#f0e6ff" }}>Quiz Complete!</div>
-        <div style={{ fontSize: 20, color: "#c4b5fd" }}>{score} / {questions.length} correct</div>
-        <Stars count={stars} />
-        <button onClick={() => { setQIdx(0); setScore(0); setChosen(null); setDone(false); }} style={{
-          marginTop: 8, padding: "12px 32px", borderRadius: 50, border: "none",
-          background: "linear-gradient(135deg,#7c3aed,#db2777)", color: "white",
-          fontWeight: 900, fontSize: 16, cursor: "pointer",
-        }}>Play Again</button>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{ color: '#f0e6ff', fontSize: 24, fontWeight: 900, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+          ?בחר רמה
+        </div>
+        {[1, 2, 3].map(lvl => {
+          const L = QUIZ_LEVELS[lvl];
+          return (
+            <button key={lvl} onClick={() => startLevel(lvl)} style={{
+              width: 280, padding: '18px 24px', borderRadius: 20,
+              background: `linear-gradient(135deg,${L.color}22,${L.color}11)`,
+              border: `2px solid ${L.color}66`,
+              color: '#f0e6ff', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 16,
+              boxShadow: `0 8px 24px ${L.color}22`,
+            }}>
+              <span style={{ fontSize: 40 }}>{L.emoji}</span>
+              <div style={{ flex: 1, textAlign: 'right' }}>
+                <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, fontWeight: 900, direction: 'rtl', color: '#f0e6ff' }}>{L.label}</div>
+                <div style={{ fontSize: 14, direction: 'rtl', color: L.color, marginTop: 2 }}>{L.sublabel}</div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     );
   }
 
-  const Q = questions[qIdx];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
-      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, letterSpacing: 2 }}>
-        Question {qIdx + 1} / {questions.length} · Score: {score}
-      </div>
-      <div style={{
-        width: 200, height: 200, borderRadius: 28,
-        background: "linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%)",
-        border: "3px solid rgba(167,139,250,0.5)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: "0 20px 50px rgba(124,58,237,0.4)",
-      }}>
-        <div style={{ fontSize: 100, lineHeight: 1, fontFamily: "'Noto Serif Hebrew', serif", color: "#f0e6ff" }}>
-          {Q.letter.hebrew}
+  // ── Done screen ──
+  if (done) {
+    const pct = Math.round((score / questions.length) * 100);
+    const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
+    const L = QUIZ_LEVELS[level];
+    return (
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div style={{ fontSize: 60 }}>{pct >= 90 ? '🏆' : pct >= 60 ? '🎉' : '💪'}</div>
+        <div style={{ fontSize: 26, fontWeight: 900, color: '#f0e6ff', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+          !הסתיים החידון
+        </div>
+        <div style={{ fontSize: 20, color: L.color, fontFamily: "'Noto Serif Hebrew', serif" }}>
+          {score} / {questions.length}
+        </div>
+        <Stars count={stars} />
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginTop: 8 }}>
+          {level < 3 && (
+            <button onClick={() => startLevel(level + 1)} style={{
+              padding: '13px 22px', borderRadius: 50, border: 'none',
+              background: `linear-gradient(135deg,${QUIZ_LEVELS[level+1].color},${QUIZ_LEVELS[level+1].color}bb)`,
+              color: 'white', fontWeight: 900, fontSize: 15, cursor: 'pointer',
+              fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl',
+            }}>
+              {level === 1 ? '⬆️ נסה מתקדם' : '⬆️ נסה מומחה'}
+            </button>
+          )}
+          <button onClick={() => startLevel(level)} style={{
+            padding: '13px 22px', borderRadius: 50, border: 'none',
+            background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+            fontWeight: 900, fontSize: 15, cursor: 'pointer',
+            fontFamily: "'Noto Serif Hebrew', serif",
+          }}>שחק שוב</button>
+          <button onClick={() => setLevel(null)} style={{
+            padding: '13px 22px', borderRadius: 50,
+            border: '2px solid rgba(167,139,250,0.4)', background: 'transparent',
+            color: '#a78bfa', fontWeight: 900, fontSize: 15, cursor: 'pointer',
+            fontFamily: "'Noto Serif Hebrew', serif",
+          }}>החלף רמה</button>
         </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ color: "#e9d5ff", fontSize: 16 }}>What letter is this?</div>
-        <SpeakButton onClick={() => speakHebrew(Q.letter.wordHebrew)} />
+    );
+  }
+
+  // ── Question screen ──
+  const Q = questions[qIdx];
+  const L = QUIZ_LEVELS[level];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <div style={{ color: L.color, fontSize: 13, fontWeight: 700, direction: 'rtl', fontFamily: "'Noto Serif Hebrew', serif" }}>
+        {L.label} · {qIdx + 1}/{questions.length} · {score} נ.נ
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: 300 }}>
+
+      {/* Word card */}
+      <div style={{
+        width: 220, borderRadius: 28,
+        background: 'linear-gradient(135deg,#1e1b4b,#4c1d95)',
+        border: `3px solid ${L.color}55`,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', padding: '24px 16px', gap: 8,
+        boxShadow: '0 20px 50px rgba(124,58,237,0.4)',
+      }}>
+        <div style={{ fontSize: 80 }}>{Q.word.emoji}</div>
+        <div style={{ color: '#a78bfa', fontSize: 15, fontWeight: 700 }}>{Q.word.meaning}</div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ color: '#e9d5ff', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>?מה המילה בעברית</div>
+        <SpeakButton onClick={() => speakHebrew(Q.word.word)} />
+      </div>
+
+      {/* Answer options */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: 320 }}>
         {Q.options.map(opt => {
-          const isCorrect = opt.name === Q.letter.name;
-          const isChosen = chosen === opt.name;
-          let bg = "rgba(255,255,255,0.08)";
+          const isCorrect = opt.word === Q.word.word;
+          const isChosen = chosen === opt.word;
+          let bg = 'rgba(255,255,255,0.08)';
           if (chosen) {
-            if (isCorrect) bg = "linear-gradient(135deg,#065f46,#047857)";
-            else if (isChosen) bg = "linear-gradient(135deg,#7f1d1d,#dc2626)";
+            if (isCorrect) bg = 'linear-gradient(135deg,#065f46,#047857)';
+            else if (isChosen) bg = 'linear-gradient(135deg,#7f1d1d,#dc2626)';
           }
           return (
-            <button key={opt.name} onClick={() => answer(opt)} style={{
-              padding: "16px 12px", borderRadius: 16, border: chosen
-                ? isCorrect ? "2px solid #34d399" : isChosen ? "2px solid #f87171" : "2px solid transparent"
-                : "2px solid rgba(255,255,255,0.12)",
-              background: bg,
-              color: "#f0e6ff", fontWeight: 700, fontSize: 16, cursor: chosen ? "default" : "pointer",
-              transition: "all 0.3s",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+            <button key={opt.word} onClick={() => answer(opt)} style={{
+              padding: '14px 10px', borderRadius: 16,
+              border: chosen
+                ? isCorrect ? '2px solid #34d399' : isChosen ? '2px solid #f87171' : '2px solid transparent'
+                : '2px solid rgba(255,255,255,0.12)',
+              background: bg, color: '#f0e6ff', fontWeight: 700,
+              cursor: chosen ? 'default' : 'pointer', transition: 'all 0.3s',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
             }}>
-              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 28 }}>{opt.hebrew}</span>
-              <span style={{ fontSize: 13, opacity: 0.8 }}>{opt.name}</span>
+              <span style={{ fontSize: 32 }}>{opt.emoji}</span>
+              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 20, direction: 'rtl' }}>{opt.word}</span>
             </button>
           );
         })}
