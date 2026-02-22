@@ -1275,6 +1275,273 @@ function SpellingGame({ onXP, profile }) {
   );
 }
 
+// ── DRAWING GAME ──────────────────────────────────────────────
+function DrawingGame({ onXP }) {
+  const CSIZE = 280;
+  const canvasRef = useRef(null);
+  const [queue] = useState(() => shuffle(ALEPH_BET));
+  const [qIdx, setQIdx] = useState(0);
+  const [phase, setPhase] = useState('ready'); // ready | drawing | result
+  const [timeLeft, setTimeLeft] = useState(5);
+  const [simScore, setSimScore] = useState(0);
+  const timerRef = useRef(null);
+  const drawingRef = useRef(false);
+
+  const L = queue[qIdx % queue.length];
+
+  // Speak letter on each new round
+  useEffect(() => {
+    const t = setTimeout(() => speakLetter(L), 400);
+    return () => clearTimeout(t);
+  }, [qIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const clearCanvas = () => {
+    const ctx = canvasRef.current?.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, CSIZE, CSIZE);
+  };
+
+  const startRound = () => {
+    clearCanvas();
+    setPhase('drawing');
+    let t = 5;
+    setTimeLeft(t);
+    timerRef.current = setInterval(() => {
+      t -= 1;
+      setTimeLeft(t);
+      if (t <= 0) { clearInterval(timerRef.current); evaluate(); }
+    }, 1000);
+  };
+
+  const getPos = (e) => {
+    const r = canvasRef.current.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (CSIZE / r.width),
+      y: (e.clientY - r.top)  * (CSIZE / r.height),
+    };
+  };
+
+  const onDown = (e) => {
+    if (phase !== 'drawing') return;
+    e.preventDefault();
+    drawingRef.current = true;
+    const ctx = canvasRef.current.getContext('2d');
+    const { x, y } = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const onMove = (e) => {
+    if (!drawingRef.current || phase !== 'drawing') return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext('2d');
+    const { x, y } = getPos(e);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#c4b5fd';
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  };
+
+  const onUp = () => { drawingRef.current = false; };
+
+  // O(N) separable dilation via prefix sums
+  const dilate = (mask, w, h, r) => {
+    const temp = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      const pre = new Int32Array(w + 1);
+      for (let x = 0; x < w; x++) pre[x + 1] = pre[x] + mask[y * w + x];
+      for (let x = 0; x < w; x++) {
+        temp[y * w + x] = pre[Math.min(w, x + r + 1)] - pre[Math.max(0, x - r)] > 0 ? 1 : 0;
+      }
+    }
+    const out = new Uint8Array(w * h);
+    for (let x = 0; x < w; x++) {
+      const pre = new Int32Array(h + 1);
+      for (let y = 0; y < h; y++) pre[y + 1] = pre[y] + temp[y * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = pre[Math.min(h, y + r + 1)] - pre[Math.max(0, y - r)] > 0 ? 1 : 0;
+      }
+    }
+    return out;
+  };
+
+  const evaluate = () => {
+    // User canvas pixels
+    const uData = canvasRef.current.getContext('2d').getImageData(0, 0, CSIZE, CSIZE).data;
+
+    // Reference: render the target letter to an off-screen canvas
+    const ref = document.createElement('canvas');
+    ref.width = CSIZE; ref.height = CSIZE;
+    const rCtx = ref.getContext('2d');
+    rCtx.font = `bold ${Math.round(CSIZE * 0.72)}px "Noto Serif Hebrew", serif`;
+    rCtx.textAlign = 'center';
+    rCtx.textBaseline = 'middle';
+    rCtx.fillStyle = 'white';
+    rCtx.fillText(L.hebrew, CSIZE / 2, CSIZE / 2 + CSIZE * 0.04);
+    const rData = rCtx.getImageData(0, 0, CSIZE, CSIZE).data;
+
+    const N = CSIZE * CSIZE;
+    const uMask = new Uint8Array(N);
+    const rMask = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      uMask[i] = uData[i * 4 + 3] > 40 ? 1 : 0;
+      rMask[i] = rData[i * 4 + 3] > 40 ? 1 : 0;
+    }
+
+    // Dilate user strokes by 22px so near-misses still count
+    const dilU = dilate(uMask, CSIZE, CSIZE, 22);
+
+    let inter = 0, union = 0;
+    for (let i = 0; i < N; i++) {
+      if (dilU[i] || rMask[i]) union++;
+      if (dilU[i] && rMask[i]) inter++;
+    }
+    const score = union > 0 ? Math.round((inter / union) * 100) : 0;
+    setSimScore(score);
+
+    const xp = score >= 65 ? 100 : score >= 45 ? 70 : score >= 25 ? 40 : 10;
+    onXP(xp);
+
+    window.speechSynthesis.cancel();
+    const fb = score >= 65 ? 'מצוין' : score >= 45 ? 'טוב מאוד' : score >= 25 ? 'כל הכבוד' : 'המשך לתרגל';
+    const u = new SpeechSynthesisUtterance(fb);
+    u.lang = 'he-IL'; u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+
+    setPhase('result');
+  };
+
+  const next = () => {
+    clearInterval(timerRef.current);
+    drawingRef.current = false;
+    setQIdx(i => (i + 1) % queue.length);
+    setPhase('ready');
+    setSimScore(0);
+    setTimeLeft(5);
+  };
+
+  const feedbackLabel =
+    simScore >= 65 ? '!מצוין 🌟' :
+    simScore >= 45 ? '!טוב מאוד ⭐' :
+    simScore >= 25 ? '!כל הכבוד 👏' : '!המשך לתרגל 💪';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+
+      {/* Letter info card */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+        background: 'rgba(255,255,255,0.05)', borderRadius: 20,
+        padding: '14px 20px', border: '1px solid rgba(167,139,250,0.2)',
+      }}>
+        <SpeakButton onClick={() => speakLetter(L)} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 17, color: '#a78bfa', direction: 'rtl' }}>
+            {L.nameHebrew}
+          </div>
+          <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13, color: '#6d6b8a', direction: 'rtl', marginTop: 2 }}>
+            {L.emoji} {L.word}
+          </div>
+        </div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 80, lineHeight: 1, color: '#f0e6ff' }}>
+          {L.hebrew}
+        </div>
+      </div>
+
+      {/* Drawing canvas with ghost letter underneath */}
+      <div style={{ position: 'relative', width: CSIZE, height: CSIZE }}>
+        {/* Ghost guide letter */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: "'Noto Serif Hebrew', serif",
+          fontSize: Math.round(CSIZE * 0.72),
+          lineHeight: 1,
+          color: phase === 'result' ? 'rgba(167,139,250,0.4)' : 'rgba(167,139,250,0.1)',
+          pointerEvents: 'none', userSelect: 'none',
+          transition: 'color 0.6s',
+          paddingTop: Math.round(CSIZE * 0.04),
+        }}>{L.hebrew}</div>
+
+        <canvas
+          ref={canvasRef}
+          width={CSIZE}
+          height={CSIZE}
+          onMouseDown={onDown}
+          onMouseMove={onMove}
+          onMouseUp={onUp}
+          onMouseLeave={onUp}
+          style={{
+            display: 'block', borderRadius: 22,
+            background: 'rgba(20,16,60,0.7)',
+            border: `3px solid ${phase === 'drawing' ? 'rgba(124,58,237,0.9)' : 'rgba(167,139,250,0.25)'}`,
+            cursor: phase === 'drawing' ? 'crosshair' : 'default',
+            boxShadow: phase === 'drawing' ? '0 0 40px rgba(124,58,237,0.55)' : '0 8px 32px rgba(0,0,0,0.4)',
+            touchAction: 'none',
+            transition: 'border-color 0.3s, box-shadow 0.3s',
+          }}
+        />
+      </div>
+
+      {/* Ready — start button */}
+      {phase === 'ready' && (
+        <button onClick={startRound} style={{
+          padding: '16px 52px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+          fontWeight: 900, fontSize: 22, cursor: 'pointer',
+          fontFamily: "'Noto Serif Hebrew', serif",
+          boxShadow: '0 8px 28px rgba(124,58,237,0.45)',
+        }}>!צייר</button>
+      )}
+
+      {/* Drawing — timer + clear */}
+      {phase === 'drawing' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>
+          <div style={{
+            fontSize: 42, fontWeight: 900,
+            color: timeLeft <= 2 ? '#ef4444' : '#a78bfa',
+            transition: 'color 0.3s',
+          }}>{timeLeft}</div>
+          <div style={{ width: CSIZE, height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 99, overflow: 'hidden' }}>
+            <div style={{
+              width: `${(timeLeft / 5) * 100}%`, height: '100%',
+              background: timeLeft <= 2
+                ? 'linear-gradient(90deg,#ef4444,#f87171)'
+                : 'linear-gradient(90deg,#7c3aed,#db2777)',
+              borderRadius: 99,
+              transition: 'width 1s linear, background 0.3s',
+            }} />
+          </div>
+          <button onClick={clearCanvas} style={{
+            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
+            color: '#a78bfa', borderRadius: 50, padding: '8px 22px',
+            cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif",
+          }}>✕ מחק</button>
+        </div>
+      )}
+
+      {/* Result */}
+      {phase === 'result' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            fontFamily: "'Noto Serif Hebrew', serif", fontSize: 26, fontWeight: 900,
+            color: simScore >= 65 ? '#10b981' : simScore >= 45 ? '#f59e0b' : simScore >= 25 ? '#a78bfa' : '#6d6b8a',
+            direction: 'rtl',
+          }}>{feedbackLabel}</div>
+          <div style={{ color: '#6d6b8a', fontSize: 13 }}>{simScore}% דמיון</div>
+          <button onClick={next} style={{
+            padding: '14px 44px', borderRadius: 50, border: 'none',
+            background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+            fontSize: 17, fontWeight: 900, cursor: 'pointer',
+            fontFamily: "'Noto Serif Hebrew', serif",
+          }}>← הבא</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────
 export default function App() {
   const [mode, setMode] = useState("home");
@@ -1296,10 +1563,11 @@ export default function App() {
   };
 
   const modes = [
-    { id: "flashcards", label: "כרטיסיות", emoji: "🃏", desc: "למד אותיות" },
-    { id: "matching",   label: "התאמה",    emoji: "🔗", desc: "מצא זוגות"  },
+    { id: "flashcards", label: "כרטיסיות", emoji: "🃏", desc: "למד אותיות"  },
+    { id: "matching",   label: "התאמה",    emoji: "🔗", desc: "מצא זוגות"   },
     { id: "quiz",       label: "חידון",    emoji: "🧠", desc: "בחן את עצמך" },
-    { id: "spelling",   label: "כתיב",    emoji: "✍️", desc: "בנה מילה"    },
+    { id: "spelling",   label: "כתיב",     emoji: "✍️", desc: "בנה מילה"    },
+    { id: "drawing",    label: "צייר",     emoji: "🎨", desc: "צייר את האות" },
   ];
 
   // Show profile picker if no active profile
@@ -1394,24 +1662,41 @@ export default function App() {
               <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: "#f0e6ff", marginTop: 8, direction: 'rtl' }}>
                 !למד את האלפבית העברי
               </div>
-              <div style={{ color: "#a78bfa", fontSize: 14, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב</div>
+              <div style={{ color: "#a78bfa", fontSize: 14, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר</div>
             </div>
 
-            {/* 4×1 game mode row */}
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", width: '100%', maxWidth: 520, padding: '0 12px' }}>
-              {modes.map(m => (
-                <button key={m.id} onClick={() => setMode(m.id)} style={{
-                  flex: 1, height: 115, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
-                  background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
-                  color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
-                  alignItems: "center", justifyContent: "center", gap: 6,
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                }}>
-                  <div style={{ fontSize: 32 }}>{m.emoji}</div>
-                  <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 15, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
-                  <div style={{ fontSize: 10, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
-                </button>
-              ))}
+            {/* Game mode grid — 3 top + 2 bottom */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, width: '100%', maxWidth: 520, padding: '0 12px' }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                {modes.slice(0, 3).map(m => (
+                  <button key={m.id} onClick={() => setMode(m.id)} style={{
+                    flex: 1, height: 105, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
+                    background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
+                    color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: 5,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                  }}>
+                    <div style={{ fontSize: 28 }}>{m.emoji}</div>
+                    <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 14, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
+                    <div style={{ fontSize: 10, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                {modes.slice(3).map(m => (
+                  <button key={m.id} onClick={() => setMode(m.id)} style={{
+                    flex: 1, height: 105, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
+                    background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
+                    color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: 5,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                  }}>
+                    <div style={{ fontSize: 28 }}>{m.emoji}</div>
+                    <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 14, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
+                    <div style={{ fontSize: 10, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Interactive letter bar — RTL so Aleph is rightmost */}
@@ -1429,6 +1714,7 @@ export default function App() {
           {mode === "matching"   && <MatchingGame key={matchKey} onXP={addXP} />}
           {mode === "quiz"       && <Quiz key={matchKey} onXP={addXP} />}
           {mode === "spelling"   && <SpellingGame key={matchKey} onXP={addXP} profile={profile} />}
+          {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} />}
         </div>
       </div>
 
