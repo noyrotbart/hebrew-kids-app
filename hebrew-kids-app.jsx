@@ -305,6 +305,26 @@ const speakSpelled = (word) => {
   window.speechSynthesis.speak(uWord);
 };
 
+// Spell a plain Hebrew string letter-by-letter via recorded audio
+const speakWordLetters = (wordStr) => {
+  const stripped = stripNikud(wordStr);
+  const entries = [...stripped]
+    .map(ch => ALEPH_BET.find(l => l.hebrew === ch))
+    .filter(Boolean);
+  const playChain = (i) => {
+    if (i >= entries.length) return;
+    const a = new Audio(`/audio/${entries[i].audio}.m4a`);
+    a.onended = () => playChain(i + 1);
+    a.play().catch(() => {
+      const u = new SpeechSynthesisUtterance(stripNikud(entries[i].nameHebrew));
+      u.lang = 'he-IL'; u.rate = 0.75;
+      u.onend = () => playChain(i + 1);
+      window.speechSynthesis.speak(u);
+    });
+  };
+  playChain(0);
+};
+
 function SpeakButton({ onClick, style = {} }) {
   return (
     <button
@@ -526,40 +546,167 @@ function Flashcards({ onXP }) {
 }
 
 // ── MATCHING GAME ──────────────────────────────────────────────
+// ── 100 MATCHING PAIRS ────────────────────────────────────────
+const MATCHING_PAIRS = [
+  // Animals (1-25)
+  { id:'m1',  word:'אריה',    emoji:'🦁' },
+  { id:'m2',  word:'דוב',     emoji:'🐻' },
+  { id:'m3',  word:'כלב',     emoji:'🐶' },
+  { id:'m4',  word:'חתול',    emoji:'🐱' },
+  { id:'m5',  word:'פיל',     emoji:'🐘' },
+  { id:'m6',  word:'קוף',     emoji:'🐒' },
+  { id:'m7',  word:'נמר',     emoji:'🐆' },
+  { id:'m8',  word:'גמל',     emoji:'🐪' },
+  { id:'m9',  word:'סוס',     emoji:'🐴' },
+  { id:'m10', word:'פרה',     emoji:'🐄' },
+  { id:'m11', word:'כבש',     emoji:'🐑' },
+  { id:'m12', word:'עז',      emoji:'🐐' },
+  { id:'m13', word:'תרנגול',  emoji:'🐓' },
+  { id:'m14', word:'ברווז',   emoji:'🦆' },
+  { id:'m15', word:'צב',      emoji:'🐢' },
+  { id:'m16', word:'נחש',     emoji:'🐍' },
+  { id:'m17', word:'דג',      emoji:'🐟' },
+  { id:'m18', word:'צפרדע',   emoji:'🐸' },
+  { id:'m19', word:'פרפר',    emoji:'🦋' },
+  { id:'m20', word:'דבורה',   emoji:'🐝' },
+  { id:'m21', word:'ציפור',   emoji:'🐦' },
+  { id:'m22', word:'כריש',    emoji:'🦈' },
+  { id:'m23', word:'זאב',     emoji:'🐺' },
+  { id:'m24', word:'ארנב',    emoji:'🐰' },
+  { id:'m25', word:'עכבר',    emoji:'🐭' },
+  // Food & Drinks (26-45)
+  { id:'m26', word:'תפוח',    emoji:'🍎' },
+  { id:'m27', word:'בננה',    emoji:'🍌' },
+  { id:'m28', word:'ענב',     emoji:'🍇' },
+  { id:'m29', word:'תפוז',    emoji:'🍊' },
+  { id:'m30', word:'לימון',   emoji:'🍋' },
+  { id:'m31', word:'תות',     emoji:'🍓' },
+  { id:'m32', word:'גזר',     emoji:'🥕' },
+  { id:'m33', word:'לחם',     emoji:'🍞' },
+  { id:'m34', word:'גבינה',   emoji:'🧀' },
+  { id:'m35', word:'ביצה',    emoji:'🥚' },
+  { id:'m36', word:'חלב',     emoji:'🥛' },
+  { id:'m37', word:'דבש',     emoji:'🍯' },
+  { id:'m38', word:'עוגה',    emoji:'🎂' },
+  { id:'m39', word:'גלידה',   emoji:'🍦' },
+  { id:'m40', word:'שוקולד',  emoji:'🍫' },
+  { id:'m41', word:'פיצה',    emoji:'🍕' },
+  { id:'m42', word:'אבטיח',   emoji:'🍉' },
+  { id:'m43', word:'אננס',    emoji:'🍍' },
+  { id:'m44', word:'תירס',    emoji:'🌽' },
+  { id:'m45', word:'בצל',     emoji:'🧅' },
+  // Nature (46-60)
+  { id:'m46', word:'שמש',     emoji:'☀️' },
+  { id:'m47', word:'ירח',     emoji:'🌙' },
+  { id:'m48', word:'כוכב',    emoji:'⭐' },
+  { id:'m49', word:'ענן',     emoji:'☁️' },
+  { id:'m50', word:'גשם',     emoji:'🌧️' },
+  { id:'m51', word:'שלג',     emoji:'❄️' },
+  { id:'m52', word:'קשת',     emoji:'🌈' },
+  { id:'m53', word:'פרח',     emoji:'🌸' },
+  { id:'m54', word:'עץ',      emoji:'🌳' },
+  { id:'m55', word:'הר',      emoji:'⛰️' },
+  { id:'m56', word:'ים',      emoji:'🌊' },
+  { id:'m57', word:'אש',      emoji:'🔥' },
+  { id:'m58', word:'ורד',     emoji:'🌹' },
+  { id:'m59', word:'עלה',     emoji:'🍃' },
+  { id:'m60', word:'פטרייה',  emoji:'🍄' },
+  // Objects & Transport (61-80)
+  { id:'m61', word:'בית',     emoji:'🏠' },
+  { id:'m62', word:'מכונית',  emoji:'🚗' },
+  { id:'m63', word:'מטוס',    emoji:'✈️' },
+  { id:'m64', word:'ספינה',   emoji:'🚢' },
+  { id:'m65', word:'רכבת',    emoji:'🚂' },
+  { id:'m66', word:'אופניים', emoji:'🚲' },
+  { id:'m67', word:'ספר',     emoji:'📚' },
+  { id:'m68', word:'עיפרון',  emoji:'✏️' },
+  { id:'m69', word:'מחשב',    emoji:'💻' },
+  { id:'m70', word:'טלפון',   emoji:'📱' },
+  { id:'m71', word:'שעון',    emoji:'⏰' },
+  { id:'m72', word:'מפתח',    emoji:'🔑' },
+  { id:'m73', word:'כדורגל',  emoji:'⚽' },
+  { id:'m74', word:'כדורסל',  emoji:'🏀' },
+  { id:'m75', word:'גיטרה',   emoji:'🎸' },
+  { id:'m76', word:'כובע',    emoji:'🎩' },
+  { id:'m77', word:'מראה',    emoji:'🪞' },
+  { id:'m78', word:'מטרייה',  emoji:'☂️' },
+  { id:'m79', word:'בלון',    emoji:'🎈' },
+  { id:'m80', word:'מתנה',    emoji:'🎁' },
+  // People & Misc (81-100)
+  { id:'m81', word:'ילד',     emoji:'👦' },
+  { id:'m82', word:'ילדה',    emoji:'👧' },
+  { id:'m83', word:'אמא',     emoji:'👩' },
+  { id:'m84', word:'אבא',     emoji:'👨' },
+  { id:'m85', word:'תינוק',   emoji:'👶' },
+  { id:'m86', word:'סבא',     emoji:'👴' },
+  { id:'m87', word:'סבתא',    emoji:'👵' },
+  { id:'m88', word:'לב',      emoji:'❤️' },
+  { id:'m89', word:'עיניים',  emoji:'👀' },
+  { id:'m90', word:'יד',      emoji:'✋' },
+  { id:'m91', word:'חולצה',   emoji:'👕' },
+  { id:'m92', word:'נעל',     emoji:'👟' },
+  { id:'m93', word:'שמלה',    emoji:'👗' },
+  { id:'m94', word:'שיר',     emoji:'🎵' },
+  { id:'m95', word:'ריקוד',   emoji:'💃' },
+  { id:'m96', word:'שינה',    emoji:'😴' },
+  { id:'m97', word:'נר',      emoji:'🕯️' },
+  { id:'m98', word:'מנורה',   emoji:'💡' },
+  { id:'m99', word:'כסא',     emoji:'🪑' },
+  { id:'m100',word:'דלת',     emoji:'🚪' },
+];
+
+const MATCH_LEVELS = {
+  1: { size: 4, label: 'מתחיל',  sublabel: '4 זוגות',  emoji: '🌱', color: '#10b981', cols: 4 },
+  2: { size: 6, label: 'מתקדם',  sublabel: '6 זוגות',  emoji: '🌟', color: '#f59e0b', cols: 4 },
+  3: { size: 8, label: 'מומחה',  sublabel: '8 זוגות',  emoji: '🏆', color: '#ef4444', cols: 4 },
+};
+
 function MatchingGame({ onXP }) {
-  const SIZE = 6;
-  const [pool] = useState(() => shuffle(ALEPH_BET).slice(0, SIZE));
-  const [cards, setCards] = useState(() => {
-    const pairs = pool.flatMap(l => [
-      { id: l.name + "-heb", type: "hebrew", value: l.wordHebrew, name: l.name },
-      { id: l.name + "-pic", type: "picture", name: l.name, emoji: l.emoji },
-    ]);
-    return shuffle(pairs).map((c, i) => ({ ...c, pos: i, matched: false, selected: false }));
-  });
+  const [level, setLevel] = useState(null);
+  const [cards, setCards] = useState([]);
   const [selected, setSelected] = useState([]);
   const [matches, setMatches] = useState(0);
   const [shake, setShake] = useState(null);
+  const [done, setDone] = useState(false);
+
+  const startLevel = (lvl) => {
+    const { size } = MATCH_LEVELS[lvl];
+    const pool = shuffle(MATCHING_PAIRS).slice(0, size);
+    const pairs = pool.flatMap(p => [
+      { id: p.id + '-w', type: 'word',    value: p.word,  pairId: p.id },
+      { id: p.id + '-p', type: 'picture', value: p.emoji, pairId: p.id },
+    ]);
+    setCards(shuffle(pairs).map((c, i) => ({ ...c, pos: i, matched: false, selected: false })));
+    setLevel(lvl);
+    setMatches(0);
+    setSelected([]);
+    setDone(false);
+  };
+
+  const SIZE = level ? MATCH_LEVELS[level].size : 0;
 
   const select = (pos) => {
     const card = cards[pos];
     if (card.matched || selected.length === 2) return;
     if (selected.length === 1 && selected[0].pos === pos) return;
 
-    const newSel = [...selected, { pos, name: card.name }];
+    const newSel = [...selected, { pos, pairId: card.pairId }];
     setCards(prev => prev.map(c => c.pos === pos ? { ...c, selected: true } : c));
     setSelected(newSel);
 
     if (newSel.length === 2) {
-      if (newSel[0].name === newSel[1].name) {
-        const matched = ALEPH_BET.find(a => a.name === newSel[0].name);
-        if (matched) speakHebrew(matched.wordHebrew);
+      if (newSel[0].pairId === newSel[1].pairId) {
+        const matched = MATCHING_PAIRS.find(p => p.id === newSel[0].pairId);
+        if (matched) speakHebrew(matched.word);
         setTimeout(() => {
           setCards(prev => prev.map(c =>
-            c.name === newSel[0].name ? { ...c, matched: true, selected: false } : c
+            c.pairId === newSel[0].pairId ? { ...c, matched: true, selected: false } : c
           ));
           setSelected([]);
-          setMatches(m => m + 1);
+          const nm = matches + 1;
+          setMatches(nm);
           onXP(15);
+          if (nm === SIZE) setDone(true);
         }, 400);
       } else {
         setShake(newSel[1].pos);
@@ -572,10 +719,41 @@ function MatchingGame({ onXP }) {
     }
   };
 
-  const done = matches === SIZE;
+  // Level picker
+  if (!level) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{ color: '#f0e6ff', fontSize: 24, fontWeight: 900, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+          ?בחר רמה
+        </div>
+        {[1, 2, 3].map(lvl => {
+          const L = MATCH_LEVELS[lvl];
+          return (
+            <button key={lvl} onClick={() => startLevel(lvl)} style={{
+              width: 280, padding: '18px 24px', borderRadius: 20,
+              background: `linear-gradient(135deg,${L.color}22,${L.color}11)`,
+              border: `2px solid ${L.color}66`,
+              color: '#f0e6ff', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 16,
+              boxShadow: `0 8px 24px ${L.color}22`,
+            }}>
+              <span style={{ fontSize: 40 }}>{L.emoji}</span>
+              <div style={{ flex: 1, textAlign: 'right' }}>
+                <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, fontWeight: 900, direction: 'rtl', color: '#f0e6ff' }}>{L.label}</div>
+                <div style={{ fontSize: 14, direction: 'rtl', color: L.color, marginTop: 2 }}>{L.sublabel}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  const cardSize = level === 3 ? 88 : 100;
+  const cols = MATCH_LEVELS[level].cols;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
       <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
         {matches}/{SIZE} זוגות · !מצא את הזוגות
       </div>
@@ -584,14 +762,16 @@ function MatchingGame({ onXP }) {
           !🎉 כל הזוגות נמצאו
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, maxWidth: 440 }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8 }}>
         {cards.map(card => (
           <div
             key={card.id}
             onClick={() => select(card.pos)}
             style={{
-              width: 130, height: 130, borderRadius: 20, display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center", cursor: card.matched ? "default" : "pointer",
+              width: cardSize, height: cardSize, borderRadius: 16,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              cursor: card.matched ? "default" : "pointer",
               background: card.matched
                 ? "linear-gradient(135deg,#065f46,#047857)"
                 : card.selected
@@ -602,16 +782,38 @@ function MatchingGame({ onXP }) {
               animation: shake === card.pos ? "shake 0.5s" : "none",
               opacity: card.matched ? 0.7 : 1,
               boxShadow: card.selected ? "0 0 20px rgba(240,171,252,0.5)" : "none",
+              position: 'relative',
             }}
           >
-            {card.type === "hebrew" ? (
-              <div style={{ fontSize: 22, lineHeight: 1.3, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff", direction: 'rtl', textAlign: 'center', padding: '0 6px' }}>{card.value}</div>
+            {card.type === "word" ? (
+              <>
+                <div style={{ fontSize: level === 3 ? 14 : 16, lineHeight: 1.2, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff", direction: 'rtl', textAlign: 'center', padding: '0 4px' }}>{card.value}</div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); speakWordLetters(card.value); }}
+                  title="אייֵת"
+                  style={{
+                    position: 'absolute', bottom: 4, right: 4,
+                    background: 'rgba(167,139,250,0.25)', border: '1px solid rgba(167,139,250,0.4)',
+                    borderRadius: 50, width: 22, height: 22,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', fontSize: 11, color: '#a78bfa', padding: 0,
+                  }}
+                >🔤</button>
+              </>
             ) : (
-              <div style={{ fontSize: 62 }}>{card.emoji}</div>
+              <div style={{ fontSize: level === 3 ? 40 : 48 }}>{card.value}</div>
             )}
           </div>
         ))}
       </div>
+      {done && (
+        <button onClick={() => setLevel(null)} style={{
+          marginTop: 8, padding: '12px 32px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+          fontSize: 16, fontWeight: 900, cursor: 'pointer',
+          fontFamily: "'Noto Serif Hebrew', serif",
+        }}>🎮 שחק שוב</button>
+      )}
     </div>
   );
 }
@@ -998,8 +1200,31 @@ const saveXPs = (xps) => {
   try { localStorage.setItem('hebrewApp_xps', JSON.stringify(xps)); } catch(e) {}
 };
 
+// Per-player detailed progress
+const DEFAULT_PROGRESS = () => ({
+  totalXpEarned: 0,      // cumulative XP earned (never resets)
+  gamesPlayed: { flashcards: 0, matching: 0, quiz: 0, spelling: 0, drawing: 0 },
+  quizBest: { 1: 0, 2: 0, 3: 0 },  // best quiz score per level (out of 8)
+  drawingBest: {},                   // { letterName: bestScore }
+  matchingCompleted: 0,              // total matching rounds completed
+  spellingCorrect: 0,                // total spelling words correct
+  lastPlayed: null,
+});
+
+const loadProgress = (profileId) => {
+  try {
+    const s = localStorage.getItem(`hebrewApp_prog_${profileId}`);
+    if (s) return { ...DEFAULT_PROGRESS(), ...JSON.parse(s) };
+  } catch(e) {}
+  return DEFAULT_PROGRESS();
+};
+
+const saveProgress = (profileId, prog) => {
+  try { localStorage.setItem(`hebrewApp_prog_${profileId}`, JSON.stringify(prog)); } catch(e) {}
+};
+
 // ── PROFILE PICKER ───────────────────────────────────────────
-function ProfilePicker({ xps, onSelect }) {
+function ProfilePicker({ xps, getProgress, onSelect }) {
   return (
     <div style={{
       minHeight: '100vh',
@@ -1023,6 +1248,10 @@ function ProfilePicker({ xps, onSelect }) {
           const xp = xps[p.id] ?? 0;
           const level = Math.floor(xp / 100) + 1;
           const progress = xp % 100;
+          const prog = getProgress(p.id);
+          const totalXp = prog.totalXpEarned ?? xp;
+          const gp = prog.gamesPlayed ?? {};
+          const totalGames = Object.values(gp).reduce((s, v) => s + v, 0);
           return (
             <button
               key={p.id}
@@ -1032,7 +1261,7 @@ function ProfilePicker({ xps, onSelect }) {
                 border: `2px solid ${p.color}55`,
                 borderRadius: 28, padding: '20px 16px 18px',
                 cursor: 'pointer', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: 12,
+                alignItems: 'center', gap: 10,
                 boxShadow: `0 8px 40px ${p.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
                 backdropFilter: 'blur(10px)', transition: 'all 0.2s',
               }}
@@ -1041,18 +1270,18 @@ function ProfilePicker({ xps, onSelect }) {
             >
               {/* Avatar circle */}
               <div style={{
-                width: 120, height: 120, borderRadius: '50%',
+                width: 100, height: 100, borderRadius: '50%',
                 border: `3px solid ${p.color}`,
                 boxShadow: `0 0 24px ${p.glow}`,
                 overflow: 'hidden', flexShrink: 0,
               }}>
-                <p.Avatar size={120} uid={`pick-${p.id}`}/>
+                <p.Avatar size={100} uid={`pick-${p.id}`}/>
               </div>
 
               {/* Name */}
               <div style={{
                 fontFamily: "'Noto Serif Hebrew', serif",
-                fontSize: 28, fontWeight: 700, color: '#f0e6ff',
+                fontSize: 26, fontWeight: 700, color: '#f0e6ff',
                 direction: 'rtl',
               }}>{p.id}</div>
 
@@ -1068,6 +1297,18 @@ function ProfilePicker({ xps, onSelect }) {
                   background: `linear-gradient(90deg, ${p.color}, ${p.color}cc)`,
                   borderRadius: 99, transition: 'width 0.4s',
                 }}/>
+              </div>
+
+              {/* Cumulative stats */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '3px 8px', textAlign: 'center' }}>
+                  <div style={{ color: '#a78bfa', fontSize: 11, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>סה"כ נ.נ</div>
+                  <div style={{ color: '#f0e6ff', fontSize: 13, fontWeight: 700 }}>{totalXp}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '3px 8px', textAlign: 'center' }}>
+                  <div style={{ color: '#a78bfa', fontSize: 11, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>משחקים</div>
+                  <div style={{ color: '#f0e6ff', fontSize: 13, fontWeight: 700 }}>{totalGames}</div>
+                </div>
               </div>
             </button>
           );
@@ -1392,9 +1633,10 @@ function DrawingGame({ onXP }) {
 
   const getPos = (e) => {
     const r = canvasRef.current.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
     return {
-      x: (e.clientX - r.left) * (CSIZE / r.width),
-      y: (e.clientY - r.top)  * (CSIZE / r.height),
+      x: (src.clientX - r.left) * (CSIZE / r.width),
+      y: (src.clientY - r.top)  * (CSIZE / r.height),
     };
   };
 
@@ -1523,6 +1765,10 @@ function DrawingGame({ onXP }) {
           onMouseMove={onMove}
           onMouseUp={onUp}
           onMouseLeave={onUp}
+          onTouchStart={onDown}
+          onTouchMove={onMove}
+          onTouchEnd={onUp}
+          onTouchCancel={onUp}
           style={{
             display: 'block', borderRadius: 22,
             background: 'rgba(20,16,60,0.7)',
@@ -1598,17 +1844,35 @@ export default function App() {
   const [xps, setXps] = useState(loadXPs);
   const [activeProfile, setActiveProfile] = useState(null);
   const [matchKey, setMatchKey] = useState(0);
+  // Cache progress objects per profile (loaded on demand)
+  const [progCache, setProgCache] = useState({});
 
   const profile = PROFILES.find(p => p.id === activeProfile);
   const xp = xps[activeProfile] ?? 0;
   const level = Math.floor(xp / 100) + 1;
   const progress = xp % 100;
 
+  // Get (or lazily load) progress for a profile
+  const getProgress = (id) => progCache[id] ?? loadProgress(id);
+
   const addXP = (n) => {
+    if (n <= 0) return;
     setXps(prev => {
       const next = { ...prev, [activeProfile]: Math.max(0, (prev[activeProfile] ?? 0) + n) };
       saveXPs(next);
       return next;
+    });
+    // Update cumulative progress
+    setProgCache(prev => {
+      const cur = prev[activeProfile] ?? loadProgress(activeProfile);
+      const updated = {
+        ...cur,
+        totalXpEarned: (cur.totalXpEarned ?? 0) + n,
+        lastPlayed: new Date().toISOString().slice(0, 10),
+        gamesPlayed: { ...cur.gamesPlayed, [mode]: (cur.gamesPlayed?.[mode] ?? 0) + 1 },
+      };
+      saveProgress(activeProfile, updated);
+      return { ...prev, [activeProfile]: updated };
     });
   };
 
@@ -1630,7 +1894,7 @@ export default function App() {
           body { background: #0d0a1e; min-height: 100vh; font-family: 'Nunito', sans-serif; }
           button { transition: all 0.15s; }
         `}</style>
-        <ProfilePicker xps={xps} onSelect={(id) => { setActiveProfile(id); setMode('home'); }} />
+        <ProfilePicker xps={xps} getProgress={getProgress} onSelect={(id) => { setActiveProfile(id); setMode('home'); }} />
       </>
     );
   }
