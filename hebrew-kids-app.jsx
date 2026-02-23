@@ -1983,6 +1983,12 @@ function SpellingGame({ onXP, profile }) {
 }
 
 // ── DRAWING GAME ──────────────────────────────────────────────
+const DRAW_LEVELS = [
+  { id: 'easy',      label: 'קל',       emoji: '😊', desc: 'צייר על התבנית',       color: '#22c55e' },
+  { id: 'medium',    label: 'בינוני',   emoji: '😤', desc: 'ללא תבנית – מהזיכרון', color: '#f59e0b' },
+  { id: 'handwrite', label: 'כתב יד',  emoji: '✍️', desc: 'צורת כתב עם תבנית',    color: '#60a5fa' },
+];
+
 function DrawingGame({ onXP }) {
   const CSIZE = 280;
   const canvasRef = useRef(null);
@@ -1993,14 +1999,30 @@ function DrawingGame({ onXP }) {
   const [simScore, setSimScore] = useState(0);
   const timerRef = useRef(null);
   const drawingRef = useRef(false);
+  const [drawLevel, setDrawLevel] = useState(null); // null = pick screen
 
   const L = queue[qIdx % queue.length];
 
-  // Speak letter on each new round
+  // Font & ghost visibility based on level
+  const drawFont = drawLevel === 'handwrite'
+    ? "'Playpen Sans Hebrew', cursive"
+    : "'Noto Serif Hebrew', serif";
+  // Ghost shows in easy+handwrite always; in medium only on result (to compare)
+  const showGhost = drawLevel !== 'medium' || phase === 'result';
+
+  // Preload handwriting font so canvas rendering is accurate
   useEffect(() => {
+    if (drawLevel === 'handwrite') {
+      document.fonts.load(`bold 200px 'Playpen Sans Hebrew'`).catch(() => {});
+    }
+  }, [drawLevel]);
+
+  // Speak letter on each new round (only when a level is chosen)
+  useEffect(() => {
+    if (!drawLevel) return;
     const t = setTimeout(() => speakLetter(L), 400);
     return () => clearTimeout(t);
-  }, [qIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [qIdx, drawLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearCanvas = () => {
     const ctx = canvasRef.current?.getContext('2d');
@@ -2014,7 +2036,7 @@ function DrawingGame({ onXP }) {
     const ref = document.createElement('canvas');
     ref.width = CSIZE; ref.height = CSIZE;
     const rCtx = ref.getContext('2d');
-    rCtx.font = `bold ${Math.round(CSIZE * 0.72)}px "Noto Serif Hebrew", serif`;
+    rCtx.font = `bold ${Math.round(CSIZE * 0.72)}px ${drawFont}`;
     rCtx.textAlign = 'center'; rCtx.textBaseline = 'middle';
     rCtx.fillStyle = 'white';
     rCtx.fillText(L.hebrew, CSIZE / 2, CSIZE / 2 + CSIZE * 0.04);
@@ -2133,10 +2155,17 @@ function DrawingGame({ onXP }) {
     simScore >= 30 ? '!טוב מאוד ⭐' :
     simScore >= 15 ? '!כל הכבוד 👏' : '!המשך לתרגל 💪';
 
-  // Keyboard: Enter/Space = start/submit/next; N = next (result); Esc = clear
+  // Keyboard: 1-3 picks level; Enter/Space = start/submit/next; Esc = clear
   useEffect(() => {
     const handler = (e) => {
       if (document.activeElement?.tagName === 'INPUT') return;
+      if (!drawLevel) {
+        // Level picker: 1=easy 2=medium 3=handwrite
+        if (e.key === '1') setDrawLevel('easy');
+        else if (e.key === '2') setDrawLevel('medium');
+        else if (e.key === '3') setDrawLevel('handwrite');
+        return;
+      }
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (phase === 'ready') startRound();
@@ -2146,14 +2175,66 @@ function DrawingGame({ onXP }) {
         next();
       } else if (e.key === 'Escape' && phase === 'drawing') {
         clearCanvas();
+      } else if (e.key === 'Escape' && phase === 'ready') {
+        setDrawLevel(null);
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, drawLevel]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Level picker screen ───────────────────────────────────────
+  if (!drawLevel) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{
+          color: '#f0e6ff', fontSize: 22, fontWeight: 900,
+          fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl',
+        }}>?בחר רמה</div>
+        {DRAW_LEVELS.map((lv, i) => (
+          <button key={lv.id} onClick={() => setDrawLevel(lv.id)} style={{
+            width: 280, padding: '18px 24px', borderRadius: 20,
+            background: `linear-gradient(135deg,${lv.color}22,${lv.color}11)`,
+            border: `2px solid ${lv.color}66`,
+            color: '#f0e6ff', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 16,
+            boxShadow: `0 8px 24px ${lv.color}22`,
+          }}>
+            <span style={{ fontSize: 38 }}>{lv.emoji}</span>
+            <div style={{ flex: 1, textAlign: 'right' }}>
+              <div style={{
+                fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22,
+                fontWeight: 900, direction: 'rtl', color: '#f0e6ff',
+              }}>{lv.label}</div>
+              <div style={{ fontSize: 13, direction: 'rtl', color: lv.color, marginTop: 2 }}>
+                {lv.desc}
+              </div>
+            </div>
+            <div style={{ color: lv.color, fontSize: 13, opacity: 0.7 }}>{i + 1}</div>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // ── Current level badge ───────────────────────────────────────
+  const curLevel = DRAW_LEVELS.find(l => l.id === drawLevel);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+
+      {/* Level badge — click to go back to picker */}
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
+        <button onClick={() => { clearInterval(timerRef.current); setPhase('ready'); setDrawLevel(null); }} style={{
+          background: `${curLevel.color}18`,
+          border: `1px solid ${curLevel.color}55`,
+          color: curLevel.color, borderRadius: 20, padding: '4px 12px',
+          cursor: 'pointer', fontSize: 12, fontFamily: "'Noto Serif Hebrew', serif",
+          display: 'flex', alignItems: 'center', gap: 5,
+        }}>
+          {curLevel.emoji} {curLevel.label} ←
+        </button>
+      </div>
 
       {/* Letter info card */}
       <div style={{
@@ -2170,25 +2251,30 @@ function DrawingGame({ onXP }) {
             {L.emoji} {L.word}
           </div>
         </div>
-        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 80, lineHeight: 1, color: '#f0e6ff' }}>
+        <div style={{ fontFamily: drawFont, fontSize: 80, lineHeight: 1, color: '#f0e6ff' }}>
           {L.hebrew}
         </div>
       </div>
 
       {/* Drawing canvas with ghost letter underneath */}
       <div style={{ position: 'relative', width: CSIZE, height: CSIZE }}>
-        {/* Ghost guide letter */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: "'Noto Serif Hebrew', serif",
-          fontSize: Math.round(CSIZE * 0.72),
-          lineHeight: 1,
-          color: phase === 'result' ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.1)',
-          pointerEvents: 'none', userSelect: 'none',
-          transition: 'color 0.6s',
-          paddingTop: Math.round(CSIZE * 0.04),
-        }}>{L.hebrew}</div>
+        {/* Ghost guide letter — hidden in medium while drawing/ready */}
+        {showGhost && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: drawFont,
+            fontSize: Math.round(CSIZE * 0.72),
+            lineHeight: 1,
+            // In medium result: brighter so user can compare their strokes to the reference
+            color: phase === 'result'
+              ? (drawLevel === 'medium' ? 'rgba(96,165,250,0.55)' : 'rgba(96,165,250,0.4)')
+              : 'rgba(96,165,250,0.1)',
+            pointerEvents: 'none', userSelect: 'none',
+            transition: 'color 0.6s',
+            paddingTop: Math.round(CSIZE * 0.04),
+          }}>{L.hebrew}</div>
+        )}
 
         <canvas
           ref={canvasRef}
@@ -2218,9 +2304,14 @@ function DrawingGame({ onXP }) {
       {phase === 'ready' && (
         <div style={{
           color: '#60a5fa', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif",
-          direction: 'rtl', opacity: 0.8, textAlign: 'center', lineHeight: 1.5,
+          direction: 'rtl', opacity: 0.8, textAlign: 'center', lineHeight: 1.6,
         }}>
-          לחץ וגרור על הלוח כדי לצייר
+          {drawLevel === 'medium'
+            ? <>צייר מהזיכרון! 🧠<br/><span style={{ fontSize: 12, opacity: 0.7 }}>התבנית תופיע רק אחרי הציור</span></>
+            : drawLevel === 'handwrite'
+              ? <>צייר בכתב יד! ✍️<br/><span style={{ fontSize: 12, opacity: 0.7 }}>לחץ וגרור על הלוח</span></>
+              : 'לחץ וגרור על הלוח כדי לצייר'
+          }
         </div>
       )}
 
