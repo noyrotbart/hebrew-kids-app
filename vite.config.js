@@ -8,10 +8,14 @@ export default defineConfig({
     // Start tts-server/server.py to enable high-quality Hebrew voice.
     // The app falls back to Web Speech API if the server isn't running.
     proxy: {
-      "/api/phonikud": {
+      // In dev, /api/tts is forwarded to the local Phonikud Flask server.
+      // On Vercel, /api/tts is served by api/tts.js (calls HF Space instead).
+      // Start tts-server/server.py for high-quality local voice;
+      // the app automatically falls back to Web Speech API if it's not running.
+      "/api/tts": {
         target: "http://127.0.0.1:5050",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/phonikud/, ""),
+        rewrite: (path) => path.replace(/^\/api\/tts/, "/tts"),
       },
     },
   },

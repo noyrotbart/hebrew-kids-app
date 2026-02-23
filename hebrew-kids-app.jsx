@@ -248,58 +248,69 @@ const KEY_MAP = {
 };
 
 // ── AUDIO ─────────────────────────────────────────────────────
-// Cache: text → blob URL (so each phrase is only fetched once per session)
+// Cache: text → blob URL (fetched once per session, then instant)
 const _ttsCache = new Map();
-// null = not yet tested, true = server up, false = server down / not running
-let _phonikudOk = null;
 
 /**
- * Speak Hebrew text.
- * 1. Tries the local Phonikud TTS server (natural Israeli voice, started via
- *    tts-server/server.py).  Proxied through Vite at /api/phonikud/tts.
- * 2. Falls back to the browser's Web Speech API if the server isn't running.
- * Returns a Promise that resolves when the audio finishes (useful for chaining).
+ * Speak Hebrew text — Phonikud quality when available, Web Speech fallback.
+ *
+ * Calls /api/tts (unified endpoint):
+ *   • Locally:   Vite proxies to the Flask server  (tts-server/server.py)
+ *   • On Vercel: served by api/tts.js → HF Space   (no extra server needed)
+ *
+ * Race logic — starts the TTS fetch immediately, then:
+ *   ≤ 2.5 s  → plays the Phonikud audio (and caches it)
+ *   > 2.5 s  → plays Web Speech right now; TTS still runs in the background
+ *              and caches the result so the *next* call is instant Phonikud.
+ *
+ * This handles HF Space cold-starts (can take 30–60 s after 15 min idle)
+ * without ever blocking the UI.
+ *
+ * Returns a Promise that resolves when audio ends (useful for chaining).
  */
 const speakHebrew = async (text) => {
-  // ── Try Phonikud server ──────────────────────────────────────
-  try {
-    if (_phonikudOk === null) {
-      // One-time health check (fast timeout so we don't block on first word)
-      const r = await fetch('/api/phonikud/health', {
-        signal: AbortSignal.timeout(700),
-      });
-      _phonikudOk = r.ok;
-    }
-
-    if (_phonikudOk) {
-      let url = _ttsCache.get(text);
-      if (!url) {
-        const r = await fetch('/api/phonikud/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-          signal: AbortSignal.timeout(6000),
-        });
-        if (r.ok) {
-          url = URL.createObjectURL(await r.blob());
-          _ttsCache.set(text, url);
-        }
-      }
-      if (url) {
-        return new Promise((resolve) => {
-          const a = new Audio(url);
-          a.onended = resolve;
-          a.onerror = resolve;
-          a.play().catch(resolve);
-        });
-      }
-    }
-  } catch {
-    // Server not running or network error — mark as unavailable this session
-    _phonikudOk = false;
+  // ── Serve from cache immediately ─────────────────────────────
+  const cached = _ttsCache.get(text);
+  if (cached) {
+    return new Promise((resolve) => {
+      const a = new Audio(cached);
+      a.onended = resolve;
+      a.onerror = resolve;
+      a.play().catch(resolve);
+    });
   }
 
-  // ── Fallback: Web Speech API ────────────────────────────────
+  // ── Fire TTS fetch in the background ─────────────────────────
+  const ttsFetch = fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+    signal: AbortSignal.timeout(15000),
+  }).then(async (r) => {
+    if (!r.ok) return null;
+    const url = URL.createObjectURL(await r.blob());
+    _ttsCache.set(text, url); // cache for next call
+    return url;
+  }).catch(() => null);
+
+  // ── Race: TTS within 2.5 s vs. Web Speech fallback ──────────
+  const winner = await Promise.race([
+    ttsFetch,
+    new Promise((resolve) => setTimeout(() => resolve('slow'), 2500)),
+  ]);
+
+  if (winner && winner !== 'slow') {
+    // TTS responded in time — play Phonikud audio
+    return new Promise((resolve) => {
+      const a = new Audio(winner);
+      a.onended = resolve;
+      a.onerror = resolve;
+      a.play().catch(resolve);
+    });
+  }
+
+  // ── Fallback: Web Speech API ─────────────────────────────────
+  // (ttsFetch keeps running; result cached so next call is instant Phonikud)
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   return new Promise((resolve) => {
