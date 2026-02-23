@@ -311,10 +311,11 @@ const speakHebrew = async (text) => {
   }
 
   // ── Fallback: Web Speech API ─────────────────────────────────
-  // (ttsFetch keeps running; result cached so next call is instant Phonikud)
+  // ttsFetch keeps running in the background; once it resolves (within 10 s)
+  // we replay the phrase in the good Phonikud voice automatically.
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  return new Promise((resolve) => {
+  const wsPromise = new Promise((resolve) => {
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = 'he-IL';
     utt.rate = 0.8;
@@ -322,6 +323,20 @@ const speakHebrew = async (text) => {
     utt.onerror = resolve;
     window.speechSynthesis.speak(utt);
   });
+
+  // After Web Speech ends, replay in Phonikud voice if it arrives within 10 s
+  wsPromise.then(async () => {
+    const retryUrl = await Promise.race([
+      ttsFetch,
+      new Promise(r => setTimeout(() => r(null), 10000)),
+    ]);
+    if (retryUrl) {
+      const a = new Audio(retryUrl);
+      a.play().catch(() => {});
+    }
+  });
+
+  return wsPromise;
 };
 
 // Play a recorded letter audio file; fall back to Phonikud / Web Speech API
@@ -529,6 +544,19 @@ function Flashcards({ onXP }) {
       setQPos(nextPos);
     }
   };
+
+  // Keyboard: Space/Enter advances to next card when result is showing
+  useEffect(() => {
+    const handler = (e) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      if ((e.key === 'Enter' || e.key === ' ') && phase === 'result') {
+        e.preventDefault();
+        next();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [phase, qPos]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
@@ -946,6 +974,20 @@ function Quiz({ onXP }) {
     else setQIdx(i => i + 1);
   };
 
+  // Keyboard: 1-4 selects answer; Enter dismisses learning panel
+  useEffect(() => {
+    if (!level || done) return;
+    const Q = questions[qIdx];
+    const handler = (e) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      if (e.key === 'Enter' && learning) { dismissLearning(); return; }
+      const n = parseInt(e.key);
+      if (n >= 1 && n <= 4 && Q?.options[n - 1]) answer(Q.options[n - 1]);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [level, done, qIdx, chosen, learning]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Level selection ──
   if (!level) {
     return (
@@ -1187,6 +1229,20 @@ function SentenceGame({ onXP }) {
     if (qIdx + 1 >= questions.length) setDone(true);
     else setQIdx(i => i + 1);
   };
+
+  // Keyboard: 1-4 selects answer; Enter dismisses learning panel
+  useEffect(() => {
+    if (done) return;
+    const Q = questions[qIdx];
+    const handler = (e) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      if (e.key === 'Enter' && learning) { dismissLearning(); return; }
+      const n = parseInt(e.key);
+      if (n >= 1 && n <= 4 && Q?.options[n - 1]) answer(Q.options[n - 1]);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [done, qIdx, chosen, learning]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (done) {
     const pct = Math.round((score / questions.length) * 100);
@@ -1537,6 +1593,19 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
   const [newName, setNewName] = useState('');
   const [newAvatar, setNewAvatar] = useState('noah');
   const [confirmDelete, setConfirmDelete] = useState(null); // player id to confirm
+
+  // Keyboard: 1-9 selects player by position
+  useEffect(() => {
+    const handler = (e) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      const n = parseInt(e.key);
+      if (n >= 1 && n <= 9 && players[n - 1]) {
+        onSelect(players[n - 1].id);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [players, onSelect]);
 
   const handleAdd = () => {
     const name = newName.trim();
@@ -1973,12 +2042,6 @@ function DrawingGame({ onXP }) {
     let t = 8;
     setTimeLeft(t);
     timerRef.current = setInterval(() => {
-      // Check confidence every second — stop early if score is good enough
-      if (computeScore() >= 30) {
-        clearInterval(timerRef.current);
-        evaluate();
-        return;
-      }
       t -= 1;
       setTimeLeft(t);
       if (t <= 0) { clearInterval(timerRef.current); evaluate(); }
@@ -2045,11 +2108,11 @@ function DrawingGame({ onXP }) {
     const score = computeScore();
     setSimScore(score);
 
-    const xp = score >= 65 ? 100 : score >= 45 ? 70 : score >= 25 ? 40 : 10;
+    const xp = score >= 45 ? 100 : score >= 30 ? 70 : score >= 15 ? 40 : 10;
     onXP(xp);
 
     drawingRef.current = false;
-    const fb = score >= 65 ? 'מצוין' : score >= 45 ? 'טוב מאוד' : score >= 25 ? 'כל הכבוד' : 'המשך לתרגל';
+    const fb = score >= 45 ? 'מצוין' : score >= 30 ? 'טוב מאוד' : score >= 15 ? 'כל הכבוד' : 'המשך לתרגל';
     speakHebrew(fb);
 
     setPhase('result');
@@ -2066,9 +2129,28 @@ function DrawingGame({ onXP }) {
   };
 
   const feedbackLabel =
-    simScore >= 65 ? '!מצוין 🌟' :
-    simScore >= 45 ? '!טוב מאוד ⭐' :
-    simScore >= 25 ? '!כל הכבוד 👏' : '!המשך לתרגל 💪';
+    simScore >= 45 ? '!מצוין 🌟' :
+    simScore >= 30 ? '!טוב מאוד ⭐' :
+    simScore >= 15 ? '!כל הכבוד 👏' : '!המשך לתרגל 💪';
+
+  // Keyboard: Enter/Space = start/submit/next; N = next (result); Esc = clear
+  useEffect(() => {
+    const handler = (e) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (phase === 'ready') startRound();
+        else if (phase === 'drawing') { clearInterval(timerRef.current); evaluate(); }
+        else if (phase === 'result') next();
+      } else if ((e.key === 'n' || e.key === 'N') && phase === 'result') {
+        next();
+      } else if (e.key === 'Escape' && phase === 'drawing') {
+        clearCanvas();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
@@ -2160,11 +2242,18 @@ function DrawingGame({ onXP }) {
               transition: 'width 1s linear, background 0.3s',
             }} />
           </div>
-          <button onClick={clearCanvas} style={{
-            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-            color: '#60a5fa', borderRadius: 50, padding: '8px 22px',
-            cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif",
-          }}>✕ מחק</button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={clearCanvas} style={{
+              background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
+              color: '#60a5fa', borderRadius: 50, padding: '8px 22px',
+              cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif",
+            }}>✕ מחק</button>
+            <button onClick={() => { clearInterval(timerRef.current); evaluate(); }} style={{
+              background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', border: 'none',
+              color: 'white', borderRadius: 50, padding: '8px 22px',
+              cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif",
+            }}>✓ סיימתי</button>
+          </div>
         </div>
       )}
 
@@ -2173,7 +2262,7 @@ function DrawingGame({ onXP }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <div style={{
             fontFamily: "'Noto Serif Hebrew', serif", fontSize: 26, fontWeight: 900,
-            color: simScore >= 65 ? '#10b981' : simScore >= 45 ? '#f59e0b' : simScore >= 25 ? '#60a5fa' : '#6d6b8a',
+            color: simScore >= 45 ? '#10b981' : simScore >= 30 ? '#f59e0b' : simScore >= 15 ? '#60a5fa' : '#6d6b8a',
             direction: 'rtl',
           }}>{feedbackLabel}</div>
           <div style={{ color: '#6d6b8a', fontSize: 13 }}>{simScore}% דמיון</div>
