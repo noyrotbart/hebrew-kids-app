@@ -290,6 +290,7 @@ const speakHebrew = async (text) => {
     if (!r.ok) return null;
     const url = URL.createObjectURL(await r.blob());
     _ttsCache.set(text, url); // cache for next call
+    if (typeof _setTtsStatus === 'function') _setTtsStatus('hot'); // light goes green
     return url;
   }).catch(() => null);
 
@@ -372,10 +373,10 @@ function SpeakButton({ onClick, style = {} }) {
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       style={{
-        background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)',
+        background: 'rgba(96,165,250,0.2)', border: '1px solid rgba(96,165,250,0.4)',
         borderRadius: 50, width: 36, height: 36,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', fontSize: 18, color: '#a78bfa',
+        cursor: 'pointer', fontSize: 18, color: '#60a5fa',
         ...style,
       }}
     >🔊</button>
@@ -428,12 +429,13 @@ function Flashcards({ onXP }) {
 
   const L = queue[qPos];
 
-  // Auto-start mic when phase becomes 'ready'
+  // Speak the letter name (recorded audio) then auto-start mic
   useEffect(() => {
-    autoStartRef.current = setTimeout(() => {
-      doListen(L);
-    }, 900);
-    return () => clearTimeout(autoStartRef.current);
+    // First play the recorded letter name so the user hears it clearly
+    const speakT = setTimeout(() => speakLetter(L), 300);
+    // Then start listening after the letter name has had time to play (~1.2 s)
+    autoStartRef.current = setTimeout(() => doListen(L), 1500);
+    return () => { clearTimeout(speakT); clearTimeout(autoStartRef.current); };
   }, [qPos, queue]); // re-runs whenever we advance to a new letter
 
   const [appealed, setAppealed] = useState(false);
@@ -530,7 +532,7 @@ function Flashcards({ onXP }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-      <div style={{ color: '#a78bfa', fontSize: 14, fontWeight: 700, letterSpacing: 2, fontFamily:"'Noto Serif Hebrew',serif", direction:'rtl' }}>
+      <div style={{ color: '#60a5fa', fontSize: 14, fontWeight: 700, letterSpacing: 2, fontFamily:"'Noto Serif Hebrew',serif", direction:'rtl' }}>
         #{totalSeen + 1} · !אמרו את שם האות
       </div>
 
@@ -538,12 +540,12 @@ function Flashcards({ onXP }) {
         width: 300, height: 320, borderRadius: 28,
         background: phase === 'result'
           ? result?.correct ? 'linear-gradient(135deg,#065f46,#047857)' : 'linear-gradient(135deg,#7f1d1d,#991b1b)'
-          : phase === 'listening' ? 'linear-gradient(135deg,#1e40af,#5b21b6)'
-          : 'linear-gradient(135deg,#1e1b4b,#312e81)',
-        border: '3px solid rgba(167,139,250,0.4)',
+          : phase === 'listening' ? 'linear-gradient(135deg,#1e40af,#0369a1)'
+          : 'linear-gradient(135deg,#0d2160,#1a3a8f)',
+        border: '3px solid rgba(96,165,250,0.4)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: 10, padding: 24,
-        boxShadow: phase === 'listening' ? '0 0 50px rgba(124,58,237,0.8)' : '0 20px 60px rgba(124,58,237,0.4)',
+        boxShadow: phase === 'listening' ? '0 0 50px rgba(29,78,216,0.8)' : '0 20px 60px rgba(29,78,216,0.4)',
         transition: 'all 0.4s',
       }}>
         <div style={{ fontSize: 120, lineHeight: 1, fontFamily: "'Noto Serif Hebrew', serif", color: '#f0e6ff' }}>
@@ -552,7 +554,7 @@ function Flashcards({ onXP }) {
         {phase === 'result' && result && (
           <div style={{ textAlign: 'center', color: 'white' }}>
             <div style={{ fontSize: 22, fontWeight: 900 }}>
-              {result.correct ? '✅ !נכון +100' : appealed ? '🏅 ערעור התקבל!' : '❌ לא נכון −50'}
+              {result.correct ? '✅ נכון! +100' : appealed ? '!🏅 ערעור התקבל' : '❌ לא נכון −50'}
             </div>
             <div style={{ fontSize: 18, opacity: 0.9, marginTop: 4, fontFamily: "'Noto Serif Hebrew', serif" }}>
               {L.nameHebrew}
@@ -565,19 +567,19 @@ function Flashcards({ onXP }) {
       </div>
 
       {phase === 'ready' && (
-        <div style={{ color: '#a78bfa', fontSize: 15, opacity: 0.7, fontFamily:"'Noto Serif Hebrew',serif" }}>…מתחיל</div>
+        <div style={{ color: '#60a5fa', fontSize: 15, opacity: 0.7, fontFamily:"'Noto Serif Hebrew',serif" }}>…מתחיל</div>
       )}
 
       {phase === 'listening' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 72, height: 72, borderRadius: '50%',
-            background: 'linear-gradient(135deg,#7c3aed,#db2777)',
+            background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 32, boxShadow: '0 0 30px rgba(219,39,119,0.7)',
+            fontSize: 32, boxShadow: '0 0 30px rgba(14,165,233,0.7)',
             animation: 'pulse-ring 1s ease-in-out infinite',
           }}>🎤</div>
-          <div style={{ color: '#f0abfc', fontSize: 22, fontWeight: 900, fontFamily:"'Noto Serif Hebrew',serif", direction:'rtl' }}>
+          <div style={{ color: '#93c5fd', fontSize: 22, fontWeight: 900, fontFamily:"'Noto Serif Hebrew',serif", direction:'rtl' }}>
             {timeLeft} · מאזין
           </div>
         </div>
@@ -598,7 +600,7 @@ function Flashcards({ onXP }) {
             <SpeakButton onClick={() => speakLetter(L)} />
             <button onClick={next} style={{
               padding: '14px 36px', borderRadius: 50, border: 'none',
-              background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+              background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
               fontSize: 16, fontWeight: 900, cursor: 'pointer',
             }}>← הבא</button>
           </div>
@@ -820,11 +822,11 @@ function MatchingGame({ onXP }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-      <div style={{ color: "#a78bfa", fontSize: 14, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+      <div style={{ color: "#60a5fa", fontSize: 14, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
         {matches}/{SIZE} זוגות · !מצא את הזוגות
       </div>
       {done && (
-        <div style={{ background: "linear-gradient(135deg,#7c3aed,#db2777)", borderRadius: 16, padding: "14px 32px", color: "white", fontWeight: 900, fontSize: 20, textAlign: "center", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+        <div style={{ background: "linear-gradient(135deg,#1d4ed8,#0ea5e9)", borderRadius: 16, padding: "14px 32px", color: "white", fontWeight: 900, fontSize: 20, textAlign: "center", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
           !🎉 כל הזוגות נמצאו
         </div>
       )}
@@ -841,9 +843,9 @@ function MatchingGame({ onXP }) {
               background: card.matched
                 ? "linear-gradient(135deg,#065f46,#047857)"
                 : card.selected
-                  ? "linear-gradient(135deg,#7c3aed,#db2777)"
+                  ? "linear-gradient(135deg,#1d4ed8,#0ea5e9)"
                   : "rgba(255,255,255,0.07)",
-              border: card.matched ? "2px solid #34d399" : card.selected ? "2px solid #f0abfc" : "2px solid rgba(255,255,255,0.12)",
+              border: card.matched ? "2px solid #34d399" : card.selected ? "2px solid #93c5fd" : "2px solid rgba(255,255,255,0.12)",
               transition: "all 0.3s",
               animation: shake === card.pos ? "shake 0.5s" : "none",
               opacity: card.matched ? 0.7 : 1,
@@ -859,10 +861,10 @@ function MatchingGame({ onXP }) {
                   title="אייֵת"
                   style={{
                     position: 'absolute', bottom: 6, right: 6,
-                    background: 'rgba(167,139,250,0.25)', border: '1px solid rgba(167,139,250,0.4)',
+                    background: 'rgba(96,165,250,0.25)', border: '1px solid rgba(96,165,250,0.4)',
                     borderRadius: 50, width: 26, height: 26,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', fontSize: 13, color: '#a78bfa', padding: 0,
+                    cursor: 'pointer', fontSize: 13, color: '#60a5fa', padding: 0,
                   }}
                 >🔤</button>
               </>
@@ -875,7 +877,7 @@ function MatchingGame({ onXP }) {
       {done && (
         <button onClick={() => setLevel(null)} style={{
           marginTop: 8, padding: '12px 32px', borderRadius: 50, border: 'none',
-          background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
           fontSize: 16, fontWeight: 900, cursor: 'pointer',
           fontFamily: "'Noto Serif Hebrew', serif",
         }}>🎮 שחק שוב</button>
@@ -1002,14 +1004,14 @@ function Quiz({ onXP }) {
           )}
           <button onClick={() => startLevel(level)} style={{
             padding: '13px 22px', borderRadius: 50, border: 'none',
-            background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+            background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
             fontWeight: 900, fontSize: 15, cursor: 'pointer',
             fontFamily: "'Noto Serif Hebrew', serif",
           }}>שחק שוב</button>
           <button onClick={() => setLevel(null)} style={{
             padding: '13px 22px', borderRadius: 50,
-            border: '2px solid rgba(167,139,250,0.4)', background: 'transparent',
-            color: '#a78bfa', fontWeight: 900, fontSize: 15, cursor: 'pointer',
+            border: '2px solid rgba(96,165,250,0.4)', background: 'transparent',
+            color: '#60a5fa', fontWeight: 900, fontSize: 15, cursor: 'pointer',
             fontFamily: "'Noto Serif Hebrew', serif",
           }}>החלף רמה</button>
         </div>
@@ -1030,14 +1032,14 @@ function Quiz({ onXP }) {
       {/* Word card */}
       <div style={{
         width: 220, borderRadius: 28,
-        background: 'linear-gradient(135deg,#1e1b4b,#4c1d95)',
+        background: 'linear-gradient(135deg,#0d2160,#4c1d95)',
         border: `3px solid ${L.color}55`,
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', padding: '24px 16px', gap: 8,
-        boxShadow: '0 20px 50px rgba(124,58,237,0.4)',
+        boxShadow: '0 20px 50px rgba(29,78,216,0.4)',
       }}>
         <div style={{ fontSize: 80 }}>{Q.word.emoji}</div>
-        <div style={{ color: '#a78bfa', fontSize: 15, fontWeight: 700 }}>{Q.word.meaning}</div>
+        <div style={{ color: '#60a5fa', fontSize: 15, fontWeight: 700 }}>{Q.word.meaning}</div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1045,10 +1047,10 @@ function Quiz({ onXP }) {
         <SpeakButton onClick={() => speakHebrew(Q.word.word)} />
         {/* Spell-it button: says word then each letter name */}
         <button onClick={() => speakSpelled(Q.word)} title="איות" style={{
-          background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.4)',
+          background: 'rgba(96,165,250,0.2)', border: '1px solid rgba(96,165,250,0.4)',
           borderRadius: 50, width: 36, height: 36,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', fontSize: 14, color: '#a78bfa',
+          cursor: 'pointer', fontSize: 14, color: '#60a5fa',
           fontFamily: "'Noto Serif Hebrew', serif", fontWeight: 900,
         }}>אבג</button>
       </div>
@@ -1083,7 +1085,7 @@ function Quiz({ onXP }) {
       {learning && (
         <div style={{
           width: 320, borderRadius: 20, padding: '20px 18px',
-          background: 'linear-gradient(135deg,#1e3a5f,#1e1b4b)',
+          background: 'linear-gradient(135deg,#1e3a5f,#0d2160)',
           border: '2px solid #3b82f6aa',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
           animation: 'float 0s', // just trigger reflow
@@ -1096,12 +1098,12 @@ function Quiz({ onXP }) {
             {Q.word.word}
           </div>
           <div style={{ color: '#60a5fa', fontSize: 14 }}>{Q.word.meaning}</div>
-          <div style={{ color: '#a78bfa', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
+          <div style={{ color: '#60a5fa', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
             💡 קרא את המילה בקול ונסה לזכור אותה!
           </div>
           <button onClick={dismissLearning} style={{
             marginTop: 4, padding: '12px 32px', borderRadius: 50, border: 'none',
-            background: 'linear-gradient(135deg,#3b82f6,#6366f1)', color: 'white',
+            background: 'linear-gradient(135deg,#3b82f6,#3b82f6)', color: 'white',
             fontWeight: 900, fontSize: 16, cursor: 'pointer',
             fontFamily: "'Noto Serif Hebrew', serif",
           }}>הבנתי! ←</button>
@@ -1155,6 +1157,13 @@ function SentenceGame({ onXP }) {
 
   const Q = questions[qIdx];
 
+  // Speak the full sentence (with the blank filled) when the question changes
+  useEffect(() => {
+    const full = Q.text.replace('___', Q.answer);
+    const t = setTimeout(() => speakHebrew(full), 400);
+    return () => clearTimeout(t);
+  }, [qIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const answer = (opt) => {
     if (chosen || learning) return;
     setChosen(opt);
@@ -1186,11 +1195,11 @@ function SentenceGame({ onXP }) {
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
         <div style={{ fontSize: 60 }}>{pct >= 90 ? '🏆' : pct >= 60 ? '🎉' : '💪'}</div>
         <div style={{ fontSize: 26, fontWeight: 900, color: '#f0e6ff', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הסתיים המשחק</div>
-        <div style={{ fontSize: 20, color: '#a78bfa', fontFamily: "'Noto Serif Hebrew', serif" }}>{score} / {questions.length}</div>
+        <div style={{ fontSize: 20, color: '#60a5fa', fontFamily: "'Noto Serif Hebrew', serif" }}>{score} / {questions.length}</div>
         <Stars count={stars} />
         <button onClick={() => { setQIdx(0); setChosen(null); setScore(0); setDone(false); setLearning(false); }} style={{
           marginTop: 8, padding: '14px 36px', borderRadius: 50, border: 'none',
-          background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
           fontWeight: 900, fontSize: 16, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif",
         }}>שחק שוב</button>
       </div>
@@ -1202,31 +1211,32 @@ function SentenceGame({ onXP }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-      <div style={{ color: '#a78bfa', fontSize: 13, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+      <div style={{ color: '#60a5fa', fontSize: 13, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
         {qIdx + 1}/{questions.length} · {score} נק'
       </div>
 
       {/* Sentence card */}
       <div style={{
         width: '100%', maxWidth: 420, borderRadius: 24,
-        background: 'linear-gradient(135deg,#1e1b4b,#312e81)',
-        border: '2px solid rgba(167,139,250,0.35)',
+        background: 'linear-gradient(135deg,#0d2160,#1a3a8f)',
+        border: '2px solid rgba(96,165,250,0.35)',
         padding: '24px 20px', textAlign: 'center',
-        boxShadow: '0 16px 48px rgba(124,58,237,0.4)',
+        boxShadow: '0 16px 48px rgba(29,78,216,0.4)',
       }}>
         <div style={{ fontSize: 56, marginBottom: 12 }}>{Q.emoji}</div>
         <div style={{
-          fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#f0e6ff',
-          direction: 'rtl', lineHeight: 1.7, display: 'flex', flexWrap: 'wrap',
-          justifyContent: 'center', alignItems: 'center', gap: 6,
+          fontFamily: "'Noto Serif Hebrew', serif", fontSize: 24, color: '#f0e6ff',
+          direction: 'rtl', textAlign: 'right', lineHeight: 1.8,
+          width: '100%',
         }}>
-          <span>{parts[1]}</span>
-          <span style={{
-            display: 'inline-block', minWidth: 70, borderBottom: '3px solid #a78bfa',
-            color: chosen ? (chosen === Q.answer ? '#34d399' : '#f87171') : '#a78bfa',
-            fontWeight: 900, textAlign: 'center',
-          }}>{chosen || '___'}</span>
+          {/* RTL: parts[0] is the beginning (right side), parts[1] is the end (left side) */}
           <span>{parts[0]}</span>
+          <span style={{
+            display: 'inline-block', minWidth: 80, borderBottom: '3px solid #60a5fa',
+            color: chosen ? (chosen === Q.answer ? '#34d399' : '#f87171') : '#60a5fa',
+            fontWeight: 900, textAlign: 'center', margin: '0 6px',
+          }}>{chosen || '___'}</span>
+          <span>{parts[1]}</span>
         </div>
       </div>
 
@@ -1259,19 +1269,19 @@ function SentenceGame({ onXP }) {
       {learning && (
         <div style={{
           width: '100%', maxWidth: 360, borderRadius: 20, padding: '20px 18px',
-          background: 'linear-gradient(135deg,#1e3a5f,#1e1b4b)',
+          background: 'linear-gradient(135deg,#1e3a5f,#0d2160)',
           border: '2px solid #3b82f6aa',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
           <div style={{ fontSize: 44 }}>{Q.emoji}</div>
           <div style={{ color: '#93c5fd', fontSize: 14, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>המילה הנכונה היא:</div>
           <div style={{ color: '#f0e6ff', fontSize: 28, fontWeight: 900, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{Q.answer}</div>
-          <div style={{ color: '#a78bfa', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
+          <div style={{ color: '#60a5fa', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
             💡 קרא את המשפט שוב עם המילה הנכונה!
           </div>
           <button onClick={dismissLearning} style={{
             padding: '11px 28px', borderRadius: 50, border: 'none',
-            background: 'linear-gradient(135deg,#3b82f6,#6366f1)', color: 'white',
+            background: 'linear-gradient(135deg,#3b82f6,#3b82f6)', color: 'white',
             fontWeight: 900, fontSize: 15, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif",
           }}>הבנתי! ←</button>
         </div>
@@ -1287,7 +1297,7 @@ function AvatarNoah({ size = 100, uid = 'n' }) {
       <defs>
         <radialGradient id={`bgn${uid}`} cx="50%" cy="35%" r="60%">
           <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.45"/>
-          <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0.9"/>
+          <stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/>
         </radialGradient>
         <clipPath id={`cpn${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
       </defs>
@@ -1342,8 +1352,8 @@ function AvatarAlma({ size = 100, uid = 'a' }) {
     <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
       <defs>
         <radialGradient id={`bga${uid}`} cx="50%" cy="35%" r="60%">
-          <stop offset="0%" stopColor="#db2777" stopOpacity="0.45"/>
-          <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0.9"/>
+          <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.45"/>
+          <stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/>
         </radialGradient>
         <clipPath id={`cpa${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
       </defs>
@@ -1371,7 +1381,7 @@ function AvatarAlma({ size = 100, uid = 'a' }) {
       {/* pink hair clip */}
       <ellipse cx="30" cy="43" rx="6" ry="4" fill="#f472b6"/>
       <ellipse cx="30" cy="43" rx="4" ry="2.5" fill="#fbb6d4"/>
-      <circle cx="30" cy="43" r="2" fill="#db2777"/>
+      <circle cx="30" cy="43" r="2" fill="#0ea5e9"/>
       {/* eyebrows — arched, feminine */}
       <path d="M35 50 Q41 45 47 49" stroke="#5c3317" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
       <path d="M53 49 Q59 45 65 50" stroke="#5c3317" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
@@ -1405,7 +1415,7 @@ function AvatarMax({ size = 100, uid = 'm' }) {
       <defs>
         <radialGradient id={`bgm${uid}`} cx="50%" cy="35%" r="60%">
           <stop offset="0%" stopColor="#059669" stopOpacity="0.45"/>
-          <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0.9"/>
+          <stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/>
         </radialGradient>
         <clipPath id={`cpm${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
       </defs>
@@ -1539,13 +1549,13 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at 20% 20%, #2d1b69 0%, #0d0a1e 60%)',
+      background: 'radial-gradient(ellipse at 20% 20%, #0a2d6e 0%, #000f2b 60%)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', gap: 32, padding: 24,
     }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 36, color: '#f0e6ff', textShadow: '0 0 30px rgba(167,139,250,0.6)' }}>Who's playing? 🎮</div>
-        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#a78bfa', marginTop: 6 }}>מי משחק?</div>
+        <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 36, color: '#f0e6ff', textShadow: '0 0 30px rgba(96,165,250,0.6)' }}>Who's playing? 🎮</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#60a5fa', marginTop: 6 }}>מי משחק?</div>
       </div>
 
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -1583,11 +1593,11 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '2px 7px', textAlign: 'center' }}>
-                    <div style={{ color: '#a78bfa', fontSize: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>סה"כ נק'</div>
+                    <div style={{ color: '#60a5fa', fontSize: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>סה"כ נק'</div>
                     <div style={{ color: '#f0e6ff', fontSize: 12, fontWeight: 700 }}>{totalXp}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '2px 7px', textAlign: 'center' }}>
-                    <div style={{ color: '#a78bfa', fontSize: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>משחקים</div>
+                    <div style={{ color: '#60a5fa', fontSize: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>משחקים</div>
                     <div style={{ color: '#f0e6ff', fontSize: 12, fontWeight: 700 }}>{totalGames}</div>
                   </div>
                 </div>
@@ -1612,7 +1622,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
                 }}>
                   <div style={{ color: '#f0e6ff', fontFamily: "'Noto Serif Hebrew', serif", fontSize: 14, textAlign: 'center', direction: 'rtl' }}>?למחוק את {p.id}</div>
                   <button onClick={() => { onDeletePlayer(p.id); setConfirmDelete(null); }} style={{ padding: '8px 18px', borderRadius: 50, border: 'none', background: '#dc2626', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif" }}>מחק</button>
-                  <button onClick={() => setConfirmDelete(null)} style={{ padding: '6px 14px', borderRadius: 50, border: '1px solid rgba(167,139,250,0.4)', background: 'transparent', color: '#a78bfa', cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif" }}>ביטול</button>
+                  <button onClick={() => setConfirmDelete(null)} style={{ padding: '6px 14px', borderRadius: 50, border: '1px solid rgba(96,165,250,0.4)', background: 'transparent', color: '#60a5fa', cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif" }}>ביטול</button>
                 </div>
               )}
             </div>
@@ -1623,9 +1633,9 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
         {!adding ? (
           <button onClick={() => setAdding(true)} style={{
             width: 175, minHeight: 200, background: 'rgba(255,255,255,0.03)',
-            border: '2px dashed rgba(167,139,250,0.35)', borderRadius: 28,
+            border: '2px dashed rgba(96,165,250,0.35)', borderRadius: 28,
             cursor: 'pointer', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 12, color: '#a78bfa',
+            alignItems: 'center', justifyContent: 'center', gap: 12, color: '#60a5fa',
           }}>
             <div style={{ fontSize: 42 }}>➕</div>
             <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 16, direction: 'rtl' }}>הוסף שחקן</div>
@@ -1633,7 +1643,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
         ) : (
           <div style={{
             width: 175, background: 'rgba(255,255,255,0.07)',
-            border: '2px solid rgba(167,139,250,0.4)', borderRadius: 28,
+            border: '2px solid rgba(96,165,250,0.4)', borderRadius: 28,
             padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
           }}>
             <input
@@ -1644,7 +1654,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
               placeholder="שם השחקן"
               maxLength={10}
               style={{
-                width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid rgba(167,139,250,0.4)',
+                width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid rgba(96,165,250,0.4)',
                 background: 'rgba(255,255,255,0.06)', color: '#f0e6ff', fontSize: 16,
                 fontFamily: "'Noto Serif Hebrew', serif", textAlign: 'right', direction: 'rtl', outline: 'none',
               }}
@@ -1665,7 +1675,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
             </div>
             <button onClick={handleAdd} disabled={!newName.trim()} style={{
               width: '100%', padding: '9px', borderRadius: 12, border: 'none',
-              background: newName.trim() ? 'linear-gradient(135deg,#7c3aed,#db2777)' : 'rgba(255,255,255,0.1)',
+              background: newName.trim() ? 'linear-gradient(135deg,#1d4ed8,#0ea5e9)' : 'rgba(255,255,255,0.1)',
               color: 'white', fontWeight: 700, cursor: newName.trim() ? 'pointer' : 'default',
               fontFamily: "'Noto Serif Hebrew', serif", fontSize: 15,
             }}>צור שחקן ✓</button>
@@ -1807,7 +1817,7 @@ function SpellingGame({ onXP, profile }) {
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <span style={{ fontSize:48 }}>{W.emoji}</span>
-              <div style={{ color:'#a78bfa', fontSize:15, fontWeight:700 }}>{W.meaning}</div>
+              <div style={{ color:'#60a5fa', fontSize:15, fontWeight:700 }}>{W.meaning}</div>
             </div>
             <SpeakButton onClick={() => speakHebrew(W.word)}/>
           </div>
@@ -1824,12 +1834,12 @@ function SpellingGame({ onXP, profile }) {
               width:66, height:74, borderRadius:18,
               background: st==='correct' ? 'rgba(16,185,129,0.25)'
                         : st==='wrong'   ? 'rgba(239,68,68,0.25)'
-                        : isActive       ? 'rgba(124,58,237,0.25)'
+                        : isActive       ? 'rgba(29,78,216,0.25)'
                         :                  'rgba(255,255,255,0.05)',
-              border:`3px solid ${st==='correct'?'#10b981':st==='wrong'?'#ef4444':isActive?'#7c3aed':'rgba(255,255,255,0.12)'}`,
+              border:`3px solid ${st==='correct'?'#10b981':st==='wrong'?'#ef4444':isActive?'#1d4ed8':'rgba(255,255,255,0.12)'}`,
               display:'flex', alignItems:'center', justifyContent:'center',
               fontFamily:"'Noto Serif Hebrew', serif", fontSize:38, color:'#f0e6ff',
-              boxShadow: isActive      ? '0 0 22px rgba(124,58,237,0.55)'
+              boxShadow: isActive      ? '0 0 22px rgba(29,78,216,0.55)'
                        : st==='correct'? '0 0 12px rgba(16,185,129,0.35)'
                        :                 'none',
               transition:'all 0.2s',
@@ -1852,9 +1862,9 @@ function SpellingGame({ onXP, profile }) {
                   style={{
                     width:48, height:52, borderRadius:10,
                     background: phase !== 'playing' ? 'rgba(255,255,255,0.04)'
-                              : isCorrectLetter    ? 'rgba(124,58,237,0.38)'
-                              :                      'rgba(124,58,237,0.14)',
-                    border:`2px solid ${phase !== 'playing' ? 'rgba(255,255,255,0.08)' : isCorrectLetter ? 'rgba(167,139,250,0.9)' : 'rgba(167,139,250,0.35)'}`,
+                              : isCorrectLetter    ? 'rgba(29,78,216,0.38)'
+                              :                      'rgba(29,78,216,0.14)',
+                    border:`2px solid ${phase !== 'playing' ? 'rgba(255,255,255,0.08)' : isCorrectLetter ? 'rgba(96,165,250,0.9)' : 'rgba(96,165,250,0.35)'}`,
                     color: phase !== 'playing' ? 'rgba(255,255,255,0.3)' : '#f0e6ff',
                     fontFamily:"'Noto Serif Hebrew', serif", fontSize:24,
                     cursor: phase === 'playing' ? 'pointer' : 'default',
@@ -1893,7 +1903,7 @@ function SpellingGame({ onXP, profile }) {
           </div>
           <button onClick={nextWord} style={{
             padding:'14px 36px', borderRadius:50, border:'none',
-            background:'linear-gradient(135deg,#7c3aed,#db2777)', color:'white',
+            background:'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color:'white',
             fontSize:16, fontWeight:900, cursor:'pointer',
             fontFamily:"'Noto Serif Hebrew', serif",
           }}>← מילה הבאה</button>
@@ -2067,11 +2077,11 @@ function DrawingGame({ onXP }) {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 14, width: '100%',
         background: 'rgba(255,255,255,0.05)', borderRadius: 20,
-        padding: '14px 20px', border: '1px solid rgba(167,139,250,0.2)',
+        padding: '14px 20px', border: '1px solid rgba(96,165,250,0.2)',
       }}>
         <SpeakButton onClick={() => speakLetter(L)} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 17, color: '#a78bfa', direction: 'rtl' }}>
+          <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 17, color: '#60a5fa', direction: 'rtl' }}>
             {L.nameHebrew}
           </div>
           <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13, color: '#6d6b8a', direction: 'rtl', marginTop: 2 }}>
@@ -2092,7 +2102,7 @@ function DrawingGame({ onXP }) {
           fontFamily: "'Noto Serif Hebrew', serif",
           fontSize: Math.round(CSIZE * 0.72),
           lineHeight: 1,
-          color: phase === 'result' ? 'rgba(167,139,250,0.4)' : 'rgba(167,139,250,0.1)',
+          color: phase === 'result' ? 'rgba(96,165,250,0.4)' : 'rgba(96,165,250,0.1)',
           pointerEvents: 'none', userSelect: 'none',
           transition: 'color 0.6s',
           paddingTop: Math.round(CSIZE * 0.04),
@@ -2113,9 +2123,9 @@ function DrawingGame({ onXP }) {
           style={{
             display: 'block', borderRadius: 22,
             background: 'rgba(20,16,60,0.7)',
-            border: `3px solid ${phase === 'drawing' ? 'rgba(124,58,237,0.9)' : 'rgba(167,139,250,0.25)'}`,
+            border: `3px solid ${phase === 'drawing' ? 'rgba(29,78,216,0.9)' : 'rgba(96,165,250,0.25)'}`,
             cursor: phase === 'drawing' ? 'crosshair' : 'default',
-            boxShadow: phase === 'drawing' ? '0 0 40px rgba(124,58,237,0.55)' : '0 8px 32px rgba(0,0,0,0.4)',
+            boxShadow: phase === 'drawing' ? '0 0 40px rgba(29,78,216,0.55)' : '0 8px 32px rgba(0,0,0,0.4)',
             touchAction: 'none',
             transition: 'border-color 0.3s, box-shadow 0.3s',
           }}
@@ -2125,7 +2135,7 @@ function DrawingGame({ onXP }) {
       {/* Ready — draw hint */}
       {phase === 'ready' && (
         <div style={{
-          color: '#a78bfa', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif",
+          color: '#60a5fa', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif",
           direction: 'rtl', opacity: 0.8, textAlign: 'center', lineHeight: 1.5,
         }}>
           לחץ וגרור על הלוח כדי לצייר
@@ -2137,7 +2147,7 @@ function DrawingGame({ onXP }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' }}>
           <div style={{
             fontSize: 42, fontWeight: 900,
-            color: timeLeft <= 2 ? '#ef4444' : '#a78bfa',
+            color: timeLeft <= 2 ? '#ef4444' : '#60a5fa',
             transition: 'color 0.3s',
           }}>{timeLeft}</div>
           <div style={{ width: CSIZE, height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 99, overflow: 'hidden' }}>
@@ -2145,14 +2155,14 @@ function DrawingGame({ onXP }) {
               width: `${(timeLeft / 8) * 100}%`, height: '100%',
               background: timeLeft <= 2
                 ? 'linear-gradient(90deg,#ef4444,#f87171)'
-                : 'linear-gradient(90deg,#7c3aed,#db2777)',
+                : 'linear-gradient(90deg,#1d4ed8,#0ea5e9)',
               borderRadius: 99,
               transition: 'width 1s linear, background 0.3s',
             }} />
           </div>
           <button onClick={clearCanvas} style={{
             background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-            color: '#a78bfa', borderRadius: 50, padding: '8px 22px',
+            color: '#60a5fa', borderRadius: 50, padding: '8px 22px',
             cursor: 'pointer', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif",
           }}>✕ מחק</button>
         </div>
@@ -2163,19 +2173,102 @@ function DrawingGame({ onXP }) {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <div style={{
             fontFamily: "'Noto Serif Hebrew', serif", fontSize: 26, fontWeight: 900,
-            color: simScore >= 65 ? '#10b981' : simScore >= 45 ? '#f59e0b' : simScore >= 25 ? '#a78bfa' : '#6d6b8a',
+            color: simScore >= 65 ? '#10b981' : simScore >= 45 ? '#f59e0b' : simScore >= 25 ? '#60a5fa' : '#6d6b8a',
             direction: 'rtl',
           }}>{feedbackLabel}</div>
           <div style={{ color: '#6d6b8a', fontSize: 13 }}>{simScore}% דמיון</div>
           <button onClick={next} style={{
             padding: '14px 44px', borderRadius: 50, border: 'none',
-            background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+            background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
             fontSize: 17, fontWeight: 900, cursor: 'pointer',
             fontFamily: "'Noto Serif Hebrew', serif",
           }}>← הבא</button>
         </div>
       )}
     </div>
+  );
+}
+
+// ── TTS STATUS DOT ────────────────────────────────────────────
+// Module-level: shared between speakHebrew and TtsStatusDot
+let _ttsStatus = 'checking'; // 'checking' | 'hot' | 'cold'
+const _setTtsStatus = (s) => {
+  if (_ttsStatus === s) return;
+  _ttsStatus = s;
+  window.dispatchEvent(new CustomEvent('tts-status', { detail: s }));
+};
+
+/**
+ * Small LED in the bottom-right corner.
+ *   🔴 pulsing amber = TTS server warming up (first call may use Web Speech)
+ *   🟢 solid green   = Phonikud is hot — all speech will use the good voice
+ *   🔴 solid red     = server unavailable; using Web Speech as fallback
+ *
+ * On mount it fires a silent warmup request so the HF Space wakes up
+ * before the first real TTS call.
+ */
+function TtsStatusDot() {
+  const [status, setStatus] = useState(_ttsStatus);
+  const [dim, setDim]       = useState(false);
+
+  useEffect(() => {
+    const onStatus = (e) => { setStatus(e.detail); };
+    window.addEventListener('tts-status', onStatus);
+
+    // Proactive warmup: wake up HF Space / confirm local server
+    const ctrl = new AbortController();
+    fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'שלום' }),
+      signal: ctrl.signal,
+    }).then(async (r) => {
+      if (!r.ok) throw new Error('not ok');
+      const url = URL.createObjectURL(await r.blob());
+      _ttsCache.set('שלום', url);  // pre-cache
+      _setTtsStatus('hot');
+    }).catch(() => _setTtsStatus('cold'));
+
+    // Give up after 90 s (long HF cold-starts)
+    const giveUp = setTimeout(() => {
+      if (_ttsStatus === 'checking') _setTtsStatus('cold');
+    }, 90000);
+
+    return () => {
+      window.removeEventListener('tts-status', onStatus);
+      ctrl.abort();
+      clearTimeout(giveUp);
+    };
+  }, []);
+
+  // Pulse the dot while checking
+  useEffect(() => {
+    if (status !== 'checking') { setDim(false); return; }
+    const id = setInterval(() => setDim(d => !d), 650);
+    return () => clearInterval(id);
+  }, [status]);
+
+  const colors = { hot: '#22c55e', cold: '#ef4444', checking: '#f59e0b' };
+  const labels = {
+    hot:      'קול פוניקוד מוכן ✓',
+    cold:     'שרת TTS לא זמין — Web Speech',
+    checking: 'מאתחל קול פוניקוד…',
+  };
+
+  const c = colors[status];
+  return (
+    <div
+      title={labels[status]}
+      style={{
+        position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
+        width: 13, height: 13, borderRadius: '50%',
+        background: c,
+        opacity: dim ? 0.2 : 1,
+        transition: 'opacity 0.5s ease, background 0.4s ease',
+        boxShadow: `0 0 ${status === 'hot' ? 10 : 5}px ${c}`,
+        cursor: 'help',
+      }}
+    />
   );
 }
 
@@ -2245,7 +2338,7 @@ export default function App() {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
           * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { background: #0d0a1e; min-height: 100vh; font-family: 'Nunito', sans-serif; }
+          body { background: #000f2b; min-height: 100vh; font-family: 'Nunito', sans-serif; }
           button { transition: all 0.15s; }
         `}</style>
         <ProfilePicker players={players} xps={xps} getProgress={getProgress} onSelect={(id) => { setActiveProfile(id); setMode('home'); }} onAddPlayer={handleAddPlayer} onDeletePlayer={handleDeletePlayer} />
@@ -2258,18 +2351,18 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0d0a1e; min-height: 100vh; font-family: 'Nunito', sans-serif; }
+        body { background: #000f2b; min-height: 100vh; font-family: 'Nunito', sans-serif; }
         @keyframes shake {
           0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
         }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @keyframes pulse-ring { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(1.4);opacity:0} }
-        @keyframes hint-glow { 0%{transform:scale(1);box-shadow:0 0 0 rgba(167,139,250,0)} 40%{transform:scale(1.12);box-shadow:0 0 22px rgba(167,139,250,1)} 100%{transform:scale(1.05);box-shadow:0 0 14px rgba(167,139,250,0.6)} }
+        @keyframes hint-glow { 0%{transform:scale(1);box-shadow:0 0 0 rgba(96,165,250,0)} 40%{transform:scale(1.12);box-shadow:0 0 22px rgba(96,165,250,1)} 100%{transform:scale(1.05);box-shadow:0 0 14px rgba(96,165,250,0.6)} }
         button:hover { transform: scale(1.04); }
         button { transition: all 0.15s; }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at 20% 20%, #2d1b69 0%, #0d0a1e 60%)", padding: "0 0 60px" }}>
+      <div style={{ minHeight: "100vh", background: "radial-gradient(ellipse at 20% 20%, #0a2d6e 0%, #000f2b 60%)", padding: "0 0 60px" }}>
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px 0", gap: 8 }}>
@@ -2277,7 +2370,7 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {mode !== "home" && (
               <button onClick={() => { setMode("home"); setMatchKey(k => k + 1); }} style={{
-                background: "rgba(167,139,250,0.15)", border: "none", color: "#a78bfa",
+                background: "rgba(96,165,250,0.15)", border: "none", color: "#60a5fa",
                 borderRadius: 50, padding: "8px 16px", cursor: "pointer", fontWeight: 700, fontSize: 14,
                 fontFamily: "'Noto Serif Hebrew', serif",
               }}>← חזרה</button>
@@ -2291,9 +2384,9 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {/* XP bar */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-              <div style={{ color: "#a78bfa", fontSize: 11, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>רמה {level} · {xp} נק'</div>
+              <div style={{ color: "#60a5fa", fontSize: 11, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>רמה {level} · {xp} נק'</div>
               <div style={{ width: 90, height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 99, overflow: "hidden" }}>
-                <div style={{ width: `${progress}%`, height: "100%", background: `linear-gradient(90deg,${profile?.color ?? '#a78bfa'},${profile?.color ?? '#a78bfa'}99)`, borderRadius: 99, transition: "width 0.5s" }} />
+                <div style={{ width: `${progress}%`, height: "100%", background: `linear-gradient(90deg,${profile?.color ?? '#60a5fa'},${profile?.color ?? '#60a5fa'}99)`, borderRadius: 99, transition: "width 0.5s" }} />
               </div>
             </div>
             {/* Mini avatar + name + switch */}
@@ -2302,11 +2395,11 @@ export default function App() {
               title="Switch profile"
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${profile?.color ?? '#a78bfa'}55`,
+                background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${profile?.color ?? '#60a5fa'}55`,
                 borderRadius: 50, padding: '4px 10px 4px 4px', cursor: 'pointer',
               }}
             >
-              <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `2px solid ${profile?.color ?? '#a78bfa'}` }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `2px solid ${profile?.color ?? '#60a5fa'}` }}>
                 {profileWithAvatar && <profileWithAvatar.Avatar size={34} uid="hdr"/>}
               </div>
               <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 16, color: '#f0e6ff', direction: 'rtl' }}>
@@ -2320,35 +2413,37 @@ export default function App() {
         {mode === "home" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 40, gap: 32 }}>
             <div style={{ textAlign: "center" }}>
+              {/* Israeli flag */}
+              <div style={{ fontSize: 52, marginBottom: 4 }}>🇮🇱</div>
               <div style={{
-                fontFamily: "'Noto Serif Hebrew', serif", fontSize: 80, lineHeight: 1,
-                background: "linear-gradient(135deg,#a78bfa,#f0abfc,#fb7185)",
+                fontFamily: "'Noto Serif Hebrew', serif", fontSize: 72, lineHeight: 1,
+                background: "linear-gradient(135deg,#1d6ae5,#0ea5e9,#60a5fa)",
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                 animation: "float 3s ease-in-out infinite",
               }}>
                 סטודיו עברית
               </div>
-              <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: "#f0e6ff", marginTop: 8, direction: 'rtl' }}>
-                !למד את האלפבית העברי
+              <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 28, color: "#e0f2ff", marginTop: 10, direction: 'rtl', fontWeight: 700 }}>
+                למד את האלפבית העברי!
               </div>
-              <div style={{ color: "#a78bfa", fontSize: 14, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר</div>
+              <div style={{ color: "#60a5fa", fontSize: 15, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר · משפט</div>
             </div>
 
             {/* Game mode grid — 3+3 */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, width: '100%', maxWidth: 520, padding: '0 12px' }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, width: '100%', maxWidth: 560, padding: '0 12px' }}>
               {[modes.slice(0, 3), modes.slice(3)].map((row, ri) => (
-                <div key={ri} style={{ display: "flex", gap: 10 }}>
+                <div key={ri} style={{ display: "flex", gap: 12 }}>
                   {row.map(m => (
                     <button key={m.id} onClick={() => setMode(m.id)} style={{
-                      flex: 1, height: 100, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
-                      background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
+                      flex: 1, height: 130, borderRadius: 22, border: "2px solid rgba(96,165,250,0.35)",
+                      background: "rgba(255,255,255,0.06)", backdropFilter: "blur(10px)",
                       color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
-                      alignItems: "center", justifyContent: "center", gap: 4,
+                      alignItems: "center", justifyContent: "center", gap: 6,
                       boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                     }}>
-                      <div style={{ fontSize: 26 }}>{m.emoji}</div>
-                      <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
-                      <div style={{ fontSize: 9, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
+                      <div style={{ fontSize: 36 }}>{m.emoji}</div>
+                      <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 17, color: "#e0f2ff", direction: 'rtl', fontWeight: 700 }}>{m.label}</div>
+                      <div style={{ fontSize: 12, color: "#60a5fa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -2385,19 +2480,22 @@ export default function App() {
           <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 52, color: '#f0e6ff', textAlign: 'center', direction: 'rtl' }}>
             !ניצחת
           </div>
-          <div style={{ color: '#a78bfa', fontSize: 18, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הגעת ל-1000 נק'</div>
+          <div style={{ color: '#60a5fa', fontSize: 18, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הגעת ל-1000 נק'</div>
           <Stars count={3} />
           <button onClick={() => {
             setXps(prev => { const next = { ...prev, [activeProfile]: 0 }; saveXPs(next); return next; });
             setMode('home'); setMatchKey(k => k + 1);
           }} style={{
             marginTop: 8, padding: '16px 40px', borderRadius: 50, border: 'none',
-            background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+            background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
             fontWeight: 900, fontSize: 18, cursor: 'pointer',
             fontFamily: "'Noto Serif Hebrew', serif",
           }}>🎮 שחק שוב</button>
         </div>
       )}
+
+      {/* TTS status LED — bottom-right corner */}
+      <TtsStatusDot />
     </>
   );
 }
