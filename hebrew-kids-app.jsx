@@ -394,21 +394,42 @@ function Flashcards({ onXP }) {
     return () => clearTimeout(autoStartRef.current);
   }, [qPos, queue]); // re-runs whenever we advance to a new letter
 
+  const [appealed, setAppealed] = useState(false);
+
   const finishRound = (heard, correct, letter) => {
     if (resultDoneRef.current) return;
     resultDoneRef.current = true;
     clearInterval(timerRef.current);
     setResult({ heard, correct });
+    setAppealed(false);
     setPhase('result');
     window.speechSynthesis.cancel();
     if (correct) {
       const utt = new SpeechSynthesisUtterance('נכון');
       utt.lang = 'he-IL'; utt.rate = 0.9;
       window.speechSynthesis.speak(utt);
+      onXP(100);
     } else {
       speakLetter(letter);
+      onXP(-50);
+      // After a short pause, ask the appeal question
+      setTimeout(() => {
+        window.speechSynthesis.cancel();
+        const q = new SpeechSynthesisUtterance('אני חושבת שטעית. אתה מסכים?');
+        q.lang = 'he-IL'; q.rate = 0.85;
+        window.speechSynthesis.speak(q);
+      }, 1400);
     }
-    onXP(correct ? 100 : -50);
+  };
+
+  const handleAppeal = () => {
+    // Reverse the -50 and give +100 (net +150)
+    setAppealed(true);
+    onXP(150);
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance('בסדר, נקבל את זה!');
+    utt.lang = 'he-IL'; utt.rate = 0.9;
+    window.speechSynthesis.speak(utt);
   };
 
   const doListen = (letter) => {
@@ -500,7 +521,7 @@ function Flashcards({ onXP }) {
         {phase === 'result' && result && (
           <div style={{ textAlign: 'center', color: 'white' }}>
             <div style={{ fontSize: 22, fontWeight: 900 }}>
-              {result.correct ? '✅ !נכון +100' : '❌ לא נכון −50'}
+              {result.correct ? '✅ !נכון +100' : appealed ? '🏅 ערעור התקבל!' : '❌ לא נכון −50'}
             </div>
             <div style={{ fontSize: 18, opacity: 0.9, marginTop: 4, fontFamily: "'Noto Serif Hebrew', serif" }}>
               {L.nameHebrew}
@@ -532,13 +553,24 @@ function Flashcards({ onXP }) {
       )}
 
       {phase === 'result' && (
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          <SpeakButton onClick={() => speakLetter(L)} />
-          <button onClick={next} style={{
-            padding: '14px 36px', borderRadius: 50, border: 'none',
-            background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
-            fontSize: 16, fontWeight: 900, cursor: 'pointer',
-          }}>← הבא</button>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          {/* Appeal button — only when wrong and not yet appealed */}
+          {result && !result.correct && !appealed && (
+            <button onClick={handleAppeal} style={{
+              padding: '11px 28px', borderRadius: 50, border: '2px solid #f59e0b',
+              background: 'rgba(245,158,11,0.15)', color: '#fbbf24',
+              fontSize: 14, fontWeight: 900, cursor: 'pointer',
+              fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl',
+            }}>💪 אני בטוח שאני צודק</button>
+          )}
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <SpeakButton onClick={() => speakLetter(L)} />
+            <button onClick={next} style={{
+              padding: '14px 36px', borderRadius: 50, border: 'none',
+              background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+              fontSize: 16, fontWeight: 900, cursor: 'pointer',
+            }}>← הבא</button>
+          </div>
         </div>
       )}
     </div>
@@ -749,7 +781,10 @@ function MatchingGame({ onXP }) {
     );
   }
 
-  const cardSize = level === 3 ? 88 : 100;
+  // Card size: big enough to read comfortably on iPad
+  const cardSize = level === 3 ? 118 : 140;
+  const wordFontSize = level === 3 ? 20 : 24;
+  const emojiFontSize = level === 3 ? 56 : 66;
   const cols = MATCH_LEVELS[level].cols;
 
   return (
@@ -762,13 +797,13 @@ function MatchingGame({ onXP }) {
           !🎉 כל הזוגות נמצאו
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 10 }}>
         {cards.map(card => (
           <div
             key={card.id}
             onClick={() => select(card.pos)}
             style={{
-              width: cardSize, height: cardSize, borderRadius: 16,
+              width: cardSize, height: cardSize, borderRadius: 20,
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
               cursor: card.matched ? "default" : "pointer",
@@ -781,27 +816,27 @@ function MatchingGame({ onXP }) {
               transition: "all 0.3s",
               animation: shake === card.pos ? "shake 0.5s" : "none",
               opacity: card.matched ? 0.7 : 1,
-              boxShadow: card.selected ? "0 0 20px rgba(240,171,252,0.5)" : "none",
+              boxShadow: card.selected ? "0 0 24px rgba(240,171,252,0.6)" : "none",
               position: 'relative',
             }}
           >
             {card.type === "word" ? (
               <>
-                <div style={{ fontSize: level === 3 ? 14 : 16, lineHeight: 1.2, fontFamily: "'Noto Serif Hebrew', serif", color: card.matched ? "#6ee7b7" : "#f0e6ff", direction: 'rtl', textAlign: 'center', padding: '0 4px' }}>{card.value}</div>
+                <div style={{ fontSize: wordFontSize, lineHeight: 1.2, fontFamily: "'Noto Serif Hebrew', serif", fontWeight: 700, color: card.matched ? "#6ee7b7" : "#f0e6ff", direction: 'rtl', textAlign: 'center', padding: '0 8px' }}>{card.value}</div>
                 <button
                   onClick={(e) => { e.stopPropagation(); speakWordLetters(card.value); }}
                   title="אייֵת"
                   style={{
-                    position: 'absolute', bottom: 4, right: 4,
+                    position: 'absolute', bottom: 6, right: 6,
                     background: 'rgba(167,139,250,0.25)', border: '1px solid rgba(167,139,250,0.4)',
-                    borderRadius: 50, width: 22, height: 22,
+                    borderRadius: 50, width: 26, height: 26,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', fontSize: 11, color: '#a78bfa', padding: 0,
+                    cursor: 'pointer', fontSize: 13, color: '#a78bfa', padding: 0,
                   }}
                 >🔤</button>
               </>
             ) : (
-              <div style={{ fontSize: level === 3 ? 40 : 48 }}>{card.value}</div>
+              <div style={{ fontSize: emojiFontSize }}>{card.value}</div>
             )}
           </div>
         ))}
@@ -849,8 +884,10 @@ function Quiz({ onXP }) {
     setDone(false);
   };
 
+  const [learning, setLearning] = useState(false); // show learning panel
+
   const answer = (opt) => {
-    if (chosen) return;
+    if (chosen || learning) return;
     const Q = questions[qIdx];
     setChosen(opt.word);
     const correct = opt.word === Q.word.word;
@@ -858,11 +895,22 @@ function Quiz({ onXP }) {
       setScore(s => s + 1);
       onXP(20);
       speakHebrew(opt.word);
+      setTimeout(() => {
+        if (qIdx + 1 >= questions.length) setDone(true);
+        else { setQIdx(i => i + 1); setChosen(null); }
+      }, 1000);
+    } else {
+      // Show learning panel — don't auto-advance
+      setLearning(true);
+      speakHebrew(Q.word.word); // say the correct word
     }
-    setTimeout(() => {
-      if (qIdx + 1 >= questions.length) setDone(true);
-      else { setQIdx(i => i + 1); setChosen(null); }
-    }, 1000);
+  };
+
+  const dismissLearning = () => {
+    setLearning(false);
+    setChosen(null);
+    if (qIdx + 1 >= questions.length) setDone(true);
+    else setQIdx(i => i + 1);
   };
 
   // ── Level selection ──
@@ -945,7 +993,7 @@ function Quiz({ onXP }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
       <div style={{ color: L.color, fontSize: 13, fontWeight: 700, direction: 'rtl', fontFamily: "'Noto Serif Hebrew', serif" }}>
-        {L.label} · {qIdx + 1}/{questions.length} · {score} נ.נ
+        {L.label} · {qIdx + 1}/{questions.length} · {score} נק'
       </div>
 
       {/* Word card */}
@@ -991,7 +1039,7 @@ function Quiz({ onXP }) {
                 ? isCorrect ? '2px solid #34d399' : isChosen ? '2px solid #f87171' : '2px solid transparent'
                 : '2px solid rgba(255,255,255,0.12)',
               background: bg, color: '#f0e6ff', fontWeight: 700,
-              cursor: chosen ? 'default' : 'pointer', transition: 'all 0.3s',
+              cursor: (chosen || learning) ? 'default' : 'pointer', transition: 'all 0.3s',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
             }}>
               <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 24, direction: 'rtl' }}>{opt.word}</span>
@@ -999,6 +1047,204 @@ function Quiz({ onXP }) {
           );
         })}
       </div>
+
+      {/* Learning panel — shown after wrong answer */}
+      {learning && (
+        <div style={{
+          width: 320, borderRadius: 20, padding: '20px 18px',
+          background: 'linear-gradient(135deg,#1e3a5f,#1e1b4b)',
+          border: '2px solid #3b82f6aa',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+          animation: 'float 0s', // just trigger reflow
+        }}>
+          <div style={{ fontSize: 48 }}>{Q.word.emoji}</div>
+          <div style={{ color: '#93c5fd', fontSize: 14, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+            המילה הנכונה היא:
+          </div>
+          <div style={{ color: '#f0e6ff', fontSize: 30, fontWeight: 900, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+            {Q.word.word}
+          </div>
+          <div style={{ color: '#60a5fa', fontSize: 14 }}>{Q.word.meaning}</div>
+          <div style={{ color: '#a78bfa', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
+            💡 קרא את המילה בקול ונסה לזכור אותה!
+          </div>
+          <button onClick={dismissLearning} style={{
+            marginTop: 4, padding: '12px 32px', borderRadius: 50, border: 'none',
+            background: 'linear-gradient(135deg,#3b82f6,#6366f1)', color: 'white',
+            fontWeight: 900, fontSize: 16, cursor: 'pointer',
+            fontFamily: "'Noto Serif Hebrew', serif",
+          }}>הבנתי! ←</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── SENTENCE COMPLETION GAME ──────────────────────────────────
+const FILL_SENTENCES = [
+  { text: 'אני אוהב לאכול ___', answer: 'תפוח',   options: ['תפוח','כסא','ספר','ירח'],      emoji: '🍎' },
+  { text: 'הילד שותה ___',        answer: 'חלב',    options: ['חלב','אבן','עץ','ירח'],         emoji: '🥛' },
+  { text: 'ב___ גרים בני אדם',   answer: 'בית',    options: ['בית','ים','שמש','עיפרון'],      emoji: '🏠' },
+  { text: 'ה___ עף בשמיים',       answer: 'ציפור',  options: ['ציפור','כלב','דג','אבן'],       emoji: '🐦' },
+  { text: 'ה___ שוחה בים',        answer: 'דג',     options: ['דג','סוס','גמל','ארנב'],        emoji: '🐟' },
+  { text: 'ה___ נובח על גנבים',  answer: 'כלב',    options: ['כלב','חתול','פרפר','ספר'],      emoji: '🐶' },
+  { text: 'אנחנו ישנים ב___',    answer: 'מיטה',   options: ['מיטה','רכב','ים','עט'],         emoji: '🛏️' },
+  { text: 'ה___ זורחת ביום',      answer: 'שמש',    options: ['שמש','ירח','כוכב','לחם'],       emoji: '☀️' },
+  { text: 'ה___ זורח בלילה',      answer: 'ירח',    options: ['ירח','שמש','ים','כיסא'],        emoji: '🌙' },
+  { text: 'ה___ יש חדק ארוך',     answer: 'פיל',    options: ['פיל','כלב','ציפור','ארנב'],     emoji: '🐘' },
+  { text: 'אוכלים ___ עם חמאה',  answer: 'לחם',    options: ['לחם','כיסא','ירח','דלת'],       emoji: '🍞' },
+  { text: 'ה___ עושה מיאו',       answer: 'חתול',   options: ['חתול','כלב','פיל','נחש'],       emoji: '🐱' },
+  { text: 'ה___ נוסע על פסים',   answer: 'רכבת',   options: ['רכבת','מטוס','ספינה','סוס'],    emoji: '🚂' },
+  { text: 'ה___ עף גבוה מאוד',   answer: 'מטוס',   options: ['מטוס','רכבת','מכונית','אופניים'], emoji: '✈️' },
+  { text: 'ה___ שייטת בים',       answer: 'ספינה',  options: ['ספינה','מכונית','אופניים','רכבת'], emoji: '🚢' },
+  { text: 'ה___ חי ביער ואוהב דבש', answer: 'דוב', options: ['דוב','ארנב','כלב','חתול'],      emoji: '🐻' },
+  { text: 'קוראים ___ לפני השינה', answer: 'ספר',  options: ['ספר','מכונית','בלון','כדור'],   emoji: '📚' },
+  { text: 'ה___ ארוך ועם שיניים', answer: 'נחש',   options: ['נחש','חתול','ציפור','ארנב'],    emoji: '🐍' },
+  { text: 'ה___ קופץ על עצים',   answer: 'קוף',    options: ['קוף','כלב','פיל','דג'],         emoji: '🐒' },
+  { text: 'ה___ צהוב וטעים',      answer: 'בננה',   options: ['בננה','ירח','שמש','עיפרון'],    emoji: '🍌' },
+  { text: 'הילד מצייר ב___',      answer: 'עיפרון', options: ['עיפרון','כדור','כלב','ירח'],    emoji: '✏️' },
+  { text: 'בגן החיות יש ___',     answer: 'אריה',   options: ['אריה','לחם','מיטה','ספר'],      emoji: '🦁' },
+  { text: 'ה___ יש שש רגליים',   answer: 'חרק',    options: ['חרק','סוס','כלב','ציפור'],      emoji: '🐛' },
+  { text: 'השמים כחולים וה___ לבן', answer: 'ענן', options: ['ענן','שמש','ים','עץ'],          emoji: '☁️' },
+  { text: 'בחורף יורד ___',       answer: 'שלג',    options: ['שלג','פרח','כדור','ספר'],       emoji: '❄️' },
+  { text: 'ה___ יפה ועם צבעים',  answer: 'פרח',    options: ['פרח','אבן','דלת','כסא'],        emoji: '🌸' },
+  { text: 'שותים ___ כשחם',      answer: 'מים',    options: ['מים','אש','עפר','אבן'],         emoji: '💧' },
+  { text: 'ה___ נוהגת על הכביש', answer: 'מכונית', options: ['מכונית','ספינה','רכבת','מטוס'], emoji: '🚗' },
+  { text: 'בים חי ___',           answer: 'כריש',   options: ['כריש','ארנב','גמל','ציפור'],    emoji: '🦈' },
+  { text: 'ה___ קר ונמס בשמש',   answer: 'גלידה',  options: ['גלידה','לחם','תפוח','ביצה'],    emoji: '🍦' },
+];
+
+function SentenceGame({ onXP }) {
+  const [questions] = useState(() => shuffle(FILL_SENTENCES).slice(0, 10));
+  const [qIdx, setQIdx] = useState(0);
+  const [chosen, setChosen] = useState(null);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const [learning, setLearning] = useState(false);
+
+  const Q = questions[qIdx];
+
+  const answer = (opt) => {
+    if (chosen || learning) return;
+    setChosen(opt);
+    const correct = opt === Q.answer;
+    if (correct) {
+      setScore(s => s + 1);
+      onXP(20);
+      speakHebrew(Q.answer);
+      setTimeout(() => {
+        if (qIdx + 1 >= questions.length) setDone(true);
+        else { setQIdx(i => i + 1); setChosen(null); }
+      }, 1000);
+    } else {
+      setLearning(true);
+      speakHebrew(Q.answer);
+    }
+  };
+
+  const dismissLearning = () => {
+    setLearning(false); setChosen(null);
+    if (qIdx + 1 >= questions.length) setDone(true);
+    else setQIdx(i => i + 1);
+  };
+
+  if (done) {
+    const pct = Math.round((score / questions.length) * 100);
+    const stars = pct >= 90 ? 3 : pct >= 60 ? 2 : 1;
+    return (
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div style={{ fontSize: 60 }}>{pct >= 90 ? '🏆' : pct >= 60 ? '🎉' : '💪'}</div>
+        <div style={{ fontSize: 26, fontWeight: 900, color: '#f0e6ff', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הסתיים המשחק</div>
+        <div style={{ fontSize: 20, color: '#a78bfa', fontFamily: "'Noto Serif Hebrew', serif" }}>{score} / {questions.length}</div>
+        <Stars count={stars} />
+        <button onClick={() => { setQIdx(0); setChosen(null); setScore(0); setDone(false); setLearning(false); }} style={{
+          marginTop: 8, padding: '14px 36px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#7c3aed,#db2777)', color: 'white',
+          fontWeight: 900, fontSize: 16, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif",
+        }}>שחק שוב</button>
+      </div>
+    );
+  }
+
+  // Render sentence with blank highlighted
+  const parts = Q.text.split('___');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <div style={{ color: '#a78bfa', fontSize: 13, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+        {qIdx + 1}/{questions.length} · {score} נק'
+      </div>
+
+      {/* Sentence card */}
+      <div style={{
+        width: '100%', maxWidth: 420, borderRadius: 24,
+        background: 'linear-gradient(135deg,#1e1b4b,#312e81)',
+        border: '2px solid rgba(167,139,250,0.35)',
+        padding: '24px 20px', textAlign: 'center',
+        boxShadow: '0 16px 48px rgba(124,58,237,0.4)',
+      }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>{Q.emoji}</div>
+        <div style={{
+          fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#f0e6ff',
+          direction: 'rtl', lineHeight: 1.7, display: 'flex', flexWrap: 'wrap',
+          justifyContent: 'center', alignItems: 'center', gap: 6,
+        }}>
+          <span>{parts[1]}</span>
+          <span style={{
+            display: 'inline-block', minWidth: 70, borderBottom: '3px solid #a78bfa',
+            color: chosen ? (chosen === Q.answer ? '#34d399' : '#f87171') : '#a78bfa',
+            fontWeight: 900, textAlign: 'center',
+          }}>{chosen || '___'}</span>
+          <span>{parts[0]}</span>
+        </div>
+      </div>
+
+      {/* Word options */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%', maxWidth: 360 }}>
+        {Q.options.map(opt => {
+          const isCorrect = opt === Q.answer;
+          const isChosen = chosen === opt;
+          let bg = 'rgba(255,255,255,0.08)';
+          if (chosen) {
+            if (isCorrect) bg = 'linear-gradient(135deg,#065f46,#047857)';
+            else if (isChosen) bg = 'linear-gradient(135deg,#7f1d1d,#dc2626)';
+          }
+          return (
+            <button key={opt} onClick={() => answer(opt)} style={{
+              padding: '16px 12px', borderRadius: 16,
+              border: chosen
+                ? isCorrect ? '2px solid #34d399' : isChosen ? '2px solid #f87171' : '2px solid transparent'
+                : '2px solid rgba(255,255,255,0.15)',
+              background: bg, color: '#f0e6ff', fontWeight: 700,
+              cursor: (chosen || learning) ? 'default' : 'pointer', transition: 'all 0.3s',
+            }}>
+              <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, direction: 'rtl' }}>{opt}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Learning panel */}
+      {learning && (
+        <div style={{
+          width: '100%', maxWidth: 360, borderRadius: 20, padding: '20px 18px',
+          background: 'linear-gradient(135deg,#1e3a5f,#1e1b4b)',
+          border: '2px solid #3b82f6aa',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
+        }}>
+          <div style={{ fontSize: 44 }}>{Q.emoji}</div>
+          <div style={{ color: '#93c5fd', fontSize: 14, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>המילה הנכונה היא:</div>
+          <div style={{ color: '#f0e6ff', fontSize: 28, fontWeight: 900, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{Q.answer}</div>
+          <div style={{ color: '#a78bfa', fontSize: 13, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
+            💡 קרא את המשפט שוב עם המילה הנכונה!
+          </div>
+          <button onClick={dismissLearning} style={{
+            padding: '11px 28px', borderRadius: 50, border: 'none',
+            background: 'linear-gradient(135deg,#3b82f6,#6366f1)', color: 'white',
+            fontWeight: 900, fontSize: 15, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif",
+          }}>הבנתי! ←</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1186,11 +1432,32 @@ function AvatarMax({ size = 100, uid = 'm' }) {
 }
 
 // ── PROFILES CONFIG ──────────────────────────────────────────
-const PROFILES = [
-  { id: 'נח',   Avatar: AvatarNoah, color: '#3b82f6', glow: 'rgba(59,130,246,0.5)'  },
-  { id: 'עלמה', Avatar: AvatarAlma, color: '#ec4899', glow: 'rgba(236,72,153,0.5)'  },
-  { id: 'מקס',  Avatar: AvatarMax,  color: '#10b981', glow: 'rgba(16,185,129,0.5)'  },
+// Avatar lookup by key
+const AVATAR_MAP = {
+  noah: AvatarNoah,
+  alma: AvatarAlma,
+  max:  AvatarMax,
+};
+const AVATAR_OPTIONS = [
+  { key: 'noah', color: '#3b82f6', glow: 'rgba(59,130,246,0.5)',  label: 'נח' },
+  { key: 'alma', color: '#ec4899', glow: 'rgba(236,72,153,0.5)',  label: 'עלמה' },
+  { key: 'max',  color: '#10b981', glow: 'rgba(16,185,129,0.5)',  label: 'מקס' },
 ];
+const DEFAULT_PLAYERS = [
+  { id: 'נח',   avatar: 'noah', color: '#3b82f6', glow: 'rgba(59,130,246,0.5)'  },
+  { id: 'עלמה', avatar: 'alma', color: '#ec4899', glow: 'rgba(236,72,153,0.5)'  },
+  { id: 'מקס',  avatar: 'max',  color: '#10b981', glow: 'rgba(16,185,129,0.5)'  },
+];
+// Keep PROFILES as alias for backward compat (used in Drawing/Spelling etc.)
+const PROFILES = DEFAULT_PLAYERS.map(p => ({ ...p, Avatar: AVATAR_MAP[p.avatar] }));
+
+const loadPlayers = () => {
+  try { const s = localStorage.getItem('hebrewApp_players'); if (s) return JSON.parse(s); } catch(e) {}
+  return DEFAULT_PLAYERS;
+};
+const savePlayers = (players) => {
+  try { localStorage.setItem('hebrewApp_players', JSON.stringify(players)); } catch(e) {}
+};
 
 const loadXPs = () => {
   try { const s = localStorage.getItem('hebrewApp_xps'); if (s) return JSON.parse(s); } catch(e) {}
@@ -1224,95 +1491,159 @@ const saveProgress = (profileId, prog) => {
 };
 
 // ── PROFILE PICKER ───────────────────────────────────────────
-function ProfilePicker({ xps, getProgress, onSelect }) {
+function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDeletePlayer }) {
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newAvatar, setNewAvatar] = useState('noah');
+  const [confirmDelete, setConfirmDelete] = useState(null); // player id to confirm
+
+  const handleAdd = () => {
+    const name = newName.trim();
+    if (!name || players.find(p => p.id === name)) return;
+    const av = AVATAR_OPTIONS.find(a => a.key === newAvatar);
+    onAddPlayer({ id: name, avatar: newAvatar, color: av.color, glow: av.glow });
+    setNewName(''); setAdding(false);
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
       background: 'radial-gradient(ellipse at 20% 20%, #2d1b69 0%, #0d0a1e 60%)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', gap: 40, padding: 24,
+      justifyContent: 'center', gap: 32, padding: 24,
     }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{
-          fontFamily: "'Fredoka One', cursive", fontSize: 36, color: '#f0e6ff',
-          textShadow: '0 0 30px rgba(167,139,250,0.6)',
-        }}>Who's playing? 🎮</div>
-        <div style={{
-          fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22,
-          color: '#a78bfa', marginTop: 6,
-        }}>מי משחק?</div>
+        <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 36, color: '#f0e6ff', textShadow: '0 0 30px rgba(167,139,250,0.6)' }}>Who's playing? 🎮</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#a78bfa', marginTop: 6 }}>מי משחק?</div>
       </div>
 
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {PROFILES.map(p => {
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {players.map(p => {
+          const AvatarComp = AVATAR_MAP[p.avatar] ?? AvatarNoah;
           const xp = xps[p.id] ?? 0;
           const level = Math.floor(xp / 100) + 1;
           const progress = xp % 100;
           const prog = getProgress(p.id);
           const totalXp = prog.totalXpEarned ?? xp;
-          const gp = prog.gamesPlayed ?? {};
-          const totalGames = Object.values(gp).reduce((s, v) => s + v, 0);
+          const totalGames = Object.values(prog.gamesPlayed ?? {}).reduce((s, v) => s + v, 0);
+          const isConfirming = confirmDelete === p.id;
           return (
-            <button
-              key={p.id}
-              onClick={() => onSelect(p.id)}
-              style={{
-                width: 180, background: 'rgba(255,255,255,0.05)',
-                border: `2px solid ${p.color}55`,
-                borderRadius: 28, padding: '20px 16px 18px',
-                cursor: 'pointer', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: 10,
-                boxShadow: `0 8px 40px ${p.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
-                backdropFilter: 'blur(10px)', transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06) translateY(-4px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1) translateY(0)'}
-            >
-              {/* Avatar circle */}
-              <div style={{
-                width: 100, height: 100, borderRadius: '50%',
-                border: `3px solid ${p.color}`,
-                boxShadow: `0 0 24px ${p.glow}`,
-                overflow: 'hidden', flexShrink: 0,
-              }}>
-                <p.Avatar size={100} uid={`pick-${p.id}`}/>
-              </div>
+            <div key={p.id} style={{ position: 'relative' }}>
+              <button
+                onClick={() => { if (!isConfirming) onSelect(p.id); }}
+                style={{
+                  width: 175, background: 'rgba(255,255,255,0.05)',
+                  border: `2px solid ${p.color}55`, borderRadius: 28,
+                  padding: '18px 14px 16px', cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9,
+                  boxShadow: `0 8px 40px ${p.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                  backdropFilter: 'blur(10px)', transition: 'all 0.2s', opacity: isConfirming ? 0.4 : 1,
+                }}
+                onMouseEnter={e => !isConfirming && (e.currentTarget.style.transform = 'scale(1.05) translateY(-3px)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1) translateY(0)')}
+              >
+                <div style={{ width: 90, height: 90, borderRadius: '50%', border: `3px solid ${p.color}`, boxShadow: `0 0 20px ${p.glow}`, overflow: 'hidden', flexShrink: 0 }}>
+                  <AvatarComp size={90} uid={`pick-${p.id}`}/>
+                </div>
+                <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 24, fontWeight: 700, color: '#f0e6ff', direction: 'rtl' }}>{p.id}</div>
+                <div style={{ color: p.color, fontSize: 12, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>רמה {level} · {xp} נק'</div>
+                <div style={{ width: '100%', height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ width: `${progress}%`, height: '100%', background: `linear-gradient(90deg,${p.color},${p.color}cc)`, borderRadius: 99, transition: 'width 0.4s' }}/>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '2px 7px', textAlign: 'center' }}>
+                    <div style={{ color: '#a78bfa', fontSize: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>סה"כ נק'</div>
+                    <div style={{ color: '#f0e6ff', fontSize: 12, fontWeight: 700 }}>{totalXp}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '2px 7px', textAlign: 'center' }}>
+                    <div style={{ color: '#a78bfa', fontSize: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>משחקים</div>
+                    <div style={{ color: '#f0e6ff', fontSize: 12, fontWeight: 700 }}>{totalGames}</div>
+                  </div>
+                </div>
+              </button>
 
-              {/* Name */}
-              <div style={{
-                fontFamily: "'Noto Serif Hebrew', serif",
-                fontSize: 26, fontWeight: 700, color: '#f0e6ff',
-                direction: 'rtl',
-              }}>{p.id}</div>
+              {/* Delete button */}
+              {players.length > 1 && !isConfirming && (
+                <button onClick={() => setConfirmDelete(p.id)} style={{
+                  position: 'absolute', top: 8, left: 8, width: 24, height: 24,
+                  borderRadius: '50%', border: 'none', background: 'rgba(239,68,68,0.7)',
+                  color: 'white', fontSize: 13, cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+                }}>✕</button>
+              )}
 
-              {/* Level */}
-              <div style={{ color: p.color, fontSize: 13, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
-                רמה {level} · {xp} נ.נ
-              </div>
-
-              {/* XP bar */}
-              <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 99, overflow: 'hidden' }}>
+              {/* Confirm delete overlay */}
+              {isConfirming && (
                 <div style={{
-                  width: `${progress}%`, height: '100%',
-                  background: `linear-gradient(90deg, ${p.color}, ${p.color}cc)`,
-                  borderRadius: 99, transition: 'width 0.4s',
-                }}/>
-              </div>
-
-              {/* Cumulative stats */}
-              <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '3px 8px', textAlign: 'center' }}>
-                  <div style={{ color: '#a78bfa', fontSize: 11, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>סה"כ נ.נ</div>
-                  <div style={{ color: '#f0e6ff', fontSize: 13, fontWeight: 700 }}>{totalXp}</div>
+                  position: 'absolute', inset: 0, borderRadius: 28,
+                  background: 'rgba(15,10,40,0.92)', display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', gap: 10, padding: 16,
+                }}>
+                  <div style={{ color: '#f0e6ff', fontFamily: "'Noto Serif Hebrew', serif", fontSize: 14, textAlign: 'center', direction: 'rtl' }}>?למחוק את {p.id}</div>
+                  <button onClick={() => { onDeletePlayer(p.id); setConfirmDelete(null); }} style={{ padding: '8px 18px', borderRadius: 50, border: 'none', background: '#dc2626', color: 'white', fontWeight: 700, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif" }}>מחק</button>
+                  <button onClick={() => setConfirmDelete(null)} style={{ padding: '6px 14px', borderRadius: 50, border: '1px solid rgba(167,139,250,0.4)', background: 'transparent', color: '#a78bfa', cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif" }}>ביטול</button>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '3px 8px', textAlign: 'center' }}>
-                  <div style={{ color: '#a78bfa', fontSize: 11, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>משחקים</div>
-                  <div style={{ color: '#f0e6ff', fontSize: 13, fontWeight: 700 }}>{totalGames}</div>
-                </div>
-              </div>
-            </button>
+              )}
+            </div>
           );
         })}
+
+        {/* Add player card */}
+        {!adding ? (
+          <button onClick={() => setAdding(true)} style={{
+            width: 175, minHeight: 200, background: 'rgba(255,255,255,0.03)',
+            border: '2px dashed rgba(167,139,250,0.35)', borderRadius: 28,
+            cursor: 'pointer', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 12, color: '#a78bfa',
+          }}>
+            <div style={{ fontSize: 42 }}>➕</div>
+            <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 16, direction: 'rtl' }}>הוסף שחקן</div>
+          </button>
+        ) : (
+          <div style={{
+            width: 175, background: 'rgba(255,255,255,0.07)',
+            border: '2px solid rgba(167,139,250,0.4)', borderRadius: 28,
+            padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center',
+          }}>
+            <input
+              autoFocus
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              placeholder="שם השחקן"
+              maxLength={10}
+              style={{
+                width: '100%', padding: '8px 10px', borderRadius: 12, border: '1px solid rgba(167,139,250,0.4)',
+                background: 'rgba(255,255,255,0.06)', color: '#f0e6ff', fontSize: 16,
+                fontFamily: "'Noto Serif Hebrew', serif", textAlign: 'right', direction: 'rtl', outline: 'none',
+              }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              {AVATAR_OPTIONS.map(av => {
+                const AV = AVATAR_MAP[av.key];
+                return (
+                  <div key={av.key} onClick={() => setNewAvatar(av.key)} style={{
+                    width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer',
+                    border: `3px solid ${newAvatar === av.key ? av.color : 'transparent'}`,
+                    boxShadow: newAvatar === av.key ? `0 0 12px ${av.glow}` : 'none',
+                  }}>
+                    <AV size={44} uid={`new-${av.key}`}/>
+                  </div>
+                );
+              })}
+            </div>
+            <button onClick={handleAdd} disabled={!newName.trim()} style={{
+              width: '100%', padding: '9px', borderRadius: 12, border: 'none',
+              background: newName.trim() ? 'linear-gradient(135deg,#7c3aed,#db2777)' : 'rgba(255,255,255,0.1)',
+              color: 'white', fontWeight: 700, cursor: newName.trim() ? 'pointer' : 'default',
+              fontFamily: "'Noto Serif Hebrew', serif", fontSize: 15,
+            }}>צור שחקן ✓</button>
+            <button onClick={() => { setAdding(false); setNewName(''); }} style={{
+              background: 'none', border: 'none', color: '#6d6b8a', cursor: 'pointer',
+              fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13,
+            }}>ביטול</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1844,16 +2175,28 @@ export default function App() {
   const [xps, setXps] = useState(loadXPs);
   const [activeProfile, setActiveProfile] = useState(null);
   const [matchKey, setMatchKey] = useState(0);
+  const [players, setPlayers] = useState(loadPlayers);
   // Cache progress objects per profile (loaded on demand)
   const [progCache, setProgCache] = useState({});
 
-  const profile = PROFILES.find(p => p.id === activeProfile);
+  const profile = players.find(p => p.id === activeProfile);
+  const profileWithAvatar = profile ? { ...profile, Avatar: AVATAR_MAP[profile.avatar] ?? AvatarNoah } : null;
   const xp = xps[activeProfile] ?? 0;
   const level = Math.floor(xp / 100) + 1;
   const progress = xp % 100;
 
   // Get (or lazily load) progress for a profile
   const getProgress = (id) => progCache[id] ?? loadProgress(id);
+
+  const handleAddPlayer = (newPlayer) => {
+    const updated = [...players, newPlayer];
+    setPlayers(updated); savePlayers(updated);
+    setXps(prev => { const n = { ...prev, [newPlayer.id]: 0 }; saveXPs(n); return n; });
+  };
+  const handleDeletePlayer = (id) => {
+    const updated = players.filter(p => p.id !== id);
+    setPlayers(updated); savePlayers(updated);
+  };
 
   const addXP = (n) => {
     if (n <= 0) return;
@@ -1877,11 +2220,12 @@ export default function App() {
   };
 
   const modes = [
-    { id: "flashcards", label: "כרטיסיות", emoji: "🃏", desc: "למד אותיות"  },
-    { id: "matching",   label: "התאמה",    emoji: "🔗", desc: "מצא זוגות"   },
-    { id: "quiz",       label: "חידון",    emoji: "🧠", desc: "בחן את עצמך" },
-    { id: "spelling",   label: "כתיב",     emoji: "✍️", desc: "בנה מילה"    },
-    { id: "drawing",    label: "צייר",     emoji: "🎨", desc: "צייר את האות" },
+    { id: "flashcards", label: "כרטיסיות", emoji: "🃏", desc: "למד אותיות"    },
+    { id: "matching",   label: "התאמה",    emoji: "🔗", desc: "מצא זוגות"     },
+    { id: "quiz",       label: "חידון",    emoji: "🧠", desc: "בחן את עצמך"   },
+    { id: "spelling",   label: "כתיב",     emoji: "✍️", desc: "בנה מילה"      },
+    { id: "drawing",    label: "צייר",     emoji: "🎨", desc: "צייר את האות"  },
+    { id: "sentence",   label: "משפט",     emoji: "💬", desc: "השלם את המשפט" },
   ];
 
   // Show profile picker if no active profile
@@ -1894,7 +2238,7 @@ export default function App() {
           body { background: #0d0a1e; min-height: 100vh; font-family: 'Nunito', sans-serif; }
           button { transition: all 0.15s; }
         `}</style>
-        <ProfilePicker xps={xps} getProgress={getProgress} onSelect={(id) => { setActiveProfile(id); setMode('home'); }} />
+        <ProfilePicker players={players} xps={xps} getProgress={getProgress} onSelect={(id) => { setActiveProfile(id); setMode('home'); }} onAddPlayer={handleAddPlayer} onDeletePlayer={handleDeletePlayer} />
       </>
     );
   }
@@ -1937,9 +2281,9 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {/* XP bar */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-              <div style={{ color: "#a78bfa", fontSize: 11, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>רמה {level} · {xp} נ.נ</div>
+              <div style={{ color: "#a78bfa", fontSize: 11, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>רמה {level} · {xp} נק'</div>
               <div style={{ width: 90, height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 99, overflow: "hidden" }}>
-                <div style={{ width: `${progress}%`, height: "100%", background: `linear-gradient(90deg,${profile.color},${profile.color}99)`, borderRadius: 99, transition: "width 0.5s" }} />
+                <div style={{ width: `${progress}%`, height: "100%", background: `linear-gradient(90deg,${profile?.color ?? '#a78bfa'},${profile?.color ?? '#a78bfa'}99)`, borderRadius: 99, transition: "width 0.5s" }} />
               </div>
             </div>
             {/* Mini avatar + name + switch */}
@@ -1948,12 +2292,12 @@ export default function App() {
               title="Switch profile"
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${profile.color}55`,
+                background: 'rgba(255,255,255,0.06)', border: `1.5px solid ${profile?.color ?? '#a78bfa'}55`,
                 borderRadius: 50, padding: '4px 10px 4px 4px', cursor: 'pointer',
               }}
             >
-              <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `2px solid ${profile.color}` }}>
-                <profile.Avatar size={34} uid="hdr"/>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `2px solid ${profile?.color ?? '#a78bfa'}` }}>
+                {profileWithAvatar && <profileWithAvatar.Avatar size={34} uid="hdr"/>}
               </div>
               <span style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 16, color: '#f0e6ff', direction: 'rtl' }}>
                 {activeProfile}
@@ -1980,42 +2324,29 @@ export default function App() {
               <div style={{ color: "#a78bfa", fontSize: 14, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר</div>
             </div>
 
-            {/* Game mode grid — 3 top + 2 bottom */}
+            {/* Game mode grid — 3+3 */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10, width: '100%', maxWidth: 520, padding: '0 12px' }}>
-              <div style={{ display: "flex", gap: 10 }}>
-                {modes.slice(0, 3).map(m => (
-                  <button key={m.id} onClick={() => setMode(m.id)} style={{
-                    flex: 1, height: 105, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
-                    background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
-                    color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
-                    alignItems: "center", justifyContent: "center", gap: 5,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                  }}>
-                    <div style={{ fontSize: 28 }}>{m.emoji}</div>
-                    <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 14, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
-                    <div style={{ fontSize: 10, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
-                  </button>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                {modes.slice(3).map(m => (
-                  <button key={m.id} onClick={() => setMode(m.id)} style={{
-                    flex: 1, height: 105, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
-                    background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
-                    color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
-                    alignItems: "center", justifyContent: "center", gap: 5,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-                  }}>
-                    <div style={{ fontSize: 28 }}>{m.emoji}</div>
-                    <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 14, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
-                    <div style={{ fontSize: 10, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
-                  </button>
-                ))}
-              </div>
+              {[modes.slice(0, 3), modes.slice(3)].map((row, ri) => (
+                <div key={ri} style={{ display: "flex", gap: 10 }}>
+                  {row.map(m => (
+                    <button key={m.id} onClick={() => setMode(m.id)} style={{
+                      flex: 1, height: 100, borderRadius: 20, border: "2px solid rgba(167,139,250,0.3)",
+                      background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)",
+                      color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center", gap: 4,
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                    }}>
+                      <div style={{ fontSize: 26 }}>{m.emoji}</div>
+                      <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13, color: "#f0e6ff", direction: 'rtl' }}>{m.label}</div>
+                      <div style={{ fontSize: 9, color: "#a78bfa", fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>{m.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              ))}
             </div>
 
-            {/* Interactive letter bar — RTL so Aleph is rightmost */}
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", maxWidth: 440, direction: "rtl" }}>
+            {/* Interactive letter bar — single scrollable RTL row */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "nowrap", overflowX: "auto", width: "100%", maxWidth: 520, direction: "rtl", padding: "4px 12px", scrollbarWidth: "none" }}>
               {ALEPH_BET.map(l => (
                 <LetterButton key={l.name} letter={l} />
               ))}
@@ -2028,8 +2359,9 @@ export default function App() {
           {mode === "flashcards" && <Flashcards onXP={addXP} />}
           {mode === "matching"   && <MatchingGame key={matchKey} onXP={addXP} />}
           {mode === "quiz"       && <Quiz key={matchKey} onXP={addXP} />}
-          {mode === "spelling"   && <SpellingGame key={matchKey} onXP={addXP} profile={profile} />}
+          {mode === "spelling"   && <SpellingGame key={matchKey} onXP={addXP} profile={profileWithAvatar} />}
           {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} />}
+          {mode === "sentence"   && <SentenceGame key={matchKey} onXP={addXP} />}
         </div>
       </div>
 
@@ -2043,7 +2375,7 @@ export default function App() {
           <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 52, color: '#f0e6ff', textAlign: 'center', direction: 'rtl' }}>
             !ניצחת
           </div>
-          <div style={{ color: '#a78bfa', fontSize: 18, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הגעת ל-1000 נ.נ</div>
+          <div style={{ color: '#a78bfa', fontSize: 18, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הגעת ל-1000 נק'</div>
           <Stars count={3} />
           <button onClick={() => {
             setXps(prev => { const next = { ...prev, [activeProfile]: 0 }; saveXPs(next); return next; });
