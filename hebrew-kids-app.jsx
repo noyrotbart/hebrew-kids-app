@@ -248,44 +248,82 @@ const KEY_MAP = {
 };
 
 // ── AUDIO ─────────────────────────────────────────────────────
-const speakHebrew = (text) => {
+// Cache: text → blob URL (so each phrase is only fetched once per session)
+const _ttsCache = new Map();
+// null = not yet tested, true = server up, false = server down / not running
+let _phonikudOk = null;
+
+/**
+ * Speak Hebrew text.
+ * 1. Tries the local Phonikud TTS server (natural Israeli voice, started via
+ *    tts-server/server.py).  Proxied through Vite at /api/phonikud/tts.
+ * 2. Falls back to the browser's Web Speech API if the server isn't running.
+ * Returns a Promise that resolves when the audio finishes (useful for chaining).
+ */
+const speakHebrew = async (text) => {
+  // ── Try Phonikud server ──────────────────────────────────────
+  try {
+    if (_phonikudOk === null) {
+      // One-time health check (fast timeout so we don't block on first word)
+      const r = await fetch('/api/phonikud/health', {
+        signal: AbortSignal.timeout(700),
+      });
+      _phonikudOk = r.ok;
+    }
+
+    if (_phonikudOk) {
+      let url = _ttsCache.get(text);
+      if (!url) {
+        const r = await fetch('/api/phonikud/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+          signal: AbortSignal.timeout(6000),
+        });
+        if (r.ok) {
+          url = URL.createObjectURL(await r.blob());
+          _ttsCache.set(text, url);
+        }
+      }
+      if (url) {
+        return new Promise((resolve) => {
+          const a = new Audio(url);
+          a.onended = resolve;
+          a.onerror = resolve;
+          a.play().catch(resolve);
+        });
+      }
+    }
+  } catch {
+    // Server not running or network error — mark as unavailable this session
+    _phonikudOk = false;
+  }
+
+  // ── Fallback: Web Speech API ────────────────────────────────
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'he-IL';
-  utt.rate = 0.8;
-  window.speechSynthesis.speak(utt);
+  return new Promise((resolve) => {
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'he-IL';
+    utt.rate = 0.8;
+    utt.onend  = resolve;
+    utt.onerror = resolve;
+    window.speechSynthesis.speak(utt);
+  });
 };
 
-// Play a recorded letter audio file; fall back to Web Speech API
+// Play a recorded letter audio file; fall back to Phonikud / Web Speech API
 const speakLetter = (letter) => {
   if (letter.audio) {
     const a = new Audio(`/audio/${letter.audio}.m4a`);
-    a.play().catch(() => {
-      // File missing or blocked — fall back to TTS
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
-      utt.lang = 'he-IL'; utt.rate = 0.75;
-      window.speechSynthesis.speak(utt);
-    });
+    a.play().catch(() => speakHebrew(stripNikud(letter.nameHebrew)));
   } else {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(stripNikud(letter.nameHebrew));
-    utt.lang = 'he-IL'; utt.rate = 0.75;
-    window.speechSynthesis.speak(utt);
+    speakHebrew(stripNikud(letter.nameHebrew));
   }
 };
 
-// Spell a word: say the whole word (TTS), then each letter name (recorded audio)
-// Chains audio clips sequentially via onended callbacks
+// Spell a word: say the whole word (Phonikud/TTS), then each letter name (recorded audio)
 const speakSpelled = (word) => {
-  // First say the whole word via TTS
-  window.speechSynthesis.cancel();
-  const uWord = new SpeechSynthesisUtterance(word.word);
-  uWord.lang = 'he-IL'; uWord.rate = 0.7;
-  // After word finishes, play each letter recording in sequence
   const entries = word.letters
     .map(ch => ALEPH_BET.find(l => l.hebrew === ch))
     .filter(Boolean);
@@ -294,15 +332,11 @@ const speakSpelled = (word) => {
     const a = new Audio(`/audio/${entries[i].audio}.m4a`);
     a.onended = () => playChain(i + 1);
     a.play().catch(() => {
-      // fallback: TTS for this letter then continue
-      const u = new SpeechSynthesisUtterance(stripNikud(entries[i].nameHebrew));
-      u.lang = 'he-IL'; u.rate = 0.75;
-      u.onend = () => playChain(i + 1);
-      window.speechSynthesis.speak(u);
+      speakHebrew(stripNikud(entries[i].nameHebrew)).then(() => playChain(i + 1));
     });
   };
-  uWord.onend = () => playChain(0);
-  window.speechSynthesis.speak(uWord);
+  // Say the whole word first, then chain the letter names
+  speakHebrew(word.word).then(() => playChain(0));
 };
 
 // Spell a plain Hebrew string letter-by-letter via recorded audio
@@ -316,10 +350,7 @@ const speakWordLetters = (wordStr) => {
     const a = new Audio(`/audio/${entries[i].audio}.m4a`);
     a.onended = () => playChain(i + 1);
     a.play().catch(() => {
-      const u = new SpeechSynthesisUtterance(stripNikud(entries[i].nameHebrew));
-      u.lang = 'he-IL'; u.rate = 0.75;
-      u.onend = () => playChain(i + 1);
-      window.speechSynthesis.speak(u);
+      speakHebrew(stripNikud(entries[i].nameHebrew)).then(() => playChain(i + 1));
     });
   };
   playChain(0);
@@ -403,22 +434,14 @@ function Flashcards({ onXP }) {
     setResult({ heard, correct });
     setAppealed(false);
     setPhase('result');
-    window.speechSynthesis.cancel();
     if (correct) {
-      const utt = new SpeechSynthesisUtterance('נכון');
-      utt.lang = 'he-IL'; utt.rate = 0.9;
-      window.speechSynthesis.speak(utt);
+      speakHebrew('נכון');
       onXP(100);
     } else {
       speakLetter(letter);
       onXP(-50);
-      // After a short pause, ask the appeal question
-      setTimeout(() => {
-        window.speechSynthesis.cancel();
-        const q = new SpeechSynthesisUtterance('אני חושבת שטעית. אתה מסכים?');
-        q.lang = 'he-IL'; q.rate = 0.85;
-        window.speechSynthesis.speak(q);
-      }, 1400);
+      // After the letter name plays, ask the appeal question
+      setTimeout(() => speakHebrew('אני חושבת שטעית. אתה מסכים?'), 1400);
     }
   };
 
@@ -426,10 +449,7 @@ function Flashcards({ onXP }) {
     // Reverse the -50 and give +100 (net +150)
     setAppealed(true);
     onXP(150);
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance('בסדר, נקבל את זה!');
-    utt.lang = 'he-IL'; utt.rate = 0.9;
-    window.speechSynthesis.speak(utt);
+    speakHebrew('בסדר, נקבל את זה!');
   };
 
   const doListen = (letter) => {
@@ -1676,13 +1696,8 @@ function SpellingGame({ onXP, profile }) {
     setMistakes(0);
     setPhase('playing');
     setLastScore(null);
-    window.speechSynthesis.cancel();
     clearTimeout(speakTRef.current);
-    speakTRef.current = setTimeout(() => {
-      const utt = new SpeechSynthesisUtterance(W.word);
-      utt.lang = 'he-IL'; utt.rate = 0.7;
-      window.speechSynthesis.speak(utt);
-    }, 400);
+    speakTRef.current = setTimeout(() => speakHebrew(W.word), 400);
     return () => { clearTimeout(speakTRef.current); };
   }, [qPos, queue]);
 
@@ -1690,7 +1705,6 @@ function SpellingGame({ onXP, profile }) {
     if (phase !== 'playing') return;
 
     // Always speak the tapped letter's Hebrew name first
-    window.speechSynthesis.cancel();
     const tappedEntry = ALEPH_BET.find(l => l.hebrew === letter);
     if (tappedEntry) speakLetter(tappedEntry);
 
@@ -1704,9 +1718,7 @@ function SpellingGame({ onXP, profile }) {
         // Word complete — queue "נכון" right after the letter name
         const score = mistakes === 0 ? 100 : mistakes === 1 ? 75 : 50;
         setLastScore(score); setPhase('won'); onXP(score);
-        const uWin = new SpeechSynthesisUtterance('נכון');
-        uWin.lang = 'he-IL'; uWin.rate = 0.9;
-        window.speechSynthesis.speak(uWin);
+        speakHebrew('נכון');
       } else {
         setSlotIdx(nextIdx);
       }
@@ -1719,14 +1731,9 @@ function SpellingGame({ onXP, profile }) {
       setSlots(ns); setSlotStatus(nst);
 
       const correctEntry = ALEPH_BET.find(l => l.hebrew === W.letters[slotIdx]);
-      const uNo = new SpeechSynthesisUtterance('עוד לא');
-      uNo.lang = 'he-IL'; uNo.rate = 0.9;
-      const uHint = new SpeechSynthesisUtterance(
-        `בחר את האות ${stripNikud(correctEntry?.nameHebrew || '')}`
+      speakHebrew('עוד לא').then(() =>
+        speakHebrew(`בחר את האות ${stripNikud(correctEntry?.nameHebrew || '')}`)
       );
-      uHint.lang = 'he-IL'; uHint.rate = 0.8;
-      window.speechSynthesis.speak(uNo);
-      window.speechSynthesis.speak(uHint);
 
       if (nh <= 0) { setPhase('failed'); onXP(0); return; }
       // Flash red then clear the slot
@@ -1791,12 +1798,7 @@ function SpellingGame({ onXP, profile }) {
               <span style={{ fontSize:48 }}>{W.emoji}</span>
               <div style={{ color:'#a78bfa', fontSize:15, fontWeight:700 }}>{W.meaning}</div>
             </div>
-            <SpeakButton onClick={() => {
-              window.speechSynthesis.cancel();
-              const u = new SpeechSynthesisUtterance(W.word);
-              u.lang = 'he-IL'; u.rate = 0.7;
-              window.speechSynthesis.speak(u);
-            }}/>
+            <SpeakButton onClick={() => speakHebrew(W.word)}/>
           </div>
         </div>
       </div>
@@ -2026,11 +2028,8 @@ function DrawingGame({ onXP }) {
     onXP(xp);
 
     drawingRef.current = false;
-    window.speechSynthesis.cancel();
     const fb = score >= 65 ? 'מצוין' : score >= 45 ? 'טוב מאוד' : score >= 25 ? 'כל הכבוד' : 'המשך לתרגל';
-    const u = new SpeechSynthesisUtterance(fb);
-    u.lang = 'he-IL'; u.rate = 0.9;
-    window.speechSynthesis.speak(u);
+    speakHebrew(fb);
 
     setPhase('result');
   };
