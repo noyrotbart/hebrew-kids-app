@@ -1196,8 +1196,14 @@ function SentenceGame({ onXP }) {
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [learning, setLearning] = useState(false);
+  const [shuffledOptions, setShuffledOptions] = useState([]);
 
   const Q = questions[qIdx];
+
+  // Shuffle options for the current question
+  useEffect(() => {
+    if (Q) setShuffledOptions(shuffle(Q.options));
+  }, [qIdx]);
 
   // Speak the full sentence (with the blank filled) when the question changes
   useEffect(() => {
@@ -1233,16 +1239,15 @@ function SentenceGame({ onXP }) {
   // Keyboard: 1-4 selects answer; Enter dismisses learning panel
   useEffect(() => {
     if (done) return;
-    const Q = questions[qIdx];
     const handler = (e) => {
       if (document.activeElement?.tagName === 'INPUT') return;
       if (e.key === 'Enter' && learning) { dismissLearning(); return; }
       const n = parseInt(e.key);
-      if (n >= 1 && n <= 4 && Q?.options[n - 1]) answer(Q.options[n - 1]);
+      if (n >= 1 && n <= 4 && shuffledOptions[n - 1]) answer(shuffledOptions[n - 1]);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [done, qIdx, chosen, learning]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [done, qIdx, chosen, learning, shuffledOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (done) {
     const pct = Math.round((score / questions.length) * 100);
@@ -1298,7 +1303,7 @@ function SentenceGame({ onXP }) {
 
       {/* Word options */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%', maxWidth: 360 }}>
-        {Q.options.map(opt => {
+        {shuffledOptions.map(opt => {
           const isCorrect = opt === Q.answer;
           const isChosen = chosen === opt;
           let bg = 'rgba(255,255,255,0.08)';
@@ -1623,8 +1628,8 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
       justifyContent: 'center', gap: 32, padding: 24,
     }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 36, color: '#f0e6ff', textShadow: '0 0 30px rgba(96,165,250,0.6)' }}>Who's playing? 🎮</div>
-        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#60a5fa', marginTop: 6 }}>מי משחק?</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 28, color: '#f0e6ff', fontWeight: 700, textShadow: '0 0 30px rgba(96,165,250,0.6)' }}>ברוכים הבאים! 👋</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 18, color: '#60a5fa', marginTop: 8, direction: 'rtl' }}>בחרו שחקן להשחק</div>
       </div>
 
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
