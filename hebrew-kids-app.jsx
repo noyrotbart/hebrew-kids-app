@@ -251,6 +251,18 @@ const KEY_MAP = {
 // Cache: text → blob URL (fetched once per session, then instant)
 const _ttsCache = new Map();
 
+// Track the currently-playing Audio element so we can stop it on navigation
+let _currentAudio = null;
+
+/** Stop any in-flight speech (Web Speech API + Phonikud audio). */
+const stopAllSpeech = () => {
+  try { window.speechSynthesis?.cancel(); } catch (_) {}
+  if (_currentAudio) {
+    try { _currentAudio.pause(); _currentAudio.currentTime = 0; } catch (_) {}
+    _currentAudio = null;
+  }
+};
+
 /**
  * Speak Hebrew text — Phonikud quality when available, Web Speech fallback.
  *
@@ -274,6 +286,7 @@ const speakHebrew = async (text, rate = 0.8) => {
   if (cached) {
     return new Promise((resolve) => {
       const a = new Audio(cached);
+      _currentAudio = a;
       a.onended = resolve;
       a.onerror = resolve;
       a.play().catch(resolve);
@@ -305,6 +318,7 @@ const speakHebrew = async (text, rate = 0.8) => {
     // TTS responded in time — play Phonikud audio
     return new Promise((resolve) => {
       const a = new Audio(winner);
+      _currentAudio = a;
       a.onended = resolve;
       a.onerror = resolve;
       a.play().catch(resolve);
@@ -333,6 +347,7 @@ const speakHebrew = async (text, rate = 0.8) => {
     ]);
     if (retryUrl) {
       const a = new Audio(retryUrl);
+      _currentAudio = a;
       a.play().catch(() => {});
     }
   });
@@ -399,8 +414,16 @@ function SpeakButton({ onClick, style = {} }) {
   );
 }
 
+// Final-form letters — use the base letter's audio file; say "mem" for ם, etc.
+const FINAL_LETTERS = [
+  { hebrew: 'ם', audio: 'mem',   name: 'Mem-sofit'   },
+  { hebrew: 'ן', audio: 'nun',   name: 'Nun-sofit'   },
+  { hebrew: 'ף', audio: 'pe',    name: 'Pey-sofit'   },
+  { hebrew: 'ץ', audio: 'tsadi', name: 'Tzadi-sofit' },
+];
+
 // Interactive letter tile for the home screen alphabet bar
-function LetterButton({ letter }) {
+function LetterButton({ letter, color }) {
   const [popped, setPopped] = useState(false);
   const handleClick = () => {
     speakLetter(letter);
@@ -409,7 +432,8 @@ function LetterButton({ letter }) {
   };
   return (
     <button onClick={handleClick} style={{
-      fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#c4b5fd',
+      fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22,
+      color: color || '#c4b5fd',
       background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
       transform: popped ? 'scale(1.9)' : 'scale(1)',
       transition: 'transform 0.15s ease-out', display: 'inline-block',
@@ -1156,10 +1180,128 @@ function Quiz({ onXP }) {
   );
 }
 
+// ── 100 EXTRA SENTENCES FOR SPEAKING GAME ─────────────────────────────────
+// (No options needed — child speaks the answer)
+const SPEAK_SENTENCES = [
+  // Animals
+  { text: 'ה___ חי במדבר ויש לו גיבן', answer: 'גמל', emoji: '🐪' },
+  { text: 'ה___ נותנת לנו חלב', answer: 'פרה', emoji: '🐄' },
+  { text: 'ה___ אוכל גזר ואוהב לקפוץ', answer: 'ארנב', emoji: '🐰' },
+  { text: 'ה___ יש לו צוואר ארוך מאוד', answer: "ג'ירפה", emoji: '🦒' },
+  { text: 'ה___ שחור עם פסים לבנים', answer: 'זברה', emoji: '🦓' },
+  { text: 'ה___ יש לו שמונה ידיים', answer: 'תמנון', emoji: '🐙' },
+  { text: 'ה___ חכם ושוחה בים', answer: 'דולפין', emoji: '🐬' },
+  { text: 'ה___ יש לו כנפיים צבעוניות', answer: 'פרפר', emoji: '🦋' },
+  { text: 'ה___ עושה דבש בכוורת', answer: 'דבורה', emoji: '🐝' },
+  { text: 'ה___ מהיר עם כתמים שחורים', answer: 'נמר', emoji: '🐆' },
+  { text: 'ה___ לבן וחי בשלג', answer: 'דב קוטב', emoji: '🐻‍❄️' },
+  { text: 'ה___ עף בלילה ואוכל חרקים', answer: 'עטלף', emoji: '🦇' },
+  { text: 'ה___ בגינה עם קונכייה על הגב', answer: 'חילזון', emoji: '🐌' },
+  { text: 'ה___ גדול ושחה בים לאט', answer: 'צב ים', emoji: '🐢' },
+  { text: 'ה___ קטן וצהוב אצל אמא תרנגולת', answer: 'אפרוח', emoji: '🐥' },
+  { text: 'ה___ אדום וגדל בגינה', answer: 'עגבנייה', emoji: '🍅' },
+  // Food
+  { text: 'ה___ כתום וגדל באדמה', answer: 'גזר', emoji: '🥕' },
+  { text: 'ה___ ירוק עם גרעין גדול', answer: 'אבוקדו', emoji: '🥑' },
+  { text: 'ה___ אדום קטן ומתוק', answer: 'תות', emoji: '🍓' },
+  { text: 'ה___ צהוב וחמוץ מאוד', answer: 'לימון', emoji: '🍋' },
+  { text: 'ה___ כתום ומתוק מאוד', answer: 'תפוז', emoji: '🍊' },
+  { text: 'ה___ מתוק ואפשר לטבול בו תפוח', answer: 'דבש', emoji: '🍯' },
+  { text: 'בחגיגות אוכלים ___ עם נרות', answer: 'עוגה', emoji: '🎂' },
+  { text: 'בחורף שותים ___ חם וטעים', answer: 'מרק', emoji: '🍲' },
+  { text: 'אוכלים ___ עם גבינה בבוקר', answer: 'ביצה', emoji: '🍳' },
+  { text: 'ה___ ירוק ויפה וטעים', answer: 'אגס', emoji: '🍐' },
+  { text: 'ה___ עגול וסגול מתוק', answer: 'ענב', emoji: '🍇' },
+  { text: 'אוכלים ___ עם חמאה בבוקר', answer: 'לחם', emoji: '🍞' },
+  { text: 'ה___ טרי ומתוק בקיץ', answer: 'מלון', emoji: '🍈' },
+  { text: 'ה___ הוא שוקולד לשתייה', answer: 'שוקו', emoji: '🍫' },
+  // Holidays
+  { text: 'בחנוכה מדליקים ___', answer: 'נרות', emoji: '🕎' },
+  { text: 'בפסח אוכלים ___', answer: 'מצות', emoji: '🫓' },
+  { text: 'בסוכות גרים ב___', answer: 'סוכה', emoji: '🌿' },
+  { text: 'בפורים לובשים ___', answer: 'תחפושת', emoji: '🎭' },
+  { text: 'בשבת מדליקים ___ לפני הארוחה', answer: 'נרות', emoji: '🕯️' },
+  // Nature
+  { text: 'ה___ גבוה ועם שלג בראש', answer: 'הר', emoji: '⛰️' },
+  { text: 'ה___ זורם ומגיע לים', answer: 'נהר', emoji: '🏞️' },
+  { text: 'ב___ אין מים והכל יבש', answer: 'מדבר', emoji: '🏜️' },
+  { text: 'ב___ יש הרבה עצים וחיות', answer: 'יער', emoji: '🌲' },
+  { text: 'ה___ יורד מהשמיים כשקר מאוד', answer: 'ברד', emoji: '🌨️' },
+  { text: 'ה___ יפה אחרי גשם עם כל הצבעים', answer: 'קשת', emoji: '🌈' },
+  { text: 'ה___ יורד בסתיו מהעצים', answer: 'עלה', emoji: '🍂' },
+  { text: 'ב___ יורד גשם וברקים חזקים', answer: 'סערה', emoji: '⛈️' },
+  { text: 'ה___ מאיר בלילה עם כוכבים', answer: 'ירח', emoji: '🌙' },
+  // School
+  { text: 'ה___ מלמד אותנו בכיתה', answer: 'מורה', emoji: '👩‍🏫' },
+  { text: 'כותבים ב___ בבית הספר', answer: 'מחברת', emoji: '📓' },
+  { text: 'שמים ספרים ב___', answer: 'תיק', emoji: '🎒' },
+  { text: 'מוחקים טעויות עם ___', answer: 'מחק', emoji: '📐' },
+  { text: 'מציירים עם ___', answer: 'צבעים', emoji: '🖍️' },
+  { text: 'חותכים נייר עם ___', answer: 'מספריים', emoji: '✂️' },
+  { text: 'קוראים ספרים ב___', answer: 'ספרייה', emoji: '📚' },
+  // Home & People
+  { text: 'יושבים על ___ ליד השולחן', answer: 'כיסא', emoji: '🪑' },
+  { text: 'מבשלים אוכל ב___', answer: 'מטבח', emoji: '🍳' },
+  { text: 'רוחצים ב___', answer: 'אמבטיה', emoji: '🛁' },
+  { text: 'ה___ מביא את הדואר לבית', answer: 'דוור', emoji: '📬' },
+  { text: 'ה___ מכבה שריפות מסוכנות', answer: 'כבאי', emoji: '🚒' },
+  { text: 'ה___ מגן עלינו ברחוב', answer: 'שוטר', emoji: '👮' },
+  { text: 'ה___ מרפא חולים בבית חולים', answer: 'רופא', emoji: '👨‍⚕️' },
+  { text: 'ה___ בונה בתים חדשים', answer: 'בנאי', emoji: '🏗️' },
+  { text: 'ה___ מגדל ירקות ופירות', answer: 'חקלאי', emoji: '🌾' },
+  { text: 'ה___ שר שירים יפים', answer: 'זמר', emoji: '🎤' },
+  { text: 'ה___ טיס מטוסים', answer: 'טייס', emoji: '👨‍✈️' },
+  { text: 'ה___ כותב ספרים מעניינים', answer: 'סופר', emoji: '✍️' },
+  { text: 'ה___ מצלם תמונות יפות', answer: 'צלם', emoji: '📷' },
+  // Transport
+  { text: 'ה___ עף בחלל הרחוק', answer: 'חללית', emoji: '🚀' },
+  { text: 'ה___ גדולה ועם הרבה גלגלים', answer: 'משאית', emoji: '🚚' },
+  { text: 'לומדים לרכוב על ___', answer: 'אופניים', emoji: '🚲' },
+  { text: 'ה___ עם הרבה נוסעים בפנים', answer: 'אוטובוס', emoji: '🚌' },
+  { text: 'ה___ שטה על המים לאט', answer: 'סירה', emoji: '⛵' },
+  { text: 'ה___ טס בשמיים ומציל אנשים', answer: 'מסוק', emoji: '🚁' },
+  // Sports & Play
+  { text: 'שוחים ב___', answer: 'בריכה', emoji: '🏊' },
+  { text: 'בחורף לובשים ___ חם', answer: 'מעיל', emoji: '🧥' },
+  { text: 'בקיץ לובשים ___ קצרה', answer: 'חולצה', emoji: '👕' },
+  { text: 'משחקים כדורגל עם ___', answer: 'כדור', emoji: '⚽' },
+  // Colors
+  { text: 'ה___ הוא צבע של שמיים', answer: 'כחול', emoji: '🔵' },
+  { text: 'ה___ הוא צבע של עשב', answer: 'ירוק', emoji: '🟢' },
+  { text: 'ה___ הוא צבע של השמש', answer: 'צהוב', emoji: '🟡' },
+  { text: 'ה___ הוא צבע של תפוח אדום', answer: 'אדום', emoji: '🔴' },
+  { text: 'ה___ הוא צבע של שלג', answer: 'לבן', emoji: '⬜' },
+  { text: 'ה___ הוא צבע של לילה', answer: 'שחור', emoji: '⬛' },
+  // Shapes
+  { text: 'ל___ יש שלוש פינות', answer: 'משולש', emoji: '🔺' },
+  { text: 'ה___ עגול לגמרי', answer: 'עיגול', emoji: '⭕' },
+  { text: 'ל___ יש ארבע פינות שוות', answer: 'ריבוע', emoji: '🟦' },
+  // Body
+  { text: 'ה___ שומעת קולות', answer: 'אוזן', emoji: '👂' },
+  { text: 'ה___ רואה צבעים וצורות', answer: 'עין', emoji: '👁️' },
+  { text: 'ה___ מריח פרחים ואוכל', answer: 'אף', emoji: '👃' },
+  { text: 'ה___ טועם מה שאוכלים', answer: 'פה', emoji: '👄' },
+  { text: 'ה___ מחזיקה עיפרון ומצלמה', answer: 'יד', emoji: '✋' },
+  { text: 'ה___ קופצת ורצה מהר', answer: 'רגל', emoji: '🦵' },
+  // Emotions
+  { text: 'כשעצובים ___', answer: 'בוכים', emoji: '😢' },
+  { text: 'כשמאושרים ___', answer: 'צוחקים', emoji: '😄' },
+  { text: 'כשעייפים ___', answer: 'ישנים', emoji: '😴' },
+  { text: 'כשרעבים ___', answer: 'אוכלים', emoji: '🍴' },
+  { text: 'כשצמאים ___', answer: 'שותים', emoji: '💧' },
+  // Objects & Places
+  { text: 'ה___ מאיר את החדר בלילה', answer: 'מנורה', emoji: '💡' },
+  { text: 'ה___ בנוי מאבנים ויש בו מלך', answer: 'טירה', emoji: '🏰' },
+  { text: 'בכיתה כותבים על ה___', answer: 'לוח', emoji: '🟦' },
+  { text: 'לוקחים תמונות עם ___', answer: 'מצלמה', emoji: '📸' },
+  { text: 'ה___ מאפשרת לנו לנגן מוזיקה', answer: 'גיטרה', emoji: '🎸' },
+  { text: 'ה___ מראה לנו כמה שעה', answer: 'שעון', emoji: '⏰' },
+];
+
 // ── SPEAKING SENTENCE GAME (speak answer instead of choosing) ──────────────
 function SpeakingSentenceGame({ onXP, playerName }) {
   const [difficulty, setDifficulty] = useState(null); // null=pick, easy, hard
-  const [questions] = useState(() => shuffle(FILL_SENTENCES).slice(0, 10));
+  const [questions] = useState(() => shuffle([...FILL_SENTENCES, ...SPEAK_SENTENCES]).slice(0, 10));
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
@@ -1167,6 +1309,17 @@ function SpeakingSentenceGame({ onXP, playerName }) {
   const [timeLeft, setTimeLeft] = useState(5);
   const recRef = useRef(null);
   const timerRef = useRef(null);
+  const unmountedRef = useRef(false);
+
+  // Cleanup on unmount: stop recording + speech
+  useEffect(() => {
+    return () => {
+      unmountedRef.current = true;
+      clearInterval(timerRef.current);
+      if (recRef.current) { try { recRef.current.abort(); } catch (_) {} }
+      stopAllSpeech();
+    };
+  }, []);
 
   const Q = questions[qIdx];
 
@@ -1199,16 +1352,36 @@ function SpeakingSentenceGame({ onXP, playerName }) {
     rec.start();
   };
 
-  // Speak the sentence context slowly, then auto-start listening
+  // Speak the sentence with a pause at the blank, then auto-start listening
   useEffect(() => {
     if (!difficulty || phase !== 'ready') return;
+    let cancelled = false;
     const speakAndListen = async () => {
-      // Speak at 0.55 (slower) rate
-      await speakHebrew(Q.text.replace('___', '______'), 0.55);
-      // Auto-start listening after speech ends
+      const parts = Q.text.split('___');
+      const isQuestion = Q.text.includes('?');
+      if (parts.length >= 2 && parts[0].trim()) {
+        // Build part1 — if question with blank at end, append ? so TTS raises pitch
+        let part1 = parts[0].trim();
+        const part2rest = parts[1] ? parts[1].replace('?', '').trim() : '';
+        if (isQuestion && !part2rest) part1 = part1 + '?';
+        await speakHebrew(part1, 0.55);
+        if (cancelled || unmountedRef.current) return;
+        // Pause where the blank is
+        await new Promise(r => setTimeout(r, 750));
+        if (cancelled || unmountedRef.current) return;
+        // Speak the remainder (if any)
+        if (parts[1] && parts[1].trim() && parts[1].trim() !== '?') {
+          await speakHebrew(parts[1].trim(), 0.55);
+          if (cancelled || unmountedRef.current) return;
+        }
+      } else {
+        await speakHebrew(Q.text, 0.55);
+        if (cancelled || unmountedRef.current) return;
+      }
       startListening();
     };
     speakAndListen();
+    return () => { cancelled = true; };
   }, [qIdx, difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishRound = (heard) => {
@@ -1224,12 +1397,14 @@ function SpeakingSentenceGame({ onXP, playerName }) {
       onXP(30);
       speakHebrew('כל הכבוד!');
       setTimeout(() => {
+        if (unmountedRef.current) return;
         if (qIdx + 1 >= questions.length) setDone(true);
         else { setQIdx(i => i + 1); setPhase('ready'); }
       }, 1200);
     } else {
       speakHebrew(`לא, התשובה היא ${Q.answer}`);
       setTimeout(() => {
+        if (unmountedRef.current) return;
         if (qIdx + 1 >= questions.length) setDone(true);
         else { setQIdx(i => i + 1); setPhase('ready'); }
       }, 1500);
@@ -2702,6 +2877,9 @@ export default function App() {
     setPlayers(updated); savePlayers(updated);
   };
 
+  // Stop any in-flight speech whenever the user navigates to a different game/mode
+  useEffect(() => { return () => stopAllSpeech(); }, [mode]);
+
   const addXP = (n) => {
     if (n <= 0) return;
     setXps(prev => {
@@ -2852,10 +3030,14 @@ export default function App() {
               ))}
             </div>
 
-            {/* Interactive letter bar — single scrollable RTL row */}
-            <div style={{ display: "flex", gap: 6, flexWrap: "nowrap", overflowX: "auto", width: "100%", maxWidth: 520, direction: "rtl", padding: "4px 12px", scrollbarWidth: "none" }}>
+            {/* Interactive letter bar — wrapping RTL grid */}
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", width: "100%", maxWidth: 520, direction: "rtl", padding: "4px 12px" }}>
               {ALEPH_BET.map(l => (
                 <LetterButton key={l.name} letter={l} />
+              ))}
+              {/* Final-form letters in amber */}
+              {FINAL_LETTERS.map(l => (
+                <LetterButton key={l.name} letter={l} color="#fbbf24" />
               ))}
             </div>
           </div>
