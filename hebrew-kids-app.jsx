@@ -453,7 +453,7 @@ function Stars({ count }) {
 }
 
 // ── FLASHCARD MODE ─────────────────────────────────────────────
-function Flashcards({ onXP }) {
+function Flashcards({ onXP, isFemale }) {
   // Infinite-cycling shuffled queue
   const [queue, setQueue] = useState(() => shuffle(ALEPH_BET));
   const [qPos, setQPos] = useState(0);
@@ -492,7 +492,7 @@ function Flashcards({ onXP }) {
       speakLetter(letter);
       onXP(-50);
       // After the letter name plays, ask the appeal question
-      setTimeout(() => speakHebrew('אני חושב שטעית. אתה מסכים?'), 1400);
+      setTimeout(() => speakHebrew(isFemale ? 'אני חושב שטעית. את מסכימה?' : 'אני חושב שטעית. אתה מסכים?'), 1400);
     }
   };
 
@@ -2571,7 +2571,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
 }
 
 // ── SPELLING GAME ──────────────────────────────────────────────
-function SpellingGame({ onXP, profile }) {
+function SpellingGame({ onXP, profile, isFemale }) {
   const [queue, setQueue] = useState(() => shuffle(WORD_CODEX));
   const [qPos, setQPos] = useState(0);
   const [hearts, setHearts] = useState(3);
@@ -2633,7 +2633,7 @@ function SpellingGame({ onXP, profile }) {
 
       const correctEntry = ALEPH_BET.find(l => l.hebrew === W.letters[slotIdx]);
       speakHebrew('עוד לא').then(() =>
-        speakHebrew(`בחר את האות ${stripNikud(correctEntry?.nameHebrew || '')}`)
+        speakHebrew(`${isFemale ? 'בחרי' : 'בחר'} את האות ${stripNikud(correctEntry?.nameHebrew || '')}`)
       );
 
       if (nh <= 0) { setPhase('failed'); onXP(0); return; }
@@ -3284,6 +3284,253 @@ function TtsStatusDot() {
   );
 }
 
+// ─────────────────────── STORY GAME ──────────────────────────
+
+const STORY_SENTENCES = [
+  // Level 1 — Easy (3 words)
+  { id:  1, level: 1, words: ['הילד',   'שותה',   'תה'],        scene: '👦☕🍵',  distractors: ['חם',    'גדול'] },
+  { id:  2, level: 1, words: ['הכלב',   'אוכל',   'עצם'],       scene: '🐶🦴😋',  distractors: ['קטן',   'ישן']  },
+  { id:  3, level: 1, words: ['הציפור', 'עפה',    'גבוה'],      scene: '🐦☁️🌤️', distractors: ['שמח',   'מהיר'] },
+  { id:  4, level: 1, words: ['הילדה',  'אוכלת',  'תפוח'],      scene: '👧🍎😊',  distractors: ['טעים',  'ירוק'] },
+  { id:  5, level: 1, words: ['החתול',  'ישן',    'במיטה'],     scene: '🐱😴🛏️', distractors: ['כחול',  'שקט']  },
+  // Level 2 — Medium (4 words)
+  { id:  6, level: 2, words: ['הילד',   'רוכב',   'על',    'אופניים'],  scene: '👦🚲🌈',  distractors: ['מהיר',  'חדש']  },
+  { id:  7, level: 2, words: ['הילדה',  'מציירת', 'תמונה', 'יפה'],      scene: '👧🎨🖼️',  distractors: ['גדול',  'צהוב'] },
+  { id:  8, level: 2, words: ['הכלב',   'רץ',     'בגן',   'הגדול'],    scene: '🐶🌳🏃',  distractors: ['שמח',   'ירוק'] },
+  { id:  9, level: 2, words: ['אמא',    'מבשלת',  'מרק',   'טוב'],      scene: '👩‍🍳🥣✨', distractors: ['חם',    'מתוק'] },
+  { id: 10, level: 2, words: ['אבא',    'קורא',   'ספר',   'בלילה'],    scene: '👨📚🌙',  distractors: ['ישן',   'שקט']  },
+  // Level 3 — Hard (5 words)
+  { id: 11, level: 3, words: ['הילדים', 'משחקים', 'כדורגל', 'בחצר',   'גדולה'], scene: '👦👧⚽🌳', distractors: ['מהיר',  'שמח']  },
+  { id: 12, level: 3, words: ['הסבתא',  'אופה',   'עוגה',   'מתוקה',  'מאוד'],  scene: '👵🎂🍰😋', distractors: ['טובה',  'חם']   },
+  { id: 13, level: 3, words: ['הכלבלב', 'הקטן',   'ישן',    'על',     'הספה'],  scene: '🐶😴🛋️💤', distractors: ['חמוד',  'שחור'] },
+  { id: 14, level: 3, words: ['הילד',   'שר',     'שיר',    'יפה',    'מאוד'],  scene: '👦🎵🎤🎶', distractors: ['גדול',  'חזק']  },
+  { id: 15, level: 3, words: ['הנסיכה', 'לובשת',  'שמלה',   'ורודה',  'יפה'],   scene: '👸👗🌸✨', distractors: ['חדש',   'צהוב'] },
+];
+
+const LEVEL_NAMES   = ['', 'קל', 'בינוני', 'קשה'];
+const LEVEL_COLORS  = ['', '#10b981', '#f59e0b', '#ef4444'];
+
+function StoryGame({ onXP, isFemale }) {
+  const [unlockedLevel, setUnlockedLevel] = useState(1);
+  const [phase, setPhase] = useState('levelSelect'); // levelSelect | playing | levelComplete
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [stageIdx, setStageIdx] = useState(0);
+  const [selected, setSelected] = useState([]);    // {id, word} tiles placed so far
+  const [available, setAvailable] = useState([]); // shuffled {id, word} tiles remaining
+  const [shakeId, setShakeId] = useState(null);
+  const [sentenceDone, setSentenceDone] = useState(false);
+  const completingRef = useRef(false);
+
+  const levelSentences = STORY_SENTENCES.filter(s => s.level === currentLevel);
+  const sentence = levelSentences[stageIdx];
+
+  // Initialize word pool when sentence changes
+  useEffect(() => {
+    if (!sentence || phase !== 'playing') return;
+    const pool = [
+      ...sentence.words.map((w, i) => ({ id: i, word: w })),
+      ...sentence.distractors.map((w, i) => ({ id: sentence.words.length + i, word: w })),
+    ];
+    setAvailable(shuffle(pool));
+    setSelected([]);
+    setSentenceDone(false);
+    completingRef.current = false;
+    setTimeout(() => speakHebrew(sentence.words.join(' ')), 300);
+  }, [stageIdx, currentLevel, phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const startLevel = (level) => {
+    setCurrentLevel(level);
+    setStageIdx(0);
+    setPhase('playing');
+  };
+
+  const handleWordTap = (wordObj) => {
+    if (sentenceDone || completingRef.current) return;
+    const nextIdx = selected.length;
+    if (wordObj.word === sentence.words[nextIdx]) {
+      const newSel = [...selected, wordObj];
+      setSelected(newSel);
+      setAvailable(prev => prev.filter(w => w.id !== wordObj.id));
+      if (newSel.length === sentence.words.length) {
+        completingRef.current = true;
+        setSentenceDone(true);
+        speakHebrew(sentence.words.join(' '));
+        onXP(150);
+        setTimeout(() => {
+          completingRef.current = false;
+          if (stageIdx < 4) {
+            setStageIdx(prev => prev + 1);
+          } else {
+            setPhase('levelComplete');
+            setUnlockedLevel(prev => Math.max(prev, Math.min(3, currentLevel + 1)));
+            speakHebrew('כל הכבוד! עברת את הרמה!');
+          }
+        }, 1800);
+      }
+    } else {
+      setShakeId(wordObj.id);
+      setTimeout(() => setShakeId(null), 500);
+    }
+  };
+
+  // Level selector
+  if (phase === 'levelSelect') {
+    return (
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+        <div style={{ fontSize: 52 }}>📖</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 26, fontWeight: 900, color: '#f0e6ff', direction: 'rtl' }}>
+          משחק סיפור
+        </div>
+        <div style={{ fontSize: 14, color: '#93c5fd', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+          בחר את הרמה שלך
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 320 }}>
+          {[1, 2, 3].map(lv => {
+            const locked = lv > unlockedLevel;
+            const bg = locked
+              ? 'rgba(255,255,255,0.03)'
+              : lv === 1 ? 'rgba(16,185,129,0.12)' : lv === 2 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)';
+            return (
+              <button key={lv} onClick={() => !locked && startLevel(lv)} disabled={locked} style={{
+                padding: '18px 24px', borderRadius: 18,
+                background: bg,
+                border: `2px solid ${locked ? 'rgba(255,255,255,0.08)' : LEVEL_COLORS[lv]}`,
+                color: locked ? '#4b5563' : '#f0e6ff',
+                cursor: locked ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl',
+              }}>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: locked ? '#4b5563' : LEVEL_COLORS[lv] }}>
+                    רמה {lv} — {LEVEL_NAMES[lv]}
+                  </div>
+                  <div style={{ fontSize: 13, color: locked ? '#374151' : '#93c5fd', marginTop: 3 }}>
+                    {lv === 1 ? '3' : lv === 2 ? '4' : '5'} מילים במשפט · 5 שלבים
+                  </div>
+                </div>
+                <div style={{ fontSize: 26 }}>
+                  {locked ? '🔒' : lv === 1 ? '⭐' : lv === 2 ? '⭐⭐' : '⭐⭐⭐'}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Level complete
+  if (phase === 'levelComplete') {
+    return (
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+        <div style={{ fontSize: 72, animation: 'float 2s ease-in-out infinite' }}>🏆</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 36, fontWeight: 900, color: '#f0e6ff', direction: 'rtl' }}>
+          !בהצלחה טובה
+        </div>
+        <div style={{ fontSize: 18, color: '#60a5fa', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+          סיימת את רמה {currentLevel} — {LEVEL_NAMES[currentLevel]}
+        </div>
+        {currentLevel < 3 && (
+          <div style={{ fontSize: 15, color: '#10b981', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+            !רמה {currentLevel + 1} נפתחה
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {currentLevel < 3 && (
+            <button onClick={() => startLevel(currentLevel + 1)} style={{
+              padding: '14px 28px', borderRadius: 50, border: 'none',
+              background: 'linear-gradient(135deg,#10b981,#059669)',
+              color: 'white', fontWeight: 900, fontSize: 16, cursor: 'pointer',
+              fontFamily: "'Noto Serif Hebrew', serif",
+            }}>הרמה הבאה ←</button>
+          )}
+          <button onClick={() => setPhase('levelSelect')} style={{
+            padding: '14px 28px', borderRadius: 50, border: 'none',
+            background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)',
+            color: 'white', fontWeight: 900, fontSize: 16, cursor: 'pointer',
+            fontFamily: "'Noto Serif Hebrew', serif",
+          }}>בחר רמה</button>
+        </div>
+      </div>
+    );
+  }
+
+  // Playing
+  if (!sentence) return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
+      {/* Progress bar */}
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13, color: '#93c5fd', direction: 'rtl' }}>
+          <span>שלב {stageIdx + 1} / 5</span>
+          <span>רמה {currentLevel} — {LEVEL_NAMES[currentLevel]}</span>
+        </div>
+        <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ width: `${(stageIdx / 5) * 100}%`, height: '100%', background: LEVEL_COLORS[currentLevel], borderRadius: 99, transition: 'width 0.4s' }} />
+        </div>
+      </div>
+
+      {/* Scene */}
+      <div style={{
+        fontSize: 48, padding: '14px 28px', borderRadius: 20, letterSpacing: 6,
+        background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.1)',
+      }}>
+        {sentence.scene}
+      </div>
+
+      {/* Sentence slots (built word by word, RTL) */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', direction: 'rtl', width: '100%' }}>
+        {sentence.words.map((_, i) => {
+          const filled = selected[i];
+          return (
+            <div key={i} style={{
+              minWidth: 60, padding: '10px 14px', borderRadius: 14,
+              border: filled ? `2px solid ${LEVEL_COLORS[currentLevel]}` : '2px dashed rgba(255,255,255,0.2)',
+              background: filled ? `rgba(${currentLevel===1?'16,185,129':currentLevel===2?'245,158,11':'239,68,68'},0.15)` : 'rgba(255,255,255,0.03)',
+              fontFamily: "'Noto Serif Hebrew', serif", fontSize: 20, fontWeight: 700,
+              color: filled ? LEVEL_COLORS[currentLevel] : 'rgba(255,255,255,0.18)',
+              textAlign: 'center', direction: 'rtl', transition: 'all 0.25s',
+            }}>
+              {filled ? filled.word : '_ _ _'}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Success banner */}
+      {sentenceDone && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, color: '#10b981', direction: 'rtl',
+        }}>
+          <span style={{ fontSize: 32 }}>✅</span>
+          <span>!כל הכבוד</span>
+        </div>
+      )}
+
+      {/* Word tiles */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', direction: 'rtl', padding: '4px 0', marginTop: 4 }}>
+        {available.map(wordObj => (
+          <button key={wordObj.id} onClick={() => handleWordTap(wordObj)} style={{
+            padding: '11px 18px', borderRadius: 16,
+            background: 'linear-gradient(135deg,rgba(29,78,216,0.4),rgba(14,165,233,0.3))',
+            border: '2px solid rgba(96,165,250,0.5)',
+            color: '#e0f2ff', fontFamily: "'Noto Serif Hebrew', serif",
+            fontSize: 18, fontWeight: 700, cursor: 'pointer', direction: 'rtl',
+            animation: shakeId === wordObj.id ? 'shake 0.45s ease' : 'none',
+          }}>
+            {wordObj.word}
+          </button>
+        ))}
+      </div>
+
+      {/* Replay sentence button */}
+      <SpeakButton onClick={() => speakHebrew(sentence.words.join(' '))} style={{ marginTop: 2 }} />
+    </div>
+  );
+}
+
 // ─────────────────────── BODY GAME ───────────────────────────
 
 const BODY_PARTS_DICT = [
@@ -3729,6 +3976,7 @@ export default function App() {
     { id: "sentence",   label: "משפט",     emoji: "💬", desc: "השלם את המשפט" },
     { id: "speak",      label: "דיבור",    emoji: "🗣️", desc: "דבר את המילה"  },
     { id: "body",       label: "גוף",      emoji: "🫁", desc: "איברי הגוף"    },
+    { id: "story",      label: "סיפור",    emoji: "📖", desc: "בנה משפט"      },
   ];
 
   // Show profile picker if no active profile
@@ -3826,12 +4074,12 @@ export default function App() {
               <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 28, color: "#e0f2ff", marginTop: 10, direction: 'rtl', fontWeight: 700 }}>
                 למד את האלפבית העברי!
               </div>
-              <div style={{ color: "#60a5fa", fontSize: 15, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר · משפט · גוף</div>
+              <div style={{ color: "#60a5fa", fontSize: 15, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר · משפט · גוף · סיפור</div>
             </div>
 
             {/* Game mode grid — 3+3 */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12, width: '100%', maxWidth: 560, padding: '0 12px' }}>
-              {[modes.slice(0, 4), modes.slice(4)].map((row, ri) => (
+              {[modes.slice(0, 3), modes.slice(3, 6), modes.slice(6)].map((row, ri) => (
                 <div key={ri} style={{ display: "flex", gap: 12 }}>
                   {row.map(m => (
                     <button key={m.id} onClick={() => setMode(m.id)} style={{
@@ -3865,14 +4113,15 @@ export default function App() {
 
         {/* Modes */}
         <div style={{ maxWidth: 520, margin: "32px auto 0", padding: "0 16px" }}>
-          {mode === "flashcards" && <Flashcards onXP={addXP} />}
+          {mode === "flashcards" && <Flashcards onXP={addXP} isFemale={FEMALE_AVATARS.has(profile?.avatar)} />}
           {mode === "matching"   && <MatchingGame key={matchKey} onXP={addXP} />}
           {mode === "quiz"       && <Quiz key={matchKey} onXP={addXP} />}
-          {mode === "spelling"   && <SpellingGame key={matchKey} onXP={addXP} profile={profileWithAvatar} />}
+          {mode === "spelling"   && <SpellingGame key={matchKey} onXP={addXP} profile={profileWithAvatar} isFemale={FEMALE_AVATARS.has(profile?.avatar)} />}
           {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "sentence"   && <SentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "speak"      && <SpeakingSentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "body"       && <BodyGame key={matchKey} onXP={addXP} playerName={activeProfile} isFemale={FEMALE_AVATARS.has(profile?.avatar)} PlayerAvatar={profileWithAvatar?.Avatar} shirtColor={profile?.color ?? '#EC4899'} />}
+          {mode === "story"      && <StoryGame key={matchKey} onXP={addXP} isFemale={FEMALE_AVATARS.has(profile?.avatar)} />}
         </div>
       </div>
 
