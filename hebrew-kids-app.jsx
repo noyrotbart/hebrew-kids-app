@@ -1903,22 +1903,459 @@ function AvatarMax({ size = 100, uid = 'm' }) {
   );
 }
 
+// ── 17 NEW DIVERSE AVATARS (Boys: Liam, Amir, Kai, Jamal, Chen, Marco, Ravi, Marcus, Leo; Girls: Leah, Noor, Sophia, Amara, Lin, Rosa, Yuki, Priya, Zara) ──
+
+// Liam — white/fair skin, light hair
+function AvatarLiam({ size = 100, uid = 'l' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgl${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#06b6d4" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpl${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgl${uid})`} stroke="rgba(34,211,238,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#06b6d4" clipPath={`url(#cpl${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#06b6d4" clipPath={`url(#cpl${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#d4a060"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f4d4a8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#c4a86a"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#d4b878"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#d4b878"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#d4b878"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#c4a86a"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#c4a86a"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f4d4a8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <path d="M33 50 Q40 45 47 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 50 Q60 45 67 51" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#4a7c59"/><circle cx="60.5" cy="59.5" r="5" fill="#4a7c59"/><circle cx="40.5" cy="59.5" r="2.5" fill="#1a3a2a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#1a3a2a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#b8866a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#d4a060" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#d4a060" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#d4a060" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Amir — brown/middle eastern skin
+function AvatarAmir({ size = 100, uid = 'am' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgam${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#f97316" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpam${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgam${uid})`} stroke="rgba(249,115,22,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#f97316" clipPath={`url(#cpam${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#f97316" clipPath={`url(#cpam${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#8b6a47"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#b8956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6a47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6a47"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#b8956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6a47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6a47"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#1a1410"/><circle cx="60.5" cy="59.5" r="5" fill="#1a1410"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a0a05"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a0a05"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#a67c52" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#8b6a47" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#8b6a47" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#8b6a47" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Kai — asian/olive skin
+function AvatarKai({ size = 100, uid = 'k' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgk${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#14b8a6" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpk${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgk${uid})`} stroke="rgba(20,184,166,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#14b8a6" clipPath={`url(#cpk${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#14b8a6" clipPath={`url(#cpk${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#a0826d"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#d4a590"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#a0826d"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#a0826d"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#2a2014"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#3a2a1a"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#3a2a1a"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#3a2a1a"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#2a2014"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#2a2014"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#d4a590"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#a0826d"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#a0826d"/>
+      <path d="M33 51 Q40 45 47 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 45 67 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="60" rx="6.5" ry="7" fill="white"/><ellipse cx="60" cy="60" rx="6.5" ry="7" fill="white"/><circle cx="40.5" cy="61" r="4.5" fill="#1a1410"/><circle cx="60.5" cy="61" r="4.5" fill="#1a1410"/><circle cx="40.5" cy="61" r="2" fill="#0a0a05"/><circle cx="60.5" cy="61" r="2" fill="#0a0a05"/><circle cx="41.5" cy="59" r="1.5" fill="white"/><circle cx="61.5" cy="59" r="1.5" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#b8956a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#b8956a" opacity="0.7"/>
+      <path d="M37 76 Q50 88 63 76" fill="white" stroke="#a67c52" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#a0826d" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#a0826d" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#a0826d" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Jamal — black/dark skin
+function AvatarJamal({ size = 100, uid = 'j' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgj${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#d97706" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpj${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgj${uid})`} stroke="rgba(217,119,6,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#d97706" clipPath={`url(#cpj${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#d97706" clipPath={`url(#cpj${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#5a3a2a"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#6b4423"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#5a3a2a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#5a3a2a"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a0a00"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1a0a"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1a0a"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1a0a"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a0a00"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a0a00"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#6b4423"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#5a3a2a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#5a3a2a"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#3a2a1a" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#3a2a1a" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#1a0a00"/><circle cx="60.5" cy="59.5" r="5" fill="#1a0a00"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a0a00"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a0a00"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#5a3a2a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#5a3a2a" opacity="0.7"/>
+      <path d="M35 77 Q50 90 65 77" fill="white" stroke="#8b5c35" strokeWidth="2.5"/><line x1="43" y1="78" x2="43" y2="84" stroke="#5a3a2a" strokeWidth="1.2"/><line x1="50" y1="78" x2="50" y2="85" stroke="#5a3a2a" strokeWidth="1.2"/><line x1="57" y1="78" x2="57" y2="84" stroke="#5a3a2a" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Chen — asian/yellow skin
+function AvatarChen({ size = 100, uid = 'c' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgc${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpc${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgc${uid})`} stroke="rgba(139,92,246,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#8b5cf6" clipPath={`url(#cpc${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#8b5cf6" clipPath={`url(#cpc${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#9d7b5f"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9b5"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#9d7b5f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#9d7b5f"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9b5"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#9d7b5f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#9d7b5f"/>
+      <path d="M33 52 Q40 47 47 52" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 52 Q60 47 67 52" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#3a5a4a"/><circle cx="60.5" cy="59.5" r="5" fill="#3a5a4a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#1a2a1a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#1a2a1a"/><circle cx="41.5" cy="58" r="1.8" fill="white"/><circle cx="61.5" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d4a590" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d4a590" opacity="0.7"/>
+      <path d="M36 76 Q50 88 64 76" fill="white" stroke="#b8956a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#9d7b5f" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#9d7b5f" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#9d7b5f" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Marco — mediterranean/tan skin
+function AvatarMarco({ size = 100, uid = 'mr' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgmr${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#f43f5e" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpmr${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgmr${uid})`} stroke="rgba(244,63,94,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#f43f5e" clipPath={`url(#cpmr${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#f43f5e" clipPath={`url(#cpmr${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#b8856f"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#d9a566"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#b8856f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#b8856f"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#3a2814"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#4a3820"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#4a3820"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#4a3820"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#3a2814"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#3a2814"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#d9a566"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#b8856f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#b8856f"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#6a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#6a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#2a4a5a"/><circle cx="60.5" cy="59.5" r="5" fill="#2a4a5a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a1a2a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a1a2a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#b8856f" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#b8856f" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#a8756f" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#b8856f" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#b8856f" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#b8856f" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Ravi — indian/brown skin
+function AvatarRavi({ size = 100, uid = 'r' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgr${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#eab308" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpr${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgr${uid})`} stroke="rgba(234,179,8,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#eab308" clipPath={`url(#cpr${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#eab308" clipPath={`url(#cpr${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#8b6f47"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#c9956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6f47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6f47"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#c9956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6f47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6f47"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#1a2a3a"/><circle cx="60.5" cy="59.5" r="5" fill="#1a2a3a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a0a1a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a0a1a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#a8826a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#8b6f47" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#8b6f47" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#8b6f47" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Marcus — black/very dark skin
+function AvatarMarcus({ size = 100, uid = 'mrc' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgmrc${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#6366f1" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpmrc${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgmrc${uid})`} stroke="rgba(99,102,241,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#6366f1" clipPath={`url(#cpmrc${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#6366f1" clipPath={`url(#cpmrc${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#3a2a1a"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#4a3a2a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#3a2a1a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#3a2a1a"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#0a0a00"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#1a1a0a"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#1a1a0a"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#1a1a0a"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#0a0a00"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#0a0a00"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#4a3a2a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#3a2a1a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#3a2a1a"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#2a1a0a" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#2a1a0a" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#0a0a00"/><circle cx="60.5" cy="59.5" r="5" fill="#0a0a00"/><circle cx="40.5" cy="59.5" r="2.5" fill="#000000"/><circle cx="60.5" cy="59.5" r="2.5" fill="#000000"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#3a2a1a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#3a2a1a" opacity="0.7"/>
+      <path d="M35 77 Q50 90 65 77" fill="white" stroke="#6b4423" strokeWidth="2.5"/><line x1="43" y1="78" x2="43" y2="84" stroke="#3a2a1a" strokeWidth="1.2"/><line x1="50" y1="78" x2="50" y2="85" stroke="#3a2a1a" strokeWidth="1.2"/><line x1="57" y1="78" x2="57" y2="84" stroke="#3a2a1a" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Leo — white/fair skin, energetic
+function AvatarLeo({ size = 100, uid = 'le' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgle${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#84cc16" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cple${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgle${uid})`} stroke="rgba(132,204,22,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#84cc16" clipPath={`url(#cple${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#84cc16" clipPath={`url(#cple${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#d4a060"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9c8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#d4984a"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#e0a85a"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#e0a85a"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#e0a85a"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#d4984a"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#d4984a"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9c8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <path d="M32 49 Q40 42 47 49" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 49 Q60 42 68 49" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#3a6a5a"/><circle cx="60.5" cy="59.5" r="5" fill="#3a6a5a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#1a3a2a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#1a3a2a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d9b08a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d9b08a" opacity="0.7"/>
+      <path d="M35 75 Q50 88 65 75" fill="white" stroke="#b8866a" strokeWidth="2.5"/><line x1="43" y1="76" x2="43" y2="82" stroke="#d4a060" strokeWidth="1.2"/><line x1="50" y1="76" x2="50" y2="83" stroke="#d4a060" strokeWidth="1.2"/><line x1="57" y1="76" x2="57" y2="82" stroke="#d4a060" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Girls (10 total) ─────────────────────────────────────────
+
+// Leah — white/fair skin, red hair
+function AvatarLeah({ size = 100, uid = 'lh' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bglh${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#d946ef" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cplh${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bglh${uid})`} stroke="rgba(217,70,239,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#d946ef" clipPath={`url(#cplh${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#d946ef" clipPath={`url(#cplh${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#d4a060"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f4d4a8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <ellipse cx="50" cy="27" rx="29" ry="22" fill="#a83030"/><ellipse cx="32" cy="28" rx="13" ry="14" fill="#c84040"/><ellipse cx="50" cy="22" rx="16" ry="16" fill="#c84040"/><ellipse cx="68" cy="28" rx="13" ry="14" fill="#c84040"/><ellipse cx="26" cy="40" rx="9" ry="12" fill="#a83030"/><ellipse cx="74" cy="40" rx="9" ry="12" fill="#a83030"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f4d4a8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <path d="M33 50 Q40 44 47 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 50 Q60 44 67 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#5a6a8a"/><circle cx="60.5" cy="59.5" r="5" fill="#5a6a8a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#1a2a4a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#1a2a4a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#b8866a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#d4a060" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#d4a060" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#d4a060" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Noor — brown/middle eastern skin
+function AvatarNoor({ size = 100, uid = 'no' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgno${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#e91e63" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpno${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgno${uid})`} stroke="rgba(233,30,99,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#e91e63" clipPath={`url(#cpno${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#e91e63" clipPath={`url(#cpno${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#8b6a47"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#b8956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6a47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6a47"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#b8956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6a47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6a47"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#1a1410"/><circle cx="60.5" cy="59.5" r="5" fill="#1a1410"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a0a05"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a0a05"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#a67c52" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#8b6a47" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#8b6a47" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#8b6a47" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Sophia — white/fair skin, long brown hair
+function AvatarSophia({ size = 100, uid = 'sp' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgsp${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#ef4444" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpsp${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgsp${uid})`} stroke="rgba(239,68,68,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#ef4444" clipPath={`url(#cpsp${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#ef4444" clipPath={`url(#cpsp${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#d4a060"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f4d4a8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <ellipse cx="50" cy="25" rx="29" ry="24" fill="#a87840"/><ellipse cx="30" cy="26" rx="14" ry="16" fill="#b8886a"/><ellipse cx="50" cy="18" rx="18" ry="18" fill="#b8886a"/><ellipse cx="70" cy="26" rx="14" ry="16" fill="#b8886a"/><ellipse cx="23" cy="42" rx="10" ry="14" fill="#a87840"/><ellipse cx="77" cy="42" rx="10" ry="14" fill="#a87840"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f4d4a8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
+      <path d="M33 50 Q40 45 47 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 50 Q60 45 67 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#5a8a7a"/><circle cx="60.5" cy="59.5" r="5" fill="#5a8a7a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#1a4a3a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#1a4a3a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#b8866a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#d4a060" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#d4a060" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#d4a060" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Amara — black/dark skin
+function AvatarAmara({ size = 100, uid = 'am' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgam${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#fb923c" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpam${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgam${uid})`} stroke="rgba(251,146,60,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#fb923c" clipPath={`url(#cpam${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#fb923c" clipPath={`url(#cpam${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#5a3a2a"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#6b4423"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#5a3a2a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#5a3a2a"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a0a00"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1a0a"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1a0a"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1a0a"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a0a00"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a0a00"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#6b4423"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#5a3a2a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#5a3a2a"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#3a2a1a" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#3a2a1a" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#1a0a00"/><circle cx="60.5" cy="59.5" r="5" fill="#1a0a00"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a0a00"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a0a00"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#5a3a2a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#5a3a2a" opacity="0.7"/>
+      <path d="M35 77 Q50 90 65 77" fill="white" stroke="#8b5c35" strokeWidth="2.5"/><line x1="43" y1="78" x2="43" y2="84" stroke="#5a3a2a" strokeWidth="1.2"/><line x1="50" y1="78" x2="50" y2="85" stroke="#5a3a2a" strokeWidth="1.2"/><line x1="57" y1="78" x2="57" y2="84" stroke="#5a3a2a" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Lin — asian/pale skin
+function AvatarLin({ size = 100, uid = 'li' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgli${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#22d3ee" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpli${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgli${uid})`} stroke="rgba(34,211,238,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#22d3ee" clipPath={`url(#cpli${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#22d3ee" clipPath={`url(#cpli${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#9d7b5f"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9b5"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#9d7b5f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#9d7b5f"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9b5"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#9d7b5f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#9d7b5f"/>
+      <path d="M33 52 Q40 47 47 52" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 52 Q60 47 67 52" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="60" rx="6.5" ry="7" fill="white"/><ellipse cx="60" cy="60" rx="6.5" ry="7" fill="white"/><circle cx="40.5" cy="61" r="4.5" fill="#3a5a4a"/><circle cx="60.5" cy="61" r="4.5" fill="#3a5a4a"/><circle cx="40.5" cy="61" r="2" fill="#1a2a1a"/><circle cx="60.5" cy="61" r="2" fill="#1a2a1a"/><circle cx="41.5" cy="59" r="1.5" fill="white"/><circle cx="61.5" cy="59" r="1.5" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d4a590" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d4a590" opacity="0.7"/>
+      <path d="M36 76 Q50 88 64 76" fill="white" stroke="#b8956a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#9d7b5f" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#9d7b5f" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#9d7b5f" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Rosa — latin/tan skin
+function AvatarRosa({ size = 100, uid = 'rs' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgrs${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#ff7f50" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cprs${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgrs${uid})`} stroke="rgba(255,127,80,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#ff7f50" clipPath={`url(#cprs${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#ff7f50" clipPath={`url(#cprs${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#b8856f"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#d9a566"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#b8856f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#b8856f"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#3a2814"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#4a3820"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#4a3820"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#4a3820"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#3a2814"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#3a2814"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#d9a566"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#b8856f"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#b8856f"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#6a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#6a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#2a4a5a"/><circle cx="60.5" cy="59.5" r="5" fill="#2a4a5a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a1a2a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a1a2a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#b8856f" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#b8856f" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#a8756f" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#b8856f" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#b8856f" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#b8856f" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Yuki — asian/fair skin
+function AvatarYuki({ size = 100, uid = 'yk' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgyk${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#c084fc" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpyk${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgyk${uid})`} stroke="rgba(192,132,252,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#c084fc" clipPath={`url(#cpyk${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#c084fc" clipPath={`url(#cpyk${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#a8826d"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9c8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#a8826d"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#a8826d"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#f0d9c8"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#a8826d"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#a8826d"/>
+      <path d="M34 52 Q40 48 46 52" stroke="#6a5a47" strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M54 52 Q60 48 66 52" stroke="#6a5a47" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="60" rx="6" ry="7" fill="white"/><ellipse cx="60" cy="60" rx="6" ry="7" fill="white"/><circle cx="40.5" cy="61" r="4" fill="#3a6a6a"/><circle cx="60.5" cy="61" r="4" fill="#3a6a6a"/><circle cx="40.5" cy="61" r="2" fill="#1a3a3a"/><circle cx="60.5" cy="61" r="2" fill="#1a3a3a"/><circle cx="41.5" cy="59" r="1.5" fill="white"/><circle cx="61.5" cy="59" r="1.5" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#d4b08a" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#b8956a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#a8826d" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#a8826d" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#a8826d" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Priya — indian/brown skin
+function AvatarPriya({ size = 100, uid = 'pr' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgpr${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#f59e0b" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cppr${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgpr${uid})`} stroke="rgba(245,158,11,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#f59e0b" clipPath={`url(#cppr${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#f59e0b" clipPath={`url(#cppr${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#8b6f47"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#c9956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6f47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6f47"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#1a1410"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#2a1f18"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#2a1f18"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#1a1410"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#1a1410"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#c9956a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#8b6f47"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#8b6f47"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#5a4a37" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#1a2a3a"/><circle cx="60.5" cy="59.5" r="5" fill="#1a2a3a"/><circle cx="40.5" cy="59.5" r="2.5" fill="#0a0a1a"/><circle cx="60.5" cy="59.5" r="2.5" fill="#0a0a1a"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#8b6f47" opacity="0.7"/>
+      <path d="M36 76 Q50 89 64 76" fill="white" stroke="#a8826a" strokeWidth="2.5"/><line x1="44" y1="77" x2="44" y2="83" stroke="#8b6f47" strokeWidth="1.2"/><line x1="50" y1="77" x2="50" y2="84" stroke="#8b6f47" strokeWidth="1.2"/><line x1="56" y1="77" x2="56" y2="83" stroke="#8b6f47" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
+// Zara — african/very dark skin
+function AvatarZara({ size = 100, uid = 'z' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block' }}>
+      <defs>
+        <radialGradient id={`bgz${uid}`} cx="50%" cy="35%" r="60%"><stop offset="0%" stopColor="#64748b" stopOpacity="0.45"/><stop offset="100%" stopColor="#0d2160" stopOpacity="0.9"/></radialGradient>
+        <clipPath id={`cpz${uid}`}><circle cx="50" cy="50" r="48"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill={`url(#bgz${uid})`} stroke="rgba(100,116,139,0.6)" strokeWidth="2.5"/>
+      <ellipse cx="50" cy="108" rx="40" ry="26" fill="#64748b" clipPath={`url(#cpz${uid})`}/><rect x="19" y="88" width="62" height="22" fill="#64748b" clipPath={`url(#cpz${uid})`}/>
+      <rect x="43" y="78" width="14" height="14" rx="5" fill="#2a1a0a"/><ellipse cx="50" cy="59" rx="27" ry="28" fill="#3a2a1a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#2a1a0a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#2a1a0a"/>
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#0a0a00"/><ellipse cx="34" cy="30" rx="12" ry="13" fill="#1a1a0a"/><ellipse cx="50" cy="26" rx="14" ry="13" fill="#1a1a0a"/><ellipse cx="66" cy="30" rx="12" ry="13" fill="#1a1a0a"/><ellipse cx="27" cy="41" rx="8" ry="11" fill="#0a0a00"/><ellipse cx="73" cy="41" rx="8" ry="11" fill="#0a0a00"/>
+      <ellipse cx="50" cy="59" rx="27" ry="28" fill="#3a2a1a"/><ellipse cx="24" cy="59" rx="6" ry="8" fill="#2a1a0a"/><ellipse cx="76" cy="59" rx="6" ry="8" fill="#2a1a0a"/>
+      <path d="M33 51 Q40 46 47 51" stroke="#1a0a00" strokeWidth="2.8" fill="none" strokeLinecap="round"/><path d="M53 51 Q60 46 67 51" stroke="#1a0a00" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/><ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/><circle cx="40.5" cy="59.5" r="5" fill="#0a0a00"/><circle cx="60.5" cy="59.5" r="5" fill="#0a0a00"/><circle cx="40.5" cy="59.5" r="2.5" fill="#000000"/><circle cx="60.5" cy="59.5" r="2.5" fill="#000000"/><circle cx="42" cy="58" r="1.8" fill="white"/><circle cx="62" cy="58" r="1.8" fill="white"/>
+      <ellipse cx="46.5" cy="68" rx="2" ry="1.5" fill="#2a1a0a" opacity="0.7"/><ellipse cx="53.5" cy="68" rx="2" ry="1.5" fill="#2a1a0a" opacity="0.7"/>
+      <path d="M35 77 Q50 90 65 77" fill="white" stroke="#5a3a2a" strokeWidth="2.5"/><line x1="43" y1="78" x2="43" y2="84" stroke="#2a1a0a" strokeWidth="1.2"/><line x1="50" y1="78" x2="50" y2="85" stroke="#2a1a0a" strokeWidth="1.2"/><line x1="57" y1="78" x2="57" y2="84" stroke="#2a1a0a" strokeWidth="1.2"/>
+    </svg>
+  );
+}
+
 // ── PROFILES CONFIG ──────────────────────────────────────────
 // Avatar lookup by key
 const AVATAR_MAP = {
   noah: AvatarNoah,
+  liam: AvatarLiam,
+  amir: AvatarAmir,
+  kai: AvatarKai,
+  jamal: AvatarJamal,
+  chen: AvatarChen,
+  marco: AvatarMarco,
+  ravi: AvatarRavi,
+  marcus: AvatarMarcus,
+  leo: AvatarLeo,
   alma: AvatarAlma,
-  max:  AvatarMax,
+  leah: AvatarLeah,
+  noor: AvatarNoor,
+  sophia: AvatarSophia,
+  amara: AvatarAmara,
+  lin: AvatarLin,
+  rosa: AvatarRosa,
+  yuki: AvatarYuki,
+  priya: AvatarPriya,
+  zara: AvatarZara,
 };
 const AVATAR_OPTIONS = [
-  { key: 'noah', color: '#3b82f6', glow: 'rgba(59,130,246,0.5)',  label: 'נח' },
-  { key: 'alma', color: '#ec4899', glow: 'rgba(236,72,153,0.5)',  label: 'עלמה' },
-  { key: 'max',  color: '#10b981', glow: 'rgba(16,185,129,0.5)',  label: 'מקס' },
+  // Boys
+  { key: 'noah',   color: '#3b82f6', glow: 'rgba(59,130,246,0.5)',   label: 'נח' },
+  { key: 'liam',   color: '#06b6d4', glow: 'rgba(6,182,212,0.5)',    label: 'ליאם' },
+  { key: 'amir',   color: '#f97316', glow: 'rgba(249,115,22,0.5)',   label: 'אמיר' },
+  { key: 'kai',    color: '#14b8a6', glow: 'rgba(20,184,166,0.5)',   label: 'קאי' },
+  { key: 'jamal',  color: '#d97706', glow: 'rgba(217,119,6,0.5)',    label: 'ג\'מאל' },
+  { key: 'chen',   color: '#8b5cf6', glow: 'rgba(139,92,246,0.5)',   label: 'צ\'ן' },
+  { key: 'marco',  color: '#f43f5e', glow: 'rgba(244,63,94,0.5)',    label: 'מארקו' },
+  { key: 'ravi',   color: '#eab308', glow: 'rgba(234,179,8,0.5)',    label: 'רווי' },
+  { key: 'marcus', color: '#6366f1', glow: 'rgba(99,102,241,0.5)',   label: 'מארקוס' },
+  { key: 'leo',    color: '#84cc16', glow: 'rgba(132,204,22,0.5)',   label: 'ליאו' },
+  // Girls
+  { key: 'alma',   color: '#ec4899', glow: 'rgba(236,72,153,0.5)',   label: 'עלמה' },
+  { key: 'leah',   color: '#d946ef', glow: 'rgba(217,70,239,0.5)',   label: 'לאה' },
+  { key: 'noor',   color: '#e91e63', glow: 'rgba(233,30,99,0.5)',    label: 'נור' },
+  { key: 'sophia', color: '#ef4444', glow: 'rgba(239,68,68,0.5)',    label: 'סופיה' },
+  { key: 'amara',  color: '#fb923c', glow: 'rgba(251,146,60,0.5)',   label: 'אמארה' },
+  { key: 'lin',    color: '#22d3ee', glow: 'rgba(34,211,238,0.5)',   label: 'לין' },
+  { key: 'rosa',   color: '#ff7f50', glow: 'rgba(255,127,80,0.5)',   label: 'רוזה' },
+  { key: 'yuki',   color: '#c084fc', glow: 'rgba(192,132,252,0.5)',  label: 'יוקי' },
+  { key: 'priya',  color: '#f59e0b', glow: 'rgba(245,158,11,0.5)',   label: 'פריה' },
+  { key: 'zara',   color: '#64748b', glow: 'rgba(100,116,139,0.5)',  label: 'זהרה' },
 ];
 const DEFAULT_PLAYERS = [
-  { id: 'נח',   avatar: 'noah', color: '#3b82f6', glow: 'rgba(59,130,246,0.5)'  },
-  { id: 'עלמה', avatar: 'alma', color: '#ec4899', glow: 'rgba(236,72,153,0.5)'  },
-  { id: 'מקס',  avatar: 'max',  color: '#10b981', glow: 'rgba(16,185,129,0.5)'  },
+  // Boys
+  { id: 'נח',      avatar: 'noah',   color: '#3b82f6', glow: 'rgba(59,130,246,0.5)'   },
+  { id: 'ליאם',    avatar: 'liam',   color: '#06b6d4', glow: 'rgba(6,182,212,0.5)'    },
+  { id: 'אמיר',    avatar: 'amir',   color: '#f97316', glow: 'rgba(249,115,22,0.5)'   },
+  { id: 'קאי',     avatar: 'kai',    color: '#14b8a6', glow: 'rgba(20,184,166,0.5)'   },
+  { id: 'ג\'מאל',  avatar: 'jamal',  color: '#d97706', glow: 'rgba(217,119,6,0.5)'    },
+  { id: 'צ\'ן',    avatar: 'chen',   color: '#8b5cf6', glow: 'rgba(139,92,246,0.5)'   },
+  { id: 'מארקו',   avatar: 'marco',  color: '#f43f5e', glow: 'rgba(244,63,94,0.5)'    },
+  { id: 'רווי',    avatar: 'ravi',   color: '#eab308', glow: 'rgba(234,179,8,0.5)'    },
+  { id: 'מארקוס',  avatar: 'marcus', color: '#6366f1', glow: 'rgba(99,102,241,0.5)'   },
+  { id: 'ליאו',    avatar: 'leo',    color: '#84cc16', glow: 'rgba(132,204,22,0.5)'   },
+  // Girls
+  { id: 'עלמה',    avatar: 'alma',   color: '#ec4899', glow: 'rgba(236,72,153,0.5)'   },
+  { id: 'לאה',     avatar: 'leah',   color: '#d946ef', glow: 'rgba(217,70,239,0.5)'   },
+  { id: 'נור',     avatar: 'noor',   color: '#e91e63', glow: 'rgba(233,30,99,0.5)'    },
+  { id: 'סופיה',   avatar: 'sophia', color: '#ef4444', glow: 'rgba(239,68,68,0.5)'    },
+  { id: 'אמארה',   avatar: 'amara',  color: '#fb923c', glow: 'rgba(251,146,60,0.5)'   },
+  { id: 'לין',     avatar: 'lin',    color: '#22d3ee', glow: 'rgba(34,211,238,0.5)'   },
+  { id: 'רוזה',    avatar: 'rosa',   color: '#ff7f50', glow: 'rgba(255,127,80,0.5)'   },
+  { id: 'יוקי',    avatar: 'yuki',   color: '#c084fc', glow: 'rgba(192,132,252,0.5)'  },
+  { id: 'פריה',    avatar: 'priya',  color: '#f59e0b', glow: 'rgba(245,158,11,0.5)'   },
+  { id: 'זהרה',    avatar: 'zara',   color: '#64748b', glow: 'rgba(100,116,139,0.5)'  },
 ];
 // Keep PROFILES as alias for backward compat (used in Drawing/Spelling etc.)
 const PROFILES = DEFAULT_PLAYERS.map(p => ({ ...p, Avatar: AVATAR_MAP[p.avatar] }));
@@ -1968,6 +2405,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
   const [newName, setNewName] = useState('');
   const [newAvatar, setNewAvatar] = useState('noah');
   const [confirmDelete, setConfirmDelete] = useState(null); // player id to confirm
+  const [avatarPage, setAvatarPage] = useState(0); // avatar carousel page (0-2, showing 6 at a time)
 
   // Keyboard: 1-9 selects player by position
   useEffect(() => {
@@ -1987,7 +2425,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
     if (!name || players.find(p => p.id === name)) return;
     const av = AVATAR_OPTIONS.find(a => a.key === newAvatar);
     onAddPlayer({ id: name, avatar: newAvatar, color: av.color, glow: av.glow });
-    setNewName(''); setAdding(false);
+    setNewName(''); setAdding(false); setAvatarPage(0);
   };
 
   return (
@@ -2103,19 +2541,34 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
                 fontFamily: "'Noto Serif Hebrew', serif", textAlign: 'right', direction: 'rtl', outline: 'none',
               }}
             />
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-              {AVATAR_OPTIONS.map(av => {
-                const AV = AVATAR_MAP[av.key];
-                return (
-                  <div key={av.key} onClick={() => setNewAvatar(av.key)} style={{
-                    width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer',
-                    border: `3px solid ${newAvatar === av.key ? av.color : 'transparent'}`,
-                    boxShadow: newAvatar === av.key ? `0 0 12px ${av.glow}` : 'none',
-                  }}>
-                    <AV size={44} uid={`new-${av.key}`}/>
-                  </div>
-                );
-              })}
+            {/* Avatar carousel — 6 avatars per page, 20÷6 = 4 pages (pages 0-2 show all 20) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 8 }}>
+              <button onClick={() => setAvatarPage(p => Math.max(0, p - 1))} disabled={avatarPage === 0} style={{
+                background: avatarPage === 0 ? 'rgba(255,255,255,0.1)' : 'rgba(96,165,250,0.2)',
+                border: '1px solid rgba(96,165,250,0.3)', borderRadius: 8, padding: '6px 10px',
+                color: avatarPage === 0 ? '#6d6b8a' : '#60a5fa', cursor: avatarPage === 0 ? 'default' : 'pointer',
+                fontSize: 16, fontWeight: 700,
+              }}>◀</button>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', minWidth: 300 }}>
+                {AVATAR_OPTIONS.slice(avatarPage * 6, (avatarPage + 1) * 6).map(av => {
+                  const AV = AVATAR_MAP[av.key];
+                  return (
+                    <div key={av.key} onClick={() => setNewAvatar(av.key)} style={{
+                      width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer',
+                      border: `3px solid ${newAvatar === av.key ? av.color : 'transparent'}`,
+                      boxShadow: newAvatar === av.key ? `0 0 12px ${av.glow}` : 'none',
+                    }}>
+                      <AV size={44} uid={`new-${av.key}`}/>
+                    </div>
+                  );
+                })}
+              </div>
+              <button onClick={() => setAvatarPage(p => Math.min(2, p + 1))} disabled={avatarPage === 2} style={{
+                background: avatarPage === 2 ? 'rgba(255,255,255,0.1)' : 'rgba(96,165,250,0.2)',
+                border: '1px solid rgba(96,165,250,0.3)', borderRadius: 8, padding: '6px 10px',
+                color: avatarPage === 2 ? '#6d6b8a' : '#60a5fa', cursor: avatarPage === 2 ? 'default' : 'pointer',
+                fontSize: 16, fontWeight: 700,
+              }}>▶</button>
             </div>
             <button onClick={handleAdd} disabled={!newName.trim()} style={{
               width: '100%', padding: '9px', borderRadius: 12, border: 'none',
@@ -2123,7 +2576,7 @@ function ProfilePicker({ players, xps, getProgress, onSelect, onAddPlayer, onDel
               color: 'white', fontWeight: 700, cursor: newName.trim() ? 'pointer' : 'default',
               fontFamily: "'Noto Serif Hebrew', serif", fontSize: 15,
             }}>צור שחקן ✓</button>
-            <button onClick={() => { setAdding(false); setNewName(''); }} style={{
+            <button onClick={() => { setAdding(false); setNewName(''); setAvatarPage(0); }} style={{
               background: 'none', border: 'none', color: '#6d6b8a', cursor: 'pointer',
               fontFamily: "'Noto Serif Hebrew', serif", fontSize: 13,
             }}>ביטול</button>
