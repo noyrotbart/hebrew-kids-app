@@ -1860,20 +1860,20 @@ function AvatarMax({ size = 100, uid = 'm' }) {
       {/* ears */}
       <ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/>
       <ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
-      {/* sandy/light-brown fluffy hair */}
-      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#b07840"/>
-      <ellipse cx="34" cy="30" rx="12" ry="13" fill="#c08848"/>
-      <ellipse cx="50" cy="26" rx="14" ry="13" fill="#c08848"/>
-      <ellipse cx="66" cy="30" rx="12" ry="13" fill="#c08848"/>
-      <ellipse cx="27" cy="41" rx="8" ry="11" fill="#b07840"/>
-      <ellipse cx="73" cy="41" rx="8" ry="11" fill="#b07840"/>
+      {/* blonde fluffy hair */}
+      <ellipse cx="50" cy="32" rx="29" ry="19" fill="#D4A800"/>
+      <ellipse cx="34" cy="30" rx="12" ry="13" fill="#E8C030"/>
+      <ellipse cx="50" cy="26" rx="14" ry="13" fill="#F0D050"/>
+      <ellipse cx="66" cy="30" rx="12" ry="13" fill="#E8C030"/>
+      <ellipse cx="27" cy="41" rx="8" ry="11" fill="#D4A800"/>
+      <ellipse cx="73" cy="41" rx="8" ry="11" fill="#D4A800"/>
       {/* re-draw face/ears on top of hair */}
       <ellipse cx="50" cy="59" rx="27" ry="28" fill="#e8b070"/>
       <ellipse cx="24" cy="59" rx="6" ry="8" fill="#d4a060"/>
       <ellipse cx="76" cy="59" rx="6" ry="8" fill="#d4a060"/>
       {/* eyebrows raised/fun */}
-      <path d="M33 50 Q40 44 47 49" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
-      <path d="M53 49 Q60 44 67 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <path d="M33 50 Q40 44 47 49" stroke="#B09010" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
+      <path d="M53 49 Q60 44 67 50" stroke="#B09010" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
       {/* eyes — wide expressive blue */}
       <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/>
       <ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/>
@@ -2286,7 +2286,10 @@ function AvatarZara({ size = 100, uid = 'z' }) {
 
 // ── PROFILES CONFIG ──────────────────────────────────────────
 // Avatar lookup by key
+const FEMALE_AVATARS = new Set(['alma','leah','noor','sophia','amara','lin','rosa','yuki','priya','zara']);
+
 const AVATAR_MAP = {
+  max:  AvatarMax,
   noah: AvatarNoah,
   liam: AvatarLiam,
   amir: AvatarAmir,
@@ -3322,9 +3325,9 @@ function BodyLabel({ part, isCurrent, isPlaced, isFlashing, onDragStart }) {
       onMouseDown={onDragStart}
       onTouchStart={onDragStart}
       style={{
-        padding: '7px 8px',
-        borderRadius: 12,
-        fontSize: 13,
+        padding: '9px 10px',
+        borderRadius: 14,
+        fontSize: 17,
         fontWeight: 700,
         textAlign: 'center',
         userSelect: 'none',
@@ -3357,7 +3360,7 @@ function BodyLabel({ part, isCurrent, isPlaced, isFlashing, onDragStart }) {
   );
 }
 
-function BodyGame({ onXP, playerName }) {
+function BodyGame({ onXP, playerName, isFemale, PlayerAvatar, shirtColor = '#EC4899' }) {
   const SVG_W = 200, SVG_H = 400;
 
   const [roundParts, setRoundParts] = useState([]);
@@ -3416,7 +3419,7 @@ function BodyGame({ onXP, playerName }) {
     processingRef.current  = false;
     setFlashing(false);
     setShowResult(null);
-    const announce = setTimeout(() => speakHebrew(`גרור את ה${currentPart.name}`), 400);
+    const announce = setTimeout(() => speakHebrew(`${isFemale ? 'גררי' : 'גרור'} את ה${currentPart.name}`), 400);
     clearInterval(timerRef.current);
     setTimeLeft(8);
     const start = Date.now();
@@ -3531,10 +3534,10 @@ function BodyGame({ onXP, playerName }) {
     <div style={{ direction: 'rtl', userSelect: 'none' }}>
       {/* Round header */}
       <div style={{ textAlign: 'center', marginBottom: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>
-        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 3 }}>{currentIdx + 1} / 10</div>
-        <div style={{ fontSize: 20, color: '#f0e6ff', fontWeight: 700 }}>
-          גרור את:{' '}
-          <span style={{ color: '#60a5fa', fontSize: 24 }}>{currentPart?.name}</span>
+        <div style={{ fontSize: 14, color: '#64748b', marginBottom: 4 }}>{currentIdx + 1} / 10</div>
+        <div style={{ fontSize: 26, color: '#f0e6ff', fontWeight: 700 }}>
+          {isFemale ? 'גררי' : 'גרור'} את:{' '}
+          <span style={{ color: '#60a5fa', fontSize: 32 }}>{currentPart?.name}</span>
           {showResult === 'correct' && <span style={{ marginRight: 6 }}>✅</span>}
           {showResult === 'wrong'   && <span style={{ marginRight: 6 }}>❌</span>}
         </div>
@@ -3546,7 +3549,7 @@ function BodyGame({ onXP, playerName }) {
       </div>
 
       {/* Score */}
-      <div style={{ textAlign: 'center', color: '#60a5fa', fontSize: 12, marginBottom: 8, fontFamily: "'Noto Serif Hebrew', serif" }}>
+      <div style={{ textAlign: 'center', color: '#60a5fa', fontSize: 16, marginBottom: 8, fontFamily: "'Noto Serif Hebrew', serif" }}>
         ניקוד: {score}
       </div>
 
@@ -3566,37 +3569,11 @@ function BodyGame({ onXP, playerName }) {
         {/* Body figure */}
         <div ref={bodyRef} style={{ position: 'relative', width: SVG_W, height: SVG_H, flexShrink: 0 }}>
           <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} width={SVG_W} height={SVG_H} style={{ display: 'block' }}>
-            {/* HEAD */}
-            <ellipse cx="100" cy="52" rx="38" ry="42" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
-            {/* EARS */}
-            <ellipse cx="62"  cy="52" rx="7" ry="10" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
-            <ellipse cx="138" cy="52" rx="7" ry="10" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
-            {/* HAIR - drawn after head so it sits on top */}
-            <path d="M62,46 Q60,8 100,6 Q140,8 138,46 Q118,36 100,34 Q82,36 62,46Z" fill="#4A2C0A" />
-            {/* EYEBROWS */}
-            <path d="M83,40 Q87,37 91,40"   stroke="#4A2C0A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-            <path d="M109,40 Q113,37 117,40" stroke="#4A2C0A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-            {/* EYES */}
-            <ellipse cx="88"  cy="49" rx="6" ry="6" fill="white" />
-            <ellipse cx="112" cy="49" rx="6" ry="6" fill="white" />
-            <circle cx="89"  cy="50" r="3.5" fill="#2D6B2D" />
-            <circle cx="113" cy="50" r="3.5" fill="#2D6B2D" />
-            <circle cx="90"  cy="49" r="1.2" fill="black" />
-            <circle cx="114" cy="49" r="1.2" fill="black" />
-            <circle cx="91.5"  cy="48" r="1" fill="white" opacity="0.7" />
-            <circle cx="115.5" cy="48" r="1" fill="white" opacity="0.7" />
-            {/* NOSE */}
-            <path d="M97,60 Q100,65 103,60" stroke="#D4A77A" strokeWidth="1.5" fill="none" />
-            {/* MOUTH */}
-            <path d="M90,71 Q100,79 110,71" stroke="#C4956A" strokeWidth="2" fill="none" strokeLinecap="round" />
-            {/* CHEEKS */}
-            <ellipse cx="79"  cy="62" rx="9" ry="6" fill="#FFB3BA" opacity="0.45" />
-            <ellipse cx="121" cy="62" rx="9" ry="6" fill="#FFB3BA" opacity="0.45" />
             {/* NECK */}
             <rect x="90" y="92" width="20" height="22" rx="8" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
             {/* SHIRT */}
-            <path d="M56,114 L50,232 L150,232 L144,114 Q120,106 100,106 Q80,106 56,114Z" fill="#EC4899" />
-            <path d="M90,106 Q100,118 110,106" stroke="#D93A87" strokeWidth="1.5" fill="none" />
+            <path d="M56,114 L50,232 L150,232 L144,114 Q120,106 100,106 Q80,106 56,114Z" fill={shirtColor} />
+            <path d="M90,106 Q100,118 110,106" stroke={shirtColor} strokeWidth="1.5" fill="none" style={{ filter: 'brightness(0.75)' }} />
             {/* RIGHT ARM (SVG-left) */}
             <path d="M56,117 Q38,152 32,192 Q28,212 34,227 L44,227 Q48,212 52,192 Q60,150 70,117Z" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
             {/* LEFT ARM (SVG-right) */}
@@ -3623,6 +3600,17 @@ function BodyGame({ onXP, playerName }) {
             <ellipse cx="132" cy="385" rx="22" ry="10" fill="#1F2937" />
             <ellipse cx="127" cy="384" rx="10" ry="7"  fill="#374151" />
           </svg>
+
+          {/* Player avatar overlaid as head */}
+          {PlayerAvatar && (
+            <div style={{
+              position: 'absolute', left: 59, top: 10,
+              width: 82, height: 82, borderRadius: '50%', overflow: 'hidden',
+              pointerEvents: 'none',
+            }}>
+              <PlayerAvatar size={82} uid="body" />
+            </div>
+          )}
 
           {/* Drop-zone markers on the body */}
           {roundParts.map(part => {
@@ -3884,7 +3872,7 @@ export default function App() {
           {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "sentence"   && <SentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "speak"      && <SpeakingSentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
-          {mode === "body"       && <BodyGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
+          {mode === "body"       && <BodyGame key={matchKey} onXP={addXP} playerName={activeProfile} isFemale={FEMALE_AVATARS.has(profile?.avatar)} PlayerAvatar={profileWithAvatar?.Avatar} shirtColor={profile?.color ?? '#EC4899'} />}
         </div>
       </div>
 
