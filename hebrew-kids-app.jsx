@@ -1875,11 +1875,11 @@ function AvatarMax({ size = 100, uid = 'm' }) {
       {/* eyebrows raised/fun */}
       <path d="M33 50 Q40 44 47 49" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
       <path d="M53 49 Q60 44 67 50" stroke="#8b5e3c" strokeWidth="2.8" fill="none" strokeLinecap="round"/>
-      {/* eyes — wide expressive */}
+      {/* eyes — wide expressive blue */}
       <ellipse cx="40" cy="59" rx="7.5" ry="7.5" fill="white"/>
       <ellipse cx="60" cy="59" rx="7.5" ry="7.5" fill="white"/>
-      <circle cx="40.5" cy="59.5" r="5" fill="#4a2c0a"/>
-      <circle cx="60.5" cy="59.5" r="5" fill="#4a2c0a"/>
+      <circle cx="40.5" cy="59.5" r="5" fill="#2563eb"/>
+      <circle cx="60.5" cy="59.5" r="5" fill="#2563eb"/>
       <circle cx="40.5" cy="59.5" r="2.5" fill="#1a0a00"/>
       <circle cx="60.5" cy="59.5" r="2.5" fill="#1a0a00"/>
       <circle cx="42" cy="58" r="1.8" fill="white"/>
@@ -3030,8 +3030,8 @@ export default function App() {
               ))}
             </div>
 
-            {/* Interactive letter bar — wrapping RTL grid */}
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", width: "100%", maxWidth: 520, direction: "rtl", padding: "4px 12px" }}>
+            {/* Interactive letter bar — single scrollable RTL line */}
+            <div style={{ display: "flex", gap: 4, flexWrap: "nowrap", overflowX: "auto", width: "100%", maxWidth: 520, direction: "rtl", padding: "4px 12px", scrollbarWidth: "none" }}>
               {ALEPH_BET.map(l => (
                 <LetterButton key={l.name} letter={l} />
               ))}
