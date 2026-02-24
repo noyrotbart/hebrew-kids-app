@@ -2334,28 +2334,9 @@ const AVATAR_OPTIONS = [
   { key: 'zara',   color: '#64748b', glow: 'rgba(100,116,139,0.5)',  label: 'זהרה' },
 ];
 const DEFAULT_PLAYERS = [
-  // Boys
-  { id: 'נח',      avatar: 'noah',   color: '#3b82f6', glow: 'rgba(59,130,246,0.5)'   },
-  { id: 'ליאם',    avatar: 'liam',   color: '#06b6d4', glow: 'rgba(6,182,212,0.5)'    },
-  { id: 'אמיר',    avatar: 'amir',   color: '#f97316', glow: 'rgba(249,115,22,0.5)'   },
-  { id: 'קאי',     avatar: 'kai',    color: '#14b8a6', glow: 'rgba(20,184,166,0.5)'   },
-  { id: 'ג\'מאל',  avatar: 'jamal',  color: '#d97706', glow: 'rgba(217,119,6,0.5)'    },
-  { id: 'צ\'ן',    avatar: 'chen',   color: '#8b5cf6', glow: 'rgba(139,92,246,0.5)'   },
-  { id: 'מארקו',   avatar: 'marco',  color: '#f43f5e', glow: 'rgba(244,63,94,0.5)'    },
-  { id: 'רווי',    avatar: 'ravi',   color: '#eab308', glow: 'rgba(234,179,8,0.5)'    },
-  { id: 'מארקוס',  avatar: 'marcus', color: '#6366f1', glow: 'rgba(99,102,241,0.5)'   },
-  { id: 'ליאו',    avatar: 'leo',    color: '#84cc16', glow: 'rgba(132,204,22,0.5)'   },
-  // Girls
-  { id: 'עלמה',    avatar: 'alma',   color: '#ec4899', glow: 'rgba(236,72,153,0.5)'   },
-  { id: 'לאה',     avatar: 'leah',   color: '#d946ef', glow: 'rgba(217,70,239,0.5)'   },
-  { id: 'נור',     avatar: 'noor',   color: '#e91e63', glow: 'rgba(233,30,99,0.5)'    },
-  { id: 'סופיה',   avatar: 'sophia', color: '#ef4444', glow: 'rgba(239,68,68,0.5)'    },
-  { id: 'אמארה',   avatar: 'amara',  color: '#fb923c', glow: 'rgba(251,146,60,0.5)'   },
-  { id: 'לין',     avatar: 'lin',    color: '#22d3ee', glow: 'rgba(34,211,238,0.5)'   },
-  { id: 'רוזה',    avatar: 'rosa',   color: '#ff7f50', glow: 'rgba(255,127,80,0.5)'   },
-  { id: 'יוקי',    avatar: 'yuki',   color: '#c084fc', glow: 'rgba(192,132,252,0.5)'  },
-  { id: 'פריה',    avatar: 'priya',  color: '#f59e0b', glow: 'rgba(245,158,11,0.5)'   },
-  { id: 'זהרה',    avatar: 'zara',   color: '#64748b', glow: 'rgba(100,116,139,0.5)'  },
+  { id: 'נח',   avatar: 'noah', color: '#3b82f6', glow: 'rgba(59,130,246,0.5)'  },
+  { id: 'עלמה', avatar: 'alma', color: '#ec4899', glow: 'rgba(236,72,153,0.5)'  },
+  { id: 'מקס',  avatar: 'max',  color: '#10b981', glow: 'rgba(16,185,129,0.5)'  },
 ];
 // Keep PROFILES as alias for backward compat (used in Drawing/Spelling etc.)
 const PROFILES = DEFAULT_PLAYERS.map(p => ({ ...p, Avatar: AVATAR_MAP[p.avatar] }));
