@@ -3281,6 +3281,404 @@ function TtsStatusDot() {
   );
 }
 
+// ─────────────────────── BODY GAME ───────────────────────────
+
+const BODY_PARTS_DICT = [
+  { id: 'head',      name: 'ראש',      cx: 100, cy: 50,  r: 15 },
+  { id: 'hair',      name: 'שיער',     cx: 100, cy: 22,  r: 16 },
+  { id: 'brain',     name: 'מוח',      cx: 100, cy: 38,  r: 13 },
+  { id: 'forehead',  name: 'מצח',      cx: 100, cy: 30,  r: 11 },
+  { id: 'eye',       name: 'עין',      cx: 100, cy: 48,  r: 12 },
+  { id: 'ear',       name: 'אוזן',     cx: 62,  cy: 52,  r: 10 },
+  { id: 'nose',      name: 'אף',       cx: 100, cy: 61,  r: 10 },
+  { id: 'mouth',     name: 'פה',       cx: 100, cy: 71,  r: 10 },
+  { id: 'chin',      name: 'סנטר',     cx: 100, cy: 84,  r: 9  },
+  { id: 'neck',      name: 'צוואר',    cx: 100, cy: 101, r: 10 },
+  { id: 'shoulder',  name: 'כתף',      cx: 55,  cy: 122, r: 13 },
+  { id: 'chest',     name: 'חזה',      cx: 100, cy: 152, r: 17 },
+  { id: 'heart',     name: 'לב',       cx: 82,  cy: 140, r: 14 },
+  { id: 'lungs',     name: 'ריאות',    cx: 100, cy: 160, r: 17 },
+  { id: 'arm',       name: 'זרוע',     cx: 40,  cy: 168, r: 14 },
+  { id: 'elbow',     name: 'מרפק',     cx: 34,  cy: 201, r: 11 },
+  { id: 'hand',      name: 'יד',       cx: 40,  cy: 234, r: 13 },
+  { id: 'finger',    name: 'אצבע',     cx: 34,  cy: 224, r: 11 },
+  { id: 'thumb',     name: 'אגודל',    cx: 51,  cy: 226, r: 10 },
+  { id: 'belly',     name: 'בטן',      cx: 100, cy: 192, r: 19 },
+  { id: 'stomach',   name: 'קיבה',     cx: 100, cy: 181, r: 15 },
+  { id: 'navel',     name: 'טבור',     cx: 100, cy: 212, r: 9  },
+  { id: 'hips',      name: 'מותניים',  cx: 100, cy: 243, r: 17 },
+  { id: 'thigh',     name: 'ירך',      cx: 67,  cy: 278, r: 17 },
+  { id: 'knee',      name: 'ברך',      cx: 67,  cy: 320, r: 13 },
+  { id: 'shin',      name: 'שוק',      cx: 64,  cy: 354, r: 12 },
+  { id: 'leg',       name: 'רגל',      cx: 67,  cy: 298, r: 20 },
+  { id: 'foot',      name: 'כף רגל',   cx: 66,  cy: 379, r: 16 },
+  { id: 'heel',      name: 'עקב',      cx: 52,  cy: 381, r: 11 },
+  { id: 'toe',       name: 'בוהן',     cx: 80,  cy: 379, r: 11 },
+];
+
+function BodyLabel({ part, isCurrent, isPlaced, isFlashing, onDragStart }) {
+  return (
+    <div
+      onMouseDown={onDragStart}
+      onTouchStart={onDragStart}
+      style={{
+        padding: '7px 8px',
+        borderRadius: 12,
+        fontSize: 13,
+        fontWeight: 700,
+        textAlign: 'center',
+        userSelect: 'none',
+        touchAction: 'none',
+        cursor: isPlaced ? 'default' : isCurrent ? 'grab' : 'default',
+        background: isPlaced
+          ? 'rgba(16,185,129,0.15)'
+          : isCurrent
+          ? 'rgba(29,78,216,0.95)'
+          : 'rgba(30,58,95,0.6)',
+        color: isPlaced ? '#10b981' : '#f0e6ff',
+        border: isCurrent
+          ? '2px solid #60a5fa'
+          : isPlaced
+          ? '2px solid rgba(16,185,129,0.6)'
+          : '1.5px solid rgba(255,255,255,0.1)',
+        opacity: isPlaced ? 0.5 : 1,
+        animation: isFlashing ? 'hint-glow 0.5s infinite alternate' : 'none',
+        transition: 'background 0.2s, opacity 0.2s',
+        fontFamily: "'Noto Serif Hebrew', serif",
+        direction: 'rtl',
+        minHeight: 34,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {part.name}
+    </div>
+  );
+}
+
+function BodyGame({ onXP, playerName }) {
+  const SVG_W = 200, SVG_H = 400;
+
+  const [roundParts, setRoundParts] = useState([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [placed, setPlaced]         = useState([]);
+  const [score, setScore]           = useState(0);
+  const [gameOver, setGameOver]     = useState(false);
+  const [timeLeft, setTimeLeft]     = useState(8);
+  const [flashing, setFlashing]     = useState(false);
+  const [dragState, setDragState]   = useState(null);
+  const [showResult, setShowResult] = useState(null);
+
+  const bodyRef        = useRef(null);
+  const timerRef       = useRef(null);
+  const dragStartedRef = useRef(false);
+  const currentIdxRef  = useRef(0);
+  const roundPartsRef  = useRef([]);
+  const processingRef  = useRef(false);
+  const goNextRef      = useRef(null);
+
+  // Always-fresh goNext assigned each render (avoids stale closures in timer/events)
+  goNextRef.current = (correct) => {
+    if (processingRef.current) return;
+    processingRef.current = true;
+    clearInterval(timerRef.current);
+    setDragState(null);
+    setShowResult(correct ? 'correct' : 'wrong');
+    if (correct) {
+      setScore(s => s + 1);
+      onXP && onXP(20);
+      const cur = roundPartsRef.current[currentIdxRef.current];
+      if (cur) setPlaced(p => [...p, cur.id]);
+    }
+    setTimeout(() => {
+      const next = currentIdxRef.current + 1;
+      currentIdxRef.current = next;
+      processingRef.current = false;
+      if (next >= 10) setGameOver(true);
+      else setCurrentIdx(next);
+    }, 900);
+  };
+
+  // Initialise 10 random parts
+  useEffect(() => {
+    const sel = shuffle([...BODY_PARTS_DICT]).slice(0, 10);
+    setRoundParts(sel);
+    roundPartsRef.current = sel;
+  }, []);
+
+  const currentPart = roundParts[currentIdx];
+
+  // New round: announce + start 8-second timer
+  useEffect(() => {
+    if (!currentPart) return;
+    dragStartedRef.current = false;
+    processingRef.current  = false;
+    setFlashing(false);
+    setShowResult(null);
+    const announce = setTimeout(() => speakHebrew(`גרור את ה${currentPart.name}`), 400);
+    clearInterval(timerRef.current);
+    setTimeLeft(8);
+    const start = Date.now();
+    let didFlash = false;
+    timerRef.current = setInterval(() => {
+      const elapsed = (Date.now() - start) / 1000;
+      const rem = Math.max(0, 8 - elapsed);
+      setTimeLeft(rem);
+      if (elapsed >= 5 && !didFlash && !dragStartedRef.current) {
+        didFlash = true;
+        setFlashing(true);
+      }
+      if (rem <= 0) {
+        clearInterval(timerRef.current);
+        goNextRef.current(false);
+      }
+    }, 80);
+    return () => { clearTimeout(announce); clearInterval(timerRef.current); };
+  }, [currentPart?.id, roundParts.length]);
+
+  // Drag helpers
+  const getXY = (e) => {
+    const t = e.touches?.[0] || e.changedTouches?.[0];
+    return { x: t ? t.clientX : e.clientX, y: t ? t.clientY : e.clientY };
+  };
+
+  const handleLabelDown = (e, partId) => {
+    const cur = roundPartsRef.current[currentIdxRef.current];
+    if (!cur || cur.id !== partId) return;
+    e.preventDefault();
+    dragStartedRef.current = true;
+    setFlashing(false);
+    const { x, y } = getXY(e);
+    setDragState({ partId, x, y });
+  };
+
+  // Global move/up listeners while dragging
+  useEffect(() => {
+    if (!dragState) return;
+    const onMove = (e) => {
+      e.preventDefault();
+      const { x, y } = getXY(e);
+      setDragState(prev => prev ? { ...prev, x, y } : null);
+    };
+    const onUp = (e) => {
+      if (!dragState || !bodyRef.current) { setDragState(null); return; }
+      e.preventDefault();
+      const { x: cx, y: cy } = getXY(e);
+      const rect = bodyRef.current.getBoundingClientRect();
+      // Only evaluate drop if released over the body area
+      if (cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom) {
+        setDragState(null);
+        return;
+      }
+      const svgX = ((cx - rect.left) / rect.width) * SVG_W;
+      const svgY = ((cy - rect.top) / rect.height) * SVG_H;
+      const cur = roundPartsRef.current[currentIdxRef.current];
+      if (cur && dragState.partId === cur.id) {
+        const dist = Math.sqrt((svgX - cur.cx) ** 2 + (svgY - cur.cy) ** 2);
+        goNextRef.current(dist <= cur.r * 1.9);
+      } else {
+        setDragState(null);
+      }
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp,  { passive: false });
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [dragState]);
+
+  if (roundParts.length === 0) return (
+    <div style={{ textAlign: 'center', color: '#f0e6ff', padding: 40, fontFamily: "'Noto Serif Hebrew', serif" }}>טוען...</div>
+  );
+
+  if (gameOver) {
+    const restart = () => {
+      const sel = shuffle([...BODY_PARTS_DICT]).slice(0, 10);
+      setRoundParts(sel); roundPartsRef.current = sel;
+      setCurrentIdx(0);   currentIdxRef.current = 0;
+      setPlaced([]); setScore(0); setGameOver(false);
+    };
+    return (
+      <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+        <div style={{ fontSize: 72, marginBottom: 16 }}>{score >= 8 ? '🏆' : score >= 5 ? '🎉' : '💪'}</div>
+        <div style={{ fontSize: 30, color: '#f0e6ff', fontWeight: 700, marginBottom: 8 }}>
+          {score >= 8 ? 'מדהים!' : score >= 5 ? 'כל הכבוד!' : 'נסה שוב!'}
+        </div>
+        <div style={{ fontSize: 20, color: '#60a5fa', marginBottom: 32 }}>ידעת {score} מתוך 10 איברים</div>
+        <button onClick={restart} style={{
+          padding: '14px 32px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
+          fontWeight: 900, fontSize: 18, cursor: 'pointer',
+          fontFamily: "'Noto Serif Hebrew', serif",
+        }}>🔄 שחק שוב</button>
+      </div>
+    );
+  }
+
+  // Distribute labels: sort top-to-bottom, alternate left/right
+  const sorted      = [...roundParts].sort((a, b) => a.cy - b.cy);
+  const leftLabels  = sorted.filter((_, i) => i % 2 === 0);
+  const rightLabels = sorted.filter((_, i) => i % 2 === 1);
+  const timerColor  = timeLeft > 5 ? '#10b981' : timeLeft > 2.5 ? '#f59e0b' : '#ef4444';
+
+  return (
+    <div style={{ direction: 'rtl', userSelect: 'none' }}>
+      {/* Round header */}
+      <div style={{ textAlign: 'center', marginBottom: 10, fontFamily: "'Noto Serif Hebrew', serif" }}>
+        <div style={{ fontSize: 12, color: '#64748b', marginBottom: 3 }}>{currentIdx + 1} / 10</div>
+        <div style={{ fontSize: 20, color: '#f0e6ff', fontWeight: 700 }}>
+          גרור את:{' '}
+          <span style={{ color: '#60a5fa', fontSize: 24 }}>{currentPart?.name}</span>
+          {showResult === 'correct' && <span style={{ marginRight: 6 }}>✅</span>}
+          {showResult === 'wrong'   && <span style={{ marginRight: 6 }}>❌</span>}
+        </div>
+      </div>
+
+      {/* Timer bar */}
+      <div style={{ height: 7, background: 'rgba(255,255,255,0.08)', borderRadius: 4, marginBottom: 8, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${(timeLeft / 8) * 100}%`, background: timerColor, borderRadius: 4, transition: 'width 0.08s linear, background 0.3s' }} />
+      </div>
+
+      {/* Score */}
+      <div style={{ textAlign: 'center', color: '#60a5fa', fontSize: 12, marginBottom: 8, fontFamily: "'Noto Serif Hebrew', serif" }}>
+        ניקוד: {score}
+      </div>
+
+      {/* Main layout: left labels | body figure | right labels */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, justifyContent: 'center' }}>
+        {/* Left column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, width: 86, paddingTop: 24, flexShrink: 0 }}>
+          {leftLabels.map(part => (
+            <BodyLabel key={part.id} part={part}
+              isCurrent={part.id === currentPart?.id}
+              isPlaced={placed.includes(part.id)}
+              isFlashing={flashing && part.id === currentPart?.id}
+              onDragStart={(e) => handleLabelDown(e, part.id)} />
+          ))}
+        </div>
+
+        {/* Body figure */}
+        <div ref={bodyRef} style={{ position: 'relative', width: SVG_W, height: SVG_H, flexShrink: 0 }}>
+          <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} width={SVG_W} height={SVG_H} style={{ display: 'block' }}>
+            {/* HEAD */}
+            <ellipse cx="100" cy="52" rx="38" ry="42" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            {/* EARS */}
+            <ellipse cx="62"  cy="52" rx="7" ry="10" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            <ellipse cx="138" cy="52" rx="7" ry="10" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            {/* HAIR - drawn after head so it sits on top */}
+            <path d="M62,46 Q60,8 100,6 Q140,8 138,46 Q118,36 100,34 Q82,36 62,46Z" fill="#4A2C0A" />
+            {/* EYEBROWS */}
+            <path d="M83,40 Q87,37 91,40"   stroke="#4A2C0A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <path d="M109,40 Q113,37 117,40" stroke="#4A2C0A" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            {/* EYES */}
+            <ellipse cx="88"  cy="49" rx="6" ry="6" fill="white" />
+            <ellipse cx="112" cy="49" rx="6" ry="6" fill="white" />
+            <circle cx="89"  cy="50" r="3.5" fill="#2D6B2D" />
+            <circle cx="113" cy="50" r="3.5" fill="#2D6B2D" />
+            <circle cx="90"  cy="49" r="1.2" fill="black" />
+            <circle cx="114" cy="49" r="1.2" fill="black" />
+            <circle cx="91.5"  cy="48" r="1" fill="white" opacity="0.7" />
+            <circle cx="115.5" cy="48" r="1" fill="white" opacity="0.7" />
+            {/* NOSE */}
+            <path d="M97,60 Q100,65 103,60" stroke="#D4A77A" strokeWidth="1.5" fill="none" />
+            {/* MOUTH */}
+            <path d="M90,71 Q100,79 110,71" stroke="#C4956A" strokeWidth="2" fill="none" strokeLinecap="round" />
+            {/* CHEEKS */}
+            <ellipse cx="79"  cy="62" rx="9" ry="6" fill="#FFB3BA" opacity="0.45" />
+            <ellipse cx="121" cy="62" rx="9" ry="6" fill="#FFB3BA" opacity="0.45" />
+            {/* NECK */}
+            <rect x="90" y="92" width="20" height="22" rx="8" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            {/* SHIRT */}
+            <path d="M56,114 L50,232 L150,232 L144,114 Q120,106 100,106 Q80,106 56,114Z" fill="#EC4899" />
+            <path d="M90,106 Q100,118 110,106" stroke="#D93A87" strokeWidth="1.5" fill="none" />
+            {/* RIGHT ARM (SVG-left) */}
+            <path d="M56,117 Q38,152 32,192 Q28,212 34,227 L44,227 Q48,212 52,192 Q60,150 70,117Z" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            {/* LEFT ARM (SVG-right) */}
+            <path d="M144,117 Q162,152 168,192 Q172,212 166,227 L156,227 Q152,212 148,192 Q140,150 130,117Z" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            {/* HANDS */}
+            <ellipse cx="40"  cy="234" rx="13" ry="11" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            <ellipse cx="160" cy="234" rx="13" ry="11" fill="#F5CFA0" stroke="#D4A77A" strokeWidth="1.5" />
+            {/* RIGHT HAND FINGERS */}
+            <line x1="32" y1="229" x2="29" y2="219" stroke="#D4A77A" strokeWidth="2" strokeLinecap="round" />
+            <line x1="37" y1="224" x2="34" y2="213" stroke="#D4A77A" strokeWidth="2" strokeLinecap="round" />
+            <line x1="41" y1="223" x2="40" y2="211" stroke="#D4A77A" strokeWidth="2" strokeLinecap="round" />
+            <line x1="46" y1="224" x2="46" y2="213" stroke="#D4A77A" strokeWidth="2" strokeLinecap="round" />
+            <line x1="51" y1="227" x2="53" y2="218" stroke="#D4A77A" strokeWidth="2" strokeLinecap="round" />
+            {/* PANTS */}
+            <path d="M50,232 Q48,252 52,262 L98,262 Q100,254 102,262 L148,262 Q152,252 150,232Z" fill="#3B82F6" />
+            {/* LEFT LEG (SVG-left) */}
+            <path d="M52,262 L52,368 Q56,382 68,382 Q80,382 84,368 L98,262Z" fill="#3B82F6" stroke="#2563EB" strokeWidth="1.5" />
+            {/* RIGHT LEG (SVG-right) */}
+            <path d="M102,262 L116,368 Q120,382 132,382 Q144,382 148,368 L148,262Z" fill="#3B82F6" stroke="#2563EB" strokeWidth="1.5" />
+            {/* LEFT SHOE */}
+            <ellipse cx="68"  cy="385" rx="22" ry="10" fill="#1F2937" />
+            <ellipse cx="63"  cy="384" rx="10" ry="7"  fill="#374151" />
+            {/* RIGHT SHOE */}
+            <ellipse cx="132" cy="385" rx="22" ry="10" fill="#1F2937" />
+            <ellipse cx="127" cy="384" rx="10" ry="7"  fill="#374151" />
+          </svg>
+
+          {/* Drop-zone markers on the body */}
+          {roundParts.map(part => {
+            const isPlaced  = placed.includes(part.id);
+            const size      = Math.max(18, part.r * 1.6);
+            return (
+              <div key={part.id} style={{
+                position: 'absolute',
+                left: `${(part.cx / SVG_W) * 100}%`,
+                top:  `${(part.cy / SVG_H) * 100}%`,
+                transform: 'translate(-50%, -50%)',
+                width: size, height: size,
+                borderRadius: '50%',
+                border: isPlaced ? '2px solid #10b981' : '1.5px dashed rgba(255,255,255,0.22)',
+                background: isPlaced ? 'rgba(16,185,129,0.22)' : 'transparent',
+                pointerEvents: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {isPlaced && <div style={{ fontSize: 9, color: '#10b981', fontWeight: 700 }}>✓</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7, width: 86, paddingTop: 24, flexShrink: 0 }}>
+          {rightLabels.map(part => (
+            <BodyLabel key={part.id} part={part}
+              isCurrent={part.id === currentPart?.id}
+              isPlaced={placed.includes(part.id)}
+              isFlashing={flashing && part.id === currentPart?.id}
+              onDragStart={(e) => handleLabelDown(e, part.id)} />
+          ))}
+        </div>
+      </div>
+
+      {/* Drag ghost (follows pointer) */}
+      {dragState && (
+        <div style={{
+          position: 'fixed',
+          left: dragState.x - 36, top: dragState.y - 18,
+          zIndex: 9999, pointerEvents: 'none',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)',
+          color: 'white', padding: '7px 14px', borderRadius: 20,
+          fontSize: 15, fontWeight: 'bold',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          fontFamily: "'Noto Serif Hebrew', serif",
+          transform: 'scale(1.15) rotate(-2deg)', direction: 'rtl',
+        }}>
+          {roundParts.find(p => p.id === dragState.partId)?.name}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN APP ──────────────────────────────────────────────────
 export default function App() {
   const [mode, setMode] = useState("home");
@@ -3342,6 +3740,7 @@ export default function App() {
     { id: "drawing",    label: "צייר",     emoji: "🎨", desc: "צייר את האות"  },
     { id: "sentence",   label: "משפט",     emoji: "💬", desc: "השלם את המשפט" },
     { id: "speak",      label: "דיבור",    emoji: "🗣️", desc: "דבר את המילה"  },
+    { id: "body",       label: "גוף",      emoji: "🫁", desc: "איברי הגוף"    },
   ];
 
   // Show profile picker if no active profile
@@ -3439,16 +3838,16 @@ export default function App() {
               <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 28, color: "#e0f2ff", marginTop: 10, direction: 'rtl', fontWeight: 700 }}>
                 למד את האלפבית העברי!
               </div>
-              <div style={{ color: "#60a5fa", fontSize: 15, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר · משפט</div>
+              <div style={{ color: "#60a5fa", fontSize: 15, marginTop: 6, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>כרטיסיות · התאמה · חידון · כתיב · צייר · משפט · גוף</div>
             </div>
 
             {/* Game mode grid — 3+3 */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12, width: '100%', maxWidth: 560, padding: '0 12px' }}>
-              {[modes.slice(0, 3), modes.slice(3)].map((row, ri) => (
+              {[modes.slice(0, 4), modes.slice(4)].map((row, ri) => (
                 <div key={ri} style={{ display: "flex", gap: 12 }}>
                   {row.map(m => (
                     <button key={m.id} onClick={() => setMode(m.id)} style={{
-                      flex: 1, height: 130, borderRadius: 22, border: "2px solid rgba(96,165,250,0.35)",
+                      flex: 1, height: 112, borderRadius: 22, border: "2px solid rgba(96,165,250,0.35)",
                       background: "rgba(255,255,255,0.06)", backdropFilter: "blur(10px)",
                       color: "white", cursor: "pointer", display: "flex", flexDirection: "column",
                       alignItems: "center", justifyContent: "center", gap: 6,
@@ -3485,6 +3884,7 @@ export default function App() {
           {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "sentence"   && <SentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
           {mode === "speak"      && <SpeakingSentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
+          {mode === "body"       && <BodyGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
         </div>
       </div>
 
