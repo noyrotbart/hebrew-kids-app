@@ -469,13 +469,11 @@ function Flashcards({ onXP }) {
 
   const L = queue[qPos];
 
-  // Speak the letter name (recorded audio) then auto-start mic
+  // Auto-start mic without speaking the letter first (let user try to guess)
   useEffect(() => {
-    // First play the recorded letter name so the user hears it clearly
-    const speakT = setTimeout(() => speakLetter(L), 300);
-    // Then start listening after the letter name has had time to play (~1.2 s)
-    autoStartRef.current = setTimeout(() => doListen(L), 1500);
-    return () => { clearTimeout(speakT); clearTimeout(autoStartRef.current); };
+    // Start listening immediately for the user to try recording the letter
+    autoStartRef.current = setTimeout(() => doListen(L), 300);
+    return () => { clearTimeout(autoStartRef.current); };
   }, [qPos, queue]); // re-runs whenever we advance to a new letter
 
   const [appealed, setAppealed] = useState(false);
@@ -494,7 +492,7 @@ function Flashcards({ onXP }) {
       speakLetter(letter);
       onXP(-50);
       // After the letter name plays, ask the appeal question
-      setTimeout(() => speakHebrew('אני חושבת שטעית. אתה מסכים?'), 1400);
+      setTimeout(() => speakHebrew('אני חושב שטעית. אתה מסכים?'), 1400);
     }
   };
 
@@ -1575,10 +1573,11 @@ function SentenceGame({ onXP, playerName }) {
     if (Q) setShuffledOptions(shuffle(Q.options));
   }, [qIdx]);
 
-  // Speak the full sentence (with the blank filled) when the question changes
+  // Speak the sentence with a pause at the blank (not the answer)
   useEffect(() => {
-    const full = Q.text.replace('___', Q.answer);
-    const t = setTimeout(() => speakHebrew(full), 400);
+    const parts = Q.text.split('___');
+    const beforeBlank = parts[0].trim();
+    const t = setTimeout(() => speakHebrew(beforeBlank), 400);
     return () => clearTimeout(t);
   }, [qIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
