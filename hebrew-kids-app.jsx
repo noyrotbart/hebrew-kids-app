@@ -294,10 +294,11 @@ const speakHebrew = async (text) => {
     return url;
   }).catch(() => null);
 
-  // ── Race: TTS within 2.5 s vs. Web Speech fallback ──────────
+  // ── Race: TTS within 5 s vs. Web Speech fallback ──────────
+  // (Give Phonikud more time to respond before falling back)
   const winner = await Promise.race([
     ttsFetch,
-    new Promise((resolve) => setTimeout(() => resolve('slow'), 2500)),
+    new Promise((resolve) => setTimeout(() => resolve('slow'), 5000)),
   ]);
 
   if (winner && winner !== 'slow') {
@@ -1155,6 +1156,197 @@ function Quiz({ onXP }) {
   );
 }
 
+// ── SPEAKING SENTENCE GAME (speak answer instead of choosing) ──────────────
+function SpeakingSentenceGame({ onXP, playerName }) {
+  const [difficulty, setDifficulty] = useState(null); // null=pick, easy, hard
+  const [questions] = useState(() => shuffle(FILL_SENTENCES).slice(0, 10));
+  const [qIdx, setQIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [done, setDone] = useState(false);
+  const [phase, setPhase] = useState('ready'); // ready | listening | result
+  const [timeLeft, setTimeLeft] = useState(5);
+  const recRef = useRef(null);
+  const timerRef = useRef(null);
+
+  const Q = questions[qIdx];
+
+  // Speak the sentence context when question changes
+  useEffect(() => {
+    if (!difficulty) return;
+    const t = setTimeout(() => speakHebrew(Q.text.replace('___', '______')), 400);
+    return () => clearTimeout(t);
+  }, [qIdx, difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const finishRound = (heard) => {
+    if (!recRef.current) return;
+    clearInterval(timerRef.current);
+    setPhase('result');
+    // Simple fuzzy match
+    const target = Q.answer.toLowerCase().trim();
+    const spoken = heard.toLowerCase().trim();
+    const correct = spoken === target || spoken.includes(target) || target.includes(spoken);
+    if (correct) {
+      setScore(s => s + 1);
+      onXP(30);
+      speakHebrew('כל הכבוד!');
+      setTimeout(() => {
+        if (qIdx + 1 >= questions.length) setDone(true);
+        else { setQIdx(i => i + 1); setPhase('ready'); }
+      }, 1200);
+    } else {
+      speakHebrew(`לא, התשובה היא ${Q.answer}`);
+      setTimeout(() => {
+        if (qIdx + 1 >= questions.length) setDone(true);
+        else { setQIdx(i => i + 1); setPhase('ready'); }
+      }, 1500);
+    }
+  };
+
+  const startListening = () => {
+    setPhase('listening');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Speech recognition not supported'); return; }
+    const rec = new SR();
+    recRef.current = rec;
+    rec.lang = 'he-IL';
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+
+    let count = 5;
+    setTimeLeft(count);
+    timerRef.current = setInterval(() => {
+      count--;
+      setTimeLeft(count);
+      if (count <= 0) { clearInterval(timerRef.current); try { rec.stop(); } catch(e) {} }
+    }, 1000);
+
+    rec.onresult = (e) => {
+      const alts = Array.from({ length: e.results[0].length }, (_, i) => e.results[0][i].transcript);
+      finishRound(alts[0] || '');
+    };
+    rec.onerror = () => finishRound('');
+    rec.onend = () => { if (phase === 'listening') finishRound(''); };
+    rec.start();
+  };
+
+  // ── Difficulty picker ──
+  if (!difficulty) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{ color: '#f0e6ff', fontSize: 22, fontWeight: 900, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>בחר רמה</div>
+        <button onClick={() => setDifficulty('easy')} style={{
+          width: 280, padding: '18px 24px', borderRadius: 20,
+          background: 'linear-gradient(135deg,#22c55e22,#22c55e11)',
+          border: '2px solid #22c55e66',
+          color: '#f0e6ff', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 16,
+          boxShadow: '0 8px 24px #22c55e22',
+        }}>
+          <span style={{ fontSize: 38 }}>😊</span>
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, fontWeight: 900, direction: 'rtl', color: '#f0e6ff' }}>קל</div>
+            <div style={{ fontSize: 13, direction: 'rtl', color: '#22c55e', marginTop: 2 }}>עם תיבת בחירה</div>
+          </div>
+        </button>
+        <button onClick={() => setDifficulty('hard')} style={{
+          width: 280, padding: '18px 24px', borderRadius: 20,
+          background: 'linear-gradient(135deg,#ef444422,#ef444411)',
+          border: '2px solid #ef444466',
+          color: '#f0e6ff', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 16,
+          boxShadow: '0 8px 24px #ef444422',
+        }}>
+          <span style={{ fontSize: 38 }}>😤</span>
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 22, fontWeight: 900, direction: 'rtl', color: '#f0e6ff' }}>קשה</div>
+            <div style={{ fontSize: 13, direction: 'rtl', color: '#ef4444', marginTop: 2 }}>רק קשר בעל משמעות</div>
+          </div>
+        </button>
+      </div>
+    );
+  }
+
+  if (done) {
+    const pct = Math.round((score / questions.length) * 100);
+    return (
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <div style={{ fontSize: 60 }}>{pct >= 80 ? '🏆' : pct >= 50 ? '🎉' : '💪'}</div>
+        <div style={{ fontSize: 26, fontWeight: 900, color: '#f0e6ff', fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>!הסתיים המשחק</div>
+        <div style={{ fontSize: 20, color: '#60a5fa', fontFamily: "'Noto Serif Hebrew', serif" }}>{score} / {questions.length}</div>
+        <button onClick={() => { setDifficulty(null); setQIdx(0); setScore(0); setDone(false); setPhase('ready'); }} style={{
+          marginTop: 8, padding: '14px 36px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
+          fontWeight: 900, fontSize: 16, cursor: 'pointer', fontFamily: "'Noto Serif Hebrew', serif",
+        }}>שחק שוב</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+      <div style={{ color: '#60a5fa', fontSize: 13, fontWeight: 700, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+        {qIdx + 1}/{questions.length} · {score} נק'
+      </div>
+
+      <div style={{
+        width: '100%', maxWidth: 420, borderRadius: 24,
+        background: 'linear-gradient(135deg,#0d2160,#1a3a8f)',
+        border: '2px solid rgba(96,165,250,0.35)',
+        padding: '24px 20px', textAlign: 'center',
+        boxShadow: '0 16px 48px rgba(29,78,216,0.4)',
+      }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>{Q.emoji}</div>
+        <div style={{ fontFamily: "'Noto Serif Hebrew', serif", fontSize: 18, color: '#f0e6ff', direction: 'rtl', marginBottom: 12 }}>
+          {Q.text.replace('___', '______')}
+        </div>
+        {phase === 'ready' && (
+          <div style={{ color: '#60a5fa', fontSize: 14, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+            🎤 דברו את המילה המתאימה
+          </div>
+        )}
+        {phase === 'listening' && (
+          <div style={{ color: '#f59e0b', fontSize: 28, fontWeight: 900 }}>🎤 מקשיב...</div>
+        )}
+        {phase === 'result' && (
+          <div style={{ color: '#60a5fa', fontSize: 14, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl' }}>
+            התשובה: {Q.answer}
+          </div>
+        )}
+      </div>
+
+      {phase === 'ready' && (
+        <button onClick={startListening} style={{
+          padding: '14px 44px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
+          fontSize: 17, fontWeight: 900, cursor: 'pointer',
+          fontFamily: "'Noto Serif Hebrew', serif",
+        }}>🎤 התחל הקלטה</button>
+      )}
+
+      {phase === 'listening' && (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 42, fontWeight: 900, color: '#60a5fa' }}>{timeLeft}</div>
+          <div style={{ fontSize: 13, color: '#60a5fa', marginTop: 8 }}>שניות נותרות</div>
+        </div>
+      )}
+
+      {phase === 'result' && (
+        <button onClick={() => {
+          clearInterval(timerRef.current);
+          if (qIdx + 1 >= questions.length) setDone(true);
+          else { setQIdx(i => i + 1); setPhase('ready'); }
+        }} style={{
+          padding: '14px 44px', borderRadius: 50, border: 'none',
+          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
+          fontSize: 17, fontWeight: 900, cursor: 'pointer',
+          fontFamily: "'Noto Serif Hebrew', serif",
+        }}>← המשך</button>
+      )}
+    </div>
+  );
+}
+
 // ── SENTENCE COMPLETION GAME ──────────────────────────────────
 const FILL_SENTENCES = [
   { text: 'אני אוהב לאכול ___', answer: 'תפוח',   options: ['תפוח','כסא','ספר','ירח'],      emoji: '🍎' },
@@ -1189,7 +1381,7 @@ const FILL_SENTENCES = [
   { text: 'ה___ קר ונמס בשמש',   answer: 'גלידה',  options: ['גלידה','לחם','תפוח','ביצה'],    emoji: '🍦' },
 ];
 
-function SentenceGame({ onXP }) {
+function SentenceGame({ onXP, playerName }) {
   const [questions] = useState(() => shuffle(FILL_SENTENCES).slice(0, 10));
   const [qIdx, setQIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
@@ -1219,14 +1411,14 @@ function SentenceGame({ onXP }) {
     if (correct) {
       setScore(s => s + 1);
       onXP(20);
-      speakHebrew(Q.answer);
+      // Don't speak answer — let child see it on screen and learn themselves
       setTimeout(() => {
         if (qIdx + 1 >= questions.length) setDone(true);
         else { setQIdx(i => i + 1); setChosen(null); }
       }, 1000);
     } else {
       setLearning(true);
-      speakHebrew(Q.answer);
+      // Don't speak answer — child will see it in learning panel
     }
   };
 
@@ -1994,7 +2186,14 @@ const DRAW_LEVELS = [
   { id: 'handwrite', label: 'כתב יד',  emoji: '✍️', desc: 'צורת כתב עם תבנית',    color: '#60a5fa' },
 ];
 
-function DrawingGame({ onXP }) {
+// ── Encouragement messages ────────────────────────────────────
+const ENCOURAGEMENT = {
+  amazing: ['מצוין!', 'מדהים!', 'נהדר!', 'פנטסטי!', 'עבודה מעולה!'],
+  great: ['טוב מאוד!', 'יפה מאוד!', 'כל הכבוד!', 'יוצא דופן!', 'ממש טוב!'],
+  good: ['טוב!', 'הכל בסדר!', 'המשך ככה!', 'כמעט שם!', 'יותר טוב כל פעם!'],
+};
+
+function DrawingGame({ onXP, playerName }) {
   const CSIZE = 280;
   const canvasRef = useRef(null);
   const [queue] = useState(() => shuffle(ALEPH_BET));
@@ -2139,8 +2338,14 @@ function DrawingGame({ onXP }) {
     onXP(xp);
 
     drawingRef.current = false;
-    const fb = score >= 45 ? 'מצוין' : score >= 30 ? 'טוב מאוד' : score >= 15 ? 'כל הכבוד' : 'המשך לתרגל';
-    speakHebrew(fb);
+    // Pick random encouragement based on score tier
+    let tier = 'good';
+    if (score >= 45) tier = 'amazing';
+    else if (score >= 30) tier = 'great';
+    const messages = ENCOURAGEMENT[tier];
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    const fbWithName = playerName ? `${msg}, ${playerName}!` : `${msg}!`;
+    speakHebrew(fbWithName);
 
     setPhase('result');
   };
@@ -2155,10 +2360,18 @@ function DrawingGame({ onXP }) {
     setTimeLeft(8);
   };
 
-  const feedbackLabel =
-    simScore >= 45 ? '!מצוין 🌟' :
-    simScore >= 30 ? '!טוב מאוד ⭐' :
-    simScore >= 15 ? '!כל הכבוד 👏' : '!המשך לתרגל 💪';
+  // Generate feedback with player name
+  const getFeedback = () => {
+    let tier = 'good';
+    let emoji = '💪';
+    if (simScore >= 45) { tier = 'amazing'; emoji = '🌟'; }
+    else if (simScore >= 30) { tier = 'great'; emoji = '⭐'; }
+    else if (simScore >= 15) { emoji = '👏'; }
+    const messages = ENCOURAGEMENT[tier];
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    return playerName ? `${msg}, ${playerName}! ${emoji}` : `${msg}! ${emoji}`;
+  };
+  const feedbackLabel = getFeedback();
 
   // Keyboard: 1-3 picks level; Enter/Space = start/submit/next; Esc = clear
   useEffect(() => {
@@ -2514,6 +2727,7 @@ export default function App() {
     { id: "spelling",   label: "כתיב",     emoji: "✍️", desc: "בנה מילה"      },
     { id: "drawing",    label: "צייר",     emoji: "🎨", desc: "צייר את האות"  },
     { id: "sentence",   label: "משפט",     emoji: "💬", desc: "השלם את המשפט" },
+    { id: "speak",      label: "דיבור",    emoji: "🗣️", desc: "דבר את המילה"  },
   ];
 
   // Show profile picker if no active profile
@@ -2650,8 +2864,9 @@ export default function App() {
           {mode === "matching"   && <MatchingGame key={matchKey} onXP={addXP} />}
           {mode === "quiz"       && <Quiz key={matchKey} onXP={addXP} />}
           {mode === "spelling"   && <SpellingGame key={matchKey} onXP={addXP} profile={profileWithAvatar} />}
-          {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} />}
-          {mode === "sentence"   && <SentenceGame key={matchKey} onXP={addXP} />}
+          {mode === "drawing"    && <DrawingGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
+          {mode === "sentence"   && <SentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
+          {mode === "speak"      && <SpeakingSentenceGame key={matchKey} onXP={addXP} playerName={activeProfile} />}
         </div>
       </div>
 
