@@ -268,7 +268,7 @@ const _ttsCache = new Map();
  *
  * Returns a Promise that resolves when audio ends (useful for chaining).
  */
-const speakHebrew = async (text) => {
+const speakHebrew = async (text, rate = 0.8) => {
   // ── Serve from cache immediately ─────────────────────────────
   const cached = _ttsCache.get(text);
   if (cached) {
@@ -319,7 +319,7 @@ const speakHebrew = async (text) => {
   const wsPromise = new Promise((resolve) => {
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = 'he-IL';
-    utt.rate = 0.8;
+    utt.rate = rate;
     utt.onend  = resolve;
     utt.onerror = resolve;
     window.speechSynthesis.speak(utt);
@@ -1170,11 +1170,45 @@ function SpeakingSentenceGame({ onXP, playerName }) {
 
   const Q = questions[qIdx];
 
-  // Speak the sentence context when question changes
+  // Start listening after speaking the question
+  const startListening = () => {
+    setPhase('listening');
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    recRef.current = rec;
+    rec.lang = 'he-IL';
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 3;
+
+    let count = 5;
+    setTimeLeft(count);
+    timerRef.current = setInterval(() => {
+      count--;
+      setTimeLeft(count);
+      if (count <= 0) { clearInterval(timerRef.current); try { rec.stop(); } catch(e) {} }
+    }, 1000);
+
+    rec.onresult = (e) => {
+      const alts = Array.from({ length: e.results[0].length }, (_, i) => e.results[0][i].transcript);
+      finishRound(alts[0] || '');
+    };
+    rec.onerror = () => finishRound('');
+    rec.onend = () => { if (phase === 'listening') finishRound(''); };
+    rec.start();
+  };
+
+  // Speak the sentence context slowly, then auto-start listening
   useEffect(() => {
-    if (!difficulty) return;
-    const t = setTimeout(() => speakHebrew(Q.text.replace('___', '______')), 400);
-    return () => clearTimeout(t);
+    if (!difficulty || phase !== 'ready') return;
+    const speakAndListen = async () => {
+      // Speak at 0.55 (slower) rate
+      await speakHebrew(Q.text.replace('___', '______'), 0.55);
+      // Auto-start listening after speech ends
+      startListening();
+    };
+    speakAndListen();
   }, [qIdx, difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishRound = (heard) => {
@@ -1200,34 +1234,6 @@ function SpeakingSentenceGame({ onXP, playerName }) {
         else { setQIdx(i => i + 1); setPhase('ready'); }
       }, 1500);
     }
-  };
-
-  const startListening = () => {
-    setPhase('listening');
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert('Speech recognition not supported'); return; }
-    const rec = new SR();
-    recRef.current = rec;
-    rec.lang = 'he-IL';
-    rec.continuous = false;
-    rec.interimResults = false;
-    rec.maxAlternatives = 3;
-
-    let count = 5;
-    setTimeLeft(count);
-    timerRef.current = setInterval(() => {
-      count--;
-      setTimeLeft(count);
-      if (count <= 0) { clearInterval(timerRef.current); try { rec.stop(); } catch(e) {} }
-    }, 1000);
-
-    rec.onresult = (e) => {
-      const alts = Array.from({ length: e.results[0].length }, (_, i) => e.results[0][i].transcript);
-      finishRound(alts[0] || '');
-    };
-    rec.onerror = () => finishRound('');
-    rec.onend = () => { if (phase === 'listening') finishRound(''); };
-    rec.start();
   };
 
   // ── Difficulty picker ──
@@ -1316,12 +1322,9 @@ function SpeakingSentenceGame({ onXP, playerName }) {
       </div>
 
       {phase === 'ready' && (
-        <button onClick={startListening} style={{
-          padding: '14px 44px', borderRadius: 50, border: 'none',
-          background: 'linear-gradient(135deg,#1d4ed8,#0ea5e9)', color: 'white',
-          fontSize: 17, fontWeight: 900, cursor: 'pointer',
-          fontFamily: "'Noto Serif Hebrew', serif",
-        }}>🎤 התחל הקלטה</button>
+        <div style={{ color: '#60a5fa', fontSize: 15, fontFamily: "'Noto Serif Hebrew', serif", direction: 'rtl', textAlign: 'center' }}>
+          ⏳ מאתחל הקלטה...
+        </div>
       )}
 
       {phase === 'listening' && (
