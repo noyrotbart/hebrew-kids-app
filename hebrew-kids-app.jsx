@@ -3288,23 +3288,23 @@ function TtsStatusDot() {
 
 const STORY_SENTENCES = [
   // Level 1 — Easy (3 words)
-  { id:  1, level: 1, words: ['הילד',   'שותה',   'תה'],        scene: '👦☕🍵',  distractors: ['חם',    'גדול'] },
-  { id:  2, level: 1, words: ['הכלב',   'אוכל',   'עצם'],       scene: '🐶🦴😋',  distractors: ['קטן',   'ישן']  },
-  { id:  3, level: 1, words: ['הציפור', 'עפה',    'גבוה'],      scene: '🐦☁️🌤️', distractors: ['שמח',   'מהיר'] },
-  { id:  4, level: 1, words: ['הילדה',  'אוכלת',  'תפוח'],      scene: '👧🍎😊',  distractors: ['טעים',  'ירוק'] },
-  { id:  5, level: 1, words: ['החתול',  'ישן',    'במיטה'],     scene: '🐱😴🛏️', distractors: ['כחול',  'שקט']  },
+  { id:  1, level: 1, words: ['הילד',   'שותה',   'תה'],        scene: '/images/story/1-coffee-break.svg',   distractors: ['חם',    'גדול'] },
+  { id:  2, level: 1, words: ['הכלב',   'אוכל',   'עצם'],       scene: '/images/story/2-pet-care.svg',       distractors: ['קטן',   'ישן']  },
+  { id:  3, level: 1, words: ['הציפור', 'עפה',    'גבוה'],      scene: '/images/story/3-nature.svg',         distractors: ['שמח',   'מהיר'] },
+  { id:  4, level: 1, words: ['הילדה',  'אוכלת',  'תפוח'],      scene: '/images/story/4-eating-healthy.svg', distractors: ['טעים',  'ירוק'] },
+  { id:  5, level: 1, words: ['החתול',  'ישן',    'במיטה'],     scene: '/images/story/5-dreamer.svg',        distractors: ['כחול',  'שקט']  },
   // Level 2 — Medium (4 words)
-  { id:  6, level: 2, words: ['הילד',   'רוכב',   'על',    'אופניים'],  scene: '👦🚲🌈',  distractors: ['מהיר',  'חדש']  },
-  { id:  7, level: 2, words: ['הילדה',  'מציירת', 'תמונה', 'יפה'],      scene: '👧🎨🖼️',  distractors: ['גדול',  'צהוב'] },
-  { id:  8, level: 2, words: ['הכלב',   'רץ',     'בגן',   'הגדול'],    scene: '🐶🌳🏃',  distractors: ['שמח',   'ירוק'] },
-  { id:  9, level: 2, words: ['אמא',    'מבשלת',  'מרק',   'טוב'],      scene: '👩‍🍳🥣✨', distractors: ['חם',    'מתוק'] },
-  { id: 10, level: 2, words: ['אבא',    'קורא',   'ספר',   'בלילה'],    scene: '👨📚🌙',  distractors: ['ישן',   'שקט']  },
+  { id:  6, level: 2, words: ['הילד',   'רוכב',   'על',    'אופניים'],  scene: '/images/story/6-bicycle.svg',      distractors: ['מהיר',  'חדש']  },
+  { id:  7, level: 2, words: ['הילדה',  'מציירת', 'תמונה', 'יפה'],      scene: '/images/story/7-artist.svg',       distractors: ['גדול',  'צהוב'] },
+  { id:  8, level: 2, words: ['הכלב',   'רץ',     'בגן',   'הגדול'],    scene: '/images/story/8-dog-walking.svg',  distractors: ['שמח',   'ירוק'] },
+  { id:  9, level: 2, words: ['אמא',    'מבשלת',  'מרק',   'טוב'],      scene: '/images/story/9-cooking.svg',      distractors: ['חם',    'מתוק'] },
+  { id: 10, level: 2, words: ['אבא',    'קורא',   'ספר',   'בלילה'],    scene: '/images/story/10-reading.svg',     distractors: ['ישן',   'שקט']  },
   // Level 3 — Hard (5 words)
-  { id: 11, level: 3, words: ['הילדים', 'משחקים', 'כדורגל', 'בחצר',   'גדולה'], scene: '👦👧⚽🌳', distractors: ['מהיר',  'שמח']  },
-  { id: 12, level: 3, words: ['הסבתא',  'אופה',   'עוגה',   'מתוקה',  'מאוד'],  scene: '👵🎂🍰😋', distractors: ['טובה',  'חם']   },
-  { id: 13, level: 3, words: ['הכלבלב', 'הקטן',   'ישן',    'על',     'הספה'],  scene: '🐶😴🛋️💤', distractors: ['חמוד',  'שחור'] },
-  { id: 14, level: 3, words: ['הילד',   'שר',     'שיר',    'יפה',    'מאוד'],  scene: '👦🎵🎤🎶', distractors: ['גדול',  'חזק']  },
-  { id: 15, level: 3, words: ['הנסיכה', 'לובשת',  'שמלה',   'ורודה',  'יפה'],   scene: '👸👗🌸✨', distractors: ['חדש',   'צהוב'] },
+  { id: 11, level: 3, words: ['הילדים', 'משחקים', 'כדורגל', 'בחצר',   'גדולה'], scene: '/images/story/11-soccer.svg',    distractors: ['מהיר',  'שמח']  },
+  { id: 12, level: 3, words: ['הסבתא',  'אופה',   'עוגה',   'מתוקה',  'מאוד'],  scene: '/images/story/12-chef.svg',      distractors: ['טובה',  'חם']   },
+  { id: 13, level: 3, words: ['הכלבלב', 'הקטן',   'ישן',    'על',     'הספה'],  scene: '/images/story/13-cat-dog.svg',   distractors: ['חמוד',  'שחור'] },
+  { id: 14, level: 3, words: ['הילד',   'שר',     'שיר',    'יפה',    'מאוד'],  scene: '/images/story/14-music.svg',     distractors: ['גדול',  'חזק']  },
+  { id: 15, level: 3, words: ['הנסיכה', 'לובשת',  'שמלה',   'ורודה',  'יפה'],   scene: '/images/story/15-princess.svg',  distractors: ['חדש',   'צהוב'] },
 ];
 
 const LEVEL_NAMES   = ['', 'קל', 'בינוני', 'קשה'];
@@ -3473,10 +3473,11 @@ function StoryGame({ onXP, isFemale }) {
 
       {/* Scene */}
       <div style={{
-        fontSize: 48, padding: '14px 28px', borderRadius: 20, letterSpacing: 6,
+        borderRadius: 20, overflow: 'hidden', width: '100%', maxWidth: 340,
         background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.1)',
+        display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 8,
       }}>
-        {sentence.scene}
+        <img src={sentence.scene} alt="scene" style={{ width: '100%', height: 200, objectFit: 'contain', display: 'block' }} />
       </div>
 
       {/* Sentence slots (built word by word, RTL) */}
@@ -3527,6 +3528,11 @@ function StoryGame({ onXP, isFemale }) {
 
       {/* Replay sentence button */}
       <SpeakButton onClick={() => speakHebrew(sentence.words.join(' '))} style={{ marginTop: 2 }} />
+
+      {/* Attribution */}
+      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
+        Illustrations by <a href="https://storyset.com" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>Storyset</a>
+      </div>
     </div>
   );
 }
