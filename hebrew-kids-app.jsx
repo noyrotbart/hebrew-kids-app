@@ -253,6 +253,7 @@ const _ttsCache = new Map();
 
 // Track the currently-playing Audio element so we can stop it on navigation
 let _currentAudio = null;
+let _speakGeneration = 0; // incremented on every speakHebrew call to cancel stale retries
 
 /** Stop any in-flight speech (Web Speech API + Phonikud audio). */
 const stopAllSpeech = () => {
@@ -280,12 +281,17 @@ const stopAllSpeech = () => {
  *
  * Returns a Promise that resolves when audio ends (useful for chaining).
  */
-const speakHebrew = async (text, rate = 0.8) => {
+const speakHebrew = async (text, rate = 0.65) => {
+  // Cancel any in-flight audio before starting new speech
+  const gen = ++_speakGeneration;
+  stopAllSpeech();
+
   // ── Serve from cache immediately ─────────────────────────────
   const cached = _ttsCache.get(text);
   if (cached) {
     return new Promise((resolve) => {
       const a = new Audio(cached);
+      a.playbackRate = 0.88;
       _currentAudio = a;
       a.onended = resolve;
       a.onerror = resolve;
@@ -308,7 +314,6 @@ const speakHebrew = async (text, rate = 0.8) => {
   }).catch(() => null);
 
   // ── Race: TTS within 5 s vs. Web Speech fallback ──────────
-  // (Give Phonikud more time to respond before falling back)
   const winner = await Promise.race([
     ttsFetch,
     new Promise((resolve) => setTimeout(() => resolve('slow'), 5000)),
@@ -318,6 +323,7 @@ const speakHebrew = async (text, rate = 0.8) => {
     // TTS responded in time — play Phonikud audio
     return new Promise((resolve) => {
       const a = new Audio(winner);
+      a.playbackRate = 0.88;
       _currentAudio = a;
       a.onended = resolve;
       a.onerror = resolve;
@@ -326,8 +332,6 @@ const speakHebrew = async (text, rate = 0.8) => {
   }
 
   // ── Fallback: Web Speech API ─────────────────────────────────
-  // ttsFetch keeps running in the background; once it resolves (within 10 s)
-  // we replay the phrase in the good Phonikud voice automatically.
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const wsPromise = new Promise((resolve) => {
@@ -339,14 +343,15 @@ const speakHebrew = async (text, rate = 0.8) => {
     window.speechSynthesis.speak(utt);
   });
 
-  // After Web Speech ends, replay in Phonikud voice if it arrives within 10 s
+  // After Web Speech ends, replay in Phonikud voice only if no new speech started
   wsPromise.then(async () => {
     const retryUrl = await Promise.race([
       ttsFetch,
       new Promise(r => setTimeout(() => r(null), 10000)),
     ]);
-    if (retryUrl) {
+    if (retryUrl && gen === _speakGeneration) {
       const a = new Audio(retryUrl);
+      a.playbackRate = 0.88;
       _currentAudio = a;
       a.play().catch(() => {});
     }
@@ -357,8 +362,10 @@ const speakHebrew = async (text, rate = 0.8) => {
 
 // Play a recorded letter audio file; fall back to Phonikud / Web Speech API
 const speakLetter = (letter) => {
+  stopAllSpeech();
   if (letter.audio) {
     const a = new Audio(`/audio/${letter.audio}.m4a`);
+    _currentAudio = a;
     a.play().catch(() => speakHebrew(stripNikud(letter.nameHebrew)));
   } else {
     speakHebrew(stripNikud(letter.nameHebrew));
@@ -373,6 +380,7 @@ const speakSpelled = (word) => {
   const playChain = (i) => {
     if (i >= entries.length) return;
     const a = new Audio(`/audio/${entries[i].audio}.m4a`);
+    _currentAudio = a;
     a.onended = () => playChain(i + 1);
     a.play().catch(() => {
       speakHebrew(stripNikud(entries[i].nameHebrew)).then(() => playChain(i + 1));
@@ -391,6 +399,7 @@ const speakWordLetters = (wordStr) => {
   const playChain = (i) => {
     if (i >= entries.length) return;
     const a = new Audio(`/audio/${entries[i].audio}.m4a`);
+    _currentAudio = a;
     a.onended = () => playChain(i + 1);
     a.play().catch(() => {
       speakHebrew(stripNikud(entries[i].nameHebrew)).then(() => playChain(i + 1));
