@@ -17,7 +17,7 @@ export default function Listen({ lesson, onDone }) {
     const targets = sample(pool, ROUNDS);
     return targets.map(target => {
       const otherPool = WORDS.filter(w => w.id !== target.id);
-      const distractors = sample(otherPool, 2);
+      const distractors = sample(otherPool, 3);
       return { target, options: shuffle([target, ...distractors]) };
     });
   }, [lesson.id]);
@@ -79,7 +79,7 @@ export default function Listen({ lesson, onDone }) {
               aria-label={opt.en}
             >
               <WordImage word={opt} size="lg" rounded="lg" />
-              <span className="listen__caption">{opt.en}</span>
+              {state && <span className="listen__caption">{opt.en}</span>}
             </button>
           );
         })}

@@ -1,13 +1,15 @@
-.listen { display: flex; flex-direction: column; gap: var(--s-5); padding: var(--s-3) 0; }
+.listen { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-2) 0; flex: 1; }
 .listen__intro h2 { font-size: var(--t-xl); }
 .listen__intro p  { font-size: var(--t-sm); margin-top: 4px; }
 
-.listen__speak { display: flex; justify-content: center; padding: var(--s-3) 0; }
+.listen__speak { display: flex; justify-content: center; padding: var(--s-2) 0; }
+.listen__speak .speak-btn { transform: scale(1.1); }
 
 .listen__options {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--s-3);
+  align-content: start;
 }
 
 .listen__option {

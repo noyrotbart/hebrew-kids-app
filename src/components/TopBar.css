@@ -23,12 +23,13 @@
   width: 100%;
   max-width: 280px;
   height: 12px;
-  background: var(--bg-soft);
+  background: var(--line);
   border-radius: var(--r-pill);
   overflow: hidden;
 }
 .progress__fill {
   height: 100%;
+  min-width: 12px;
   background: linear-gradient(90deg, var(--coral), var(--yellow));
   border-radius: var(--r-pill);
   transition: width var(--dur-med) var(--ease);

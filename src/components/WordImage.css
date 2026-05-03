@@ -11,8 +11,8 @@
 
 .word-image--sm { max-width: 96px; }
 .word-image--md { max-width: 160px; }
-.word-image--lg { max-width: 240px; }
-.word-image--xl { max-width: 320px; }
+.word-image--lg { max-width: 100%; }
+.word-image--xl { max-width: 100%; }
 
 .word-image img {
   width: 100%;
@@ -26,17 +26,5 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--coral-soft), var(--yellow-soft));
   text-align: center;
-}
-.word-image__placeholder-glyph {
-  font-size: 44px;
-  color: var(--ink);
-}
-.word-image__placeholder-caption {
-  font-size: var(--t-xs);
-  color: var(--ink-mute);
-  margin-top: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
