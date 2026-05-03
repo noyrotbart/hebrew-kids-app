@@ -5,11 +5,21 @@ import { WORDS_BY_ID } from '../data/words.js';
 import { useMic } from '../lib/useMic.js';
 import { stripNikud } from '../data/alphabet.js';
 import { sayPraise, sayTryAgain } from '../lib/encourage.js';
+import { sfxMicMatch, sfxMicOpen, sfxWrong } from '../lib/sfx.js';
 import WordImage from '../components/WordImage.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import MicButton from '../components/MicButton.jsx';
+import Mascot from '../components/Mascot.jsx';
 import Button from '../components/Button.jsx';
 import './Flashcards.css';
+
+const MASCOT_FROM_MIC = {
+  idle: 'idle',
+  listening: 'listening',
+  matched: 'cheer',
+  wrong: 'sad',
+  error: 'idle',
+};
 
 // Pedagogy: introduce each new letter of the lesson with its sound + an example word
 // (using a real photo + the word's recorded audio). Auto-plays the letter sound on entry.
@@ -34,6 +44,7 @@ export default function Flashcards({ lesson, onDone }) {
   const mic = useMic({
     targets,
     onMatch: () => {
+      sfxMicMatch();
       setTimeout(() => sayPraise(), 250);
       setTimeout(() => setFlipped(true), 700);
     },
@@ -52,7 +63,11 @@ export default function Flashcards({ lesson, onDone }) {
       try { await playLetter(card.letter.id); } catch {}
       if (cancelled) return;
       // Brief pause so the kid hears silence between "letter audio" and "your turn".
-      setTimeout(() => { if (!cancelled) mic.start(); }, 350);
+      setTimeout(() => {
+        if (cancelled) return;
+        sfxMicOpen();
+        mic.start();
+      }, 350);
     }, 250);
     return () => { cancelled = true; clearTimeout(t); };
   }, [idx]);
@@ -112,13 +127,16 @@ export default function Flashcards({ lesson, onDone }) {
       <div className="flashcards__actions">
         {mic.supported && !flipped ? (
           <div className="flashcards__mic-hero">
-            <MicButton
-              size="lg"
-              state={mic.state}
-              transcript={mic.transcript}
-              hint={mic.state === 'wrong' ? 'נסו שוב' : 'אמרו אחרי'}
-              onClick={mic.toggle}
-            />
+            <div className="flashcards__mic-row">
+              <Mascot state={MASCOT_FROM_MIC[mic.state] ?? 'idle'} size="sm" />
+              <MicButton
+                size="lg"
+                state={mic.state}
+                transcript={mic.transcript}
+                hint={mic.state === 'wrong' ? 'נסו שוב' : 'אמרו אחרי'}
+                onClick={mic.toggle}
+              />
+            </div>
             <button className="flashcards__listen-link" onClick={() => playLetter(card.letter.id)} aria-label="שמעו שוב">
               <SpeakerIcon /> שמעו שוב
             </button>

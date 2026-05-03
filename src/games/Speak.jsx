@@ -3,6 +3,7 @@ import { playWord } from '../lib/audio.js';
 import { useMic } from '../lib/useMic.js';
 import { sample } from '../lib/util.js';
 import { sayPraise, sayTryAgain } from '../lib/encourage.js';
+import { sfxMicMatch, sfxMicOpen } from '../lib/sfx.js';
 import WordImage from '../components/WordImage.jsx';
 import MicButton from '../components/MicButton.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
@@ -29,6 +30,7 @@ export default function Speak({ lesson, onDone }) {
   const mic = useMic({
     targets,
     onMatch: () => {
+      sfxMicMatch();
       celebrate('small');
       setTimeout(() => sayPraise(), 250);
       setMatchedCount(c => c + 1);
@@ -47,7 +49,11 @@ export default function Speak({ lesson, onDone }) {
       playedRef.current = true;
       try { await playWord(word); } catch {}
       if (cancelled) return;
-      setTimeout(() => { if (!cancelled) mic.start(); }, 250);
+      setTimeout(() => {
+        if (cancelled) return;
+        sfxMicOpen();
+        mic.start();
+      }, 250);
     }, 350);
     return () => { cancelled = true; clearTimeout(t); };
   }, [idx]);

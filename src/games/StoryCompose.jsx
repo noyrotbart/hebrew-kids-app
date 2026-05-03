@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { speak, stopAudio } from '../lib/audio.js';
+import { playScene, stopAudio } from '../lib/audio.js';
 import { sayPraise, sayTryAgain } from '../lib/encourage.js';
+import { sfxCorrect, sfxWrong } from '../lib/sfx.js';
 import { shuffle } from '../lib/util.js';
 import { celebrate } from '../lib/celebrate.js';
 import WordImage from '../components/WordImage.jsx';
@@ -41,7 +42,7 @@ export default function StoryCompose({ scenes, onDone }) {
     let cancelled = false;
     const t = setTimeout(async () => {
       if (cancelled) return;
-      try { await speak(scene.sentence); } catch {}
+      try { await playScene(scene); } catch {}
     }, 400);
     return () => { cancelled = true; clearTimeout(t); stopAudio(); };
   }, [idx, scene?.id]);
@@ -54,11 +55,12 @@ export default function StoryCompose({ scenes, onDone }) {
     setSolved(true);
     setScoreSum(s => s + roundScore);
     if (roundScore > 0.5) {
+      sfxCorrect();
       celebrate('small');
       setTimeout(() => sayPraise(), 250);
     }
     // Replay the sentence as a sealing reward, then advance.
-    setTimeout(() => speak(scene.sentence), 1100);
+    setTimeout(() => playScene(scene), 1100);
     setTimeout(() => {
       if (idx + 1 >= rounds.length) {
         onDone(Math.min(1, (scoreSum + roundScore) / rounds.length));
@@ -78,6 +80,7 @@ export default function StoryCompose({ scenes, onDone }) {
         advance(Math.max(0, 1 - mistakes * 0.1));
       }
     } else {
+      sfxWrong();
       const m = mistakes + 1;
       setMistakes(m);
       setTray(t => t.map(x => x.key === item.key ? { ...x, shake: true } : x));
@@ -100,7 +103,7 @@ export default function StoryCompose({ scenes, onDone }) {
         <div className="story__counter" dir="ltr">{idx + 1} / {rounds.length}</div>
       </div>
 
-      <button className="story__hero" onClick={() => speak(scene.sentence)} aria-label="שמעו שוב">
+      <button className="story__hero" onClick={() => playScene(scene)} aria-label="שמעו שוב">
         <div className="story__hero-image">
           <WordImage word={{ id: scene.id, en: scene.bareSentence, wiki: scene.wiki, imageQuery: scene.imageQuery }} size="lg" rounded="lg" />
           <span className="story__replay-badge" aria-hidden>

@@ -3,6 +3,7 @@ import { ALPHABET_BY_HEB } from '../data/alphabet.js';
 import { playWord } from '../lib/audio.js';
 import { shuffle, sample } from '../lib/util.js';
 import { sayPraise, sayTryAgain } from '../lib/encourage.js';
+import { sfxCorrect, sfxWrong } from '../lib/sfx.js';
 import LetterTile from '../components/LetterTile.jsx';
 import WordImage from '../components/WordImage.jsx';
 import './Spelling.css';
@@ -55,7 +56,10 @@ export default function Spelling({ lesson, onDone }) {
   const completeRound = (roundScore) => {
     setSolved(true);
     setScoreSum(s => s + roundScore);
-    if (roundScore > 0) setTimeout(() => sayPraise(), 200);
+    if (roundScore > 0) {
+      sfxCorrect();
+      setTimeout(() => sayPraise(), 200);
+    }
     setTimeout(() => playWord(word), 900);
     setTimeout(() => {
       if (idx + 1 >= rounds.length) {
@@ -77,6 +81,7 @@ export default function Spelling({ lesson, onDone }) {
         completeRound(Math.max(0, 1 - mistakes * 0.15));
       }
     } else {
+      sfxWrong();
       setMistakes(m => m + 1);
       setTray(t => t.map(x => x.key === item.key ? { ...x, shake: true } : x));
       setTimeout(() => setTray(t => t.map(x => ({ ...x, shake: false }))), 400);

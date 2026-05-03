@@ -166,6 +166,25 @@ export const speak = async (text) => {
   await speakNative(text, mySession);
 };
 
+// Story sentences — try a pre-baked /audio/scenes/{id}.wav first, then fall
+// through the same TTS chain. Saves the cold-start wait when WAVs were
+// committed via scripts/fetch-audio.mjs.
+export const playScene = async (scene) => {
+  stop();
+  const mySession = session;
+  const url = `/audio/scenes/${scene.id}.wav`;
+  const cached = cache.get(url);
+  if (cached) {
+    try { await playAudio(cached, mySession); return; } catch {}
+  }
+  if (!isCurrent(mySession)) return;
+  if (await tryStaticUrl(url, mySession)) return;
+  if (!isCurrent(mySession)) return;
+  if (await tryTts(scene.sentence, url, mySession)) return;
+  if (!isCurrent(mySession)) return;
+  await speakNative(scene.sentence, mySession);
+};
+
 // Host commentary — short praise / encouragement. Optimized for instant playback,
 // so prefers Web Speech (no network) when a Hebrew voice exists. Falls back to
 // Phonikud only if the device has no native he-IL voice.

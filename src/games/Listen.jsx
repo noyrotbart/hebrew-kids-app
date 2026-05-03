@@ -3,6 +3,7 @@ import { playWord } from '../lib/audio.js';
 import { WORDS } from '../data/words.js';
 import { shuffle, sample } from '../lib/util.js';
 import { sayPraise, sayTryAgain } from '../lib/encourage.js';
+import { sfxCorrect, sfxWrong } from '../lib/sfx.js';
 import WordImage from '../components/WordImage.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import './Listen.css';
@@ -47,9 +48,11 @@ export default function Listen({ lesson, onDone }) {
     const isCorrect = word.id === round.target.id;
     setPicked({ id: word.id, isCorrect });
     if (isCorrect) {
+      sfxCorrect();
       setCorrect(c => c + 1);
       setTimeout(() => sayPraise(), 200);
     } else {
+      sfxWrong();
       setTimeout(() => sayTryAgain(), 200);
     }
     setTimeout(() => {

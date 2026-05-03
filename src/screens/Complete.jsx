@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import Stars from '../components/Stars.jsx';
 import Button from '../components/Button.jsx';
+import Mascot from '../components/Mascot.jsx';
 import { sayLessonDone } from '../lib/encourage.js';
+import { sfxComplete } from '../lib/sfx.js';
 import './Complete.css';
 
 const TITLES = [
@@ -13,18 +15,23 @@ const TITLES = [
 export default function Complete({ result, profile, onContinue, onHome }) {
   const { lesson, stars, earned } = result;
   const title = TITLES[Math.max(0, Math.min(2, stars - 1))];
-  const hebLetters = lesson.letters.map(l => l.heb).join(' · ');
+  const heroText = lesson.level === 'intermediate'
+    ? '🎉'
+    : lesson.letters.map(l => l.heb).join(' · ');
 
-  // Speak the celebration once on mount, with the kid's name when we have it.
+  // Sound effect immediately + voice line after a beat — the SFX gives the
+  // celebration moment its first hit, the spoken praise lands behind it.
   useEffect(() => {
-    const t = setTimeout(() => sayLessonDone(profile?.name), 700);
+    sfxComplete();
+    const t = setTimeout(() => sayLessonDone(profile?.name), 900);
     return () => clearTimeout(t);
   }, []);
 
   return (
     <div className="screen complete">
       <div className="complete__hero">
-        <div className="complete__letters heb-display">{hebLetters}</div>
+        <Mascot state="cheer" size="xl" />
+        <div className="complete__letters heb-display">{heroText}</div>
         <h1>{title}</h1>
         <p className="muted">{lesson.title} הושלם</p>
         <Stars count={stars} total={3} size="lg" />

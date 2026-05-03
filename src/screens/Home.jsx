@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { BEGINNER_LESSONS, INTERMEDIATE_LESSONS } from '../data/lessons.js';
 import { getProfileProgress, saveActiveProfile } from '../lib/storage.js';
 import Stars from '../components/Stars.jsx';
+import Mascot from '../components/Mascot.jsx';
 import './Home.css';
 
 export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
@@ -64,8 +65,11 @@ export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
       </div>
 
       <div className="home__greeting">
-        <h1>שלום {profile.name} 👋</h1>
-        <p className="muted">בואו נמשיך ללמוד.</p>
+        <Mascot state="idle" size="md" />
+        <div className="home__greeting-text">
+          <h1>שלום {profile.name}!</h1>
+          <p className="muted">בואו נמשיך ללמוד.</p>
+        </div>
       </div>
 
       {renderSection(BEGINNER_LESSONS,    'מתחילים',  currentBeginnerIdx,    true)}
