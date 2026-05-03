@@ -64,6 +64,7 @@ export const WORDS = [
   { id: 'lev',    he: 'לֵב',     bare: 'לב',    letters: ['ל','ב'],         roman: 'Lev',   en: 'Heart', imageQuery: 'red heart shape',      group: 'body' },
 
   // — Color/abstract for variety —
+  { id: 'vered',  he: 'וֶרֶד',   bare: 'ורד',   letters: ['ו','ר','ד'],     roman: 'Vered', en: 'Rose',   imageQuery: 'red rose closeup',     group: 'nature' },
   { id: 'or',     he: 'אוֹר',    bare: 'אור',   letters: ['א','ו','ר'],     roman: 'Or',    en: 'Light',  imageQuery: 'sunbeam through window', group: 'abstract' },
   { id: 'tov',    he: 'טוֹב',    bare: 'טוב',   letters: ['ט','ו','ב'],     roman: 'Tov',   en: 'Good',   imageQuery: 'thumbs up smile',       group: 'abstract' },
   { id: 'zahav',  he: 'זָהָב',   bare: 'זהב',   letters: ['ז','ה','ב'],     roman: 'Zahav', en: 'Gold',   imageQuery: 'gold metal nuggets',    group: 'abstract' },

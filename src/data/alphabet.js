@@ -10,30 +10,33 @@
 //   sound        IPA-ish phonetic ("b", "g", "—" for silent)
 //   tip          short Hebrew teaching note shown on flashcard back
 //   color        which letter color slot to use (1..6)
+//   wordId       canonical example word (id from words.js) — chosen so the letter is
+//                prominent (preferably the first letter), avoids degenerate picks like
+//                ב → אבא where the letter is just buried mid-word.
 
 export const ALPHABET = [
-  { id: 'alef',  heb: 'א',         nameHe: 'אָלֶף',   nameEn: 'Alef',    sound: '—',  tip: 'אות שקטה',                       color: 1 },
-  { id: 'bet',   heb: 'ב',         nameHe: 'בֵּית',   nameEn: 'Bet',     sound: 'B',  tip: 'נשמעת כמו B',                    color: 2 },
-  { id: 'gimel', heb: 'ג',         nameHe: 'גִּימֶל', nameEn: 'Gimel',   sound: 'G',  tip: 'נשמעת כמו G ב־Go',               color: 3 },
-  { id: 'dalet', heb: 'ד',         nameHe: 'דָּלֶת',  nameEn: 'Dalet',   sound: 'D',  tip: 'נשמעת כמו D',                    color: 4 },
-  { id: 'he',    heb: 'ה',         nameHe: 'הֵא',     nameEn: 'Hey',     sound: 'H',  tip: 'נשימה קלה',                      color: 5 },
-  { id: 'vav',   heb: 'ו',         nameHe: 'וָו',     nameEn: 'Vav',     sound: 'V',  tip: 'נשמעת כמו V',                    color: 6 },
-  { id: 'zayin', heb: 'ז',         nameHe: 'זַיִן',   nameEn: 'Zayin',   sound: 'Z',  tip: 'נשמעת כמו Z ב־Zoo',              color: 1 },
-  { id: 'het',   heb: 'ח',         nameHe: 'חֵית',    nameEn: 'Chet',    sound: 'Ch', tip: 'גרונית — כמו ח ב־חמש',           color: 2 },
-  { id: 'tet',   heb: 'ט',         nameHe: 'טֵית',    nameEn: 'Tet',     sound: 'T',  tip: 'נשמעת כמו T',                    color: 3 },
-  { id: 'yod',   heb: 'י',         nameHe: 'יוֹד',    nameEn: 'Yod',     sound: 'Y',  tip: 'נשמעת כמו Y ב־Yes',              color: 4 },
-  { id: 'kaf',   heb: 'כ', final: 'ך', nameHe: 'כַּף', nameEn: 'Kaf',    sound: 'K',  tip: 'נשמעת כמו K — בסוף מילה: ך',     color: 5 },
-  { id: 'lamed', heb: 'ל',         nameHe: 'לָמֶד',   nameEn: 'Lamed',   sound: 'L',  tip: 'נשמעת כמו L',                    color: 6 },
-  { id: 'mem',   heb: 'מ', final: 'ם', nameHe: 'מֵם',  nameEn: 'Mem',    sound: 'M',  tip: 'נשמעת כמו M — בסוף מילה: ם',     color: 1 },
-  { id: 'nun',   heb: 'נ', final: 'ן', nameHe: 'נוּן', nameEn: 'Nun',    sound: 'N',  tip: 'נשמעת כמו N — בסוף מילה: ן',     color: 2 },
-  { id: 'samex', heb: 'ס',         nameHe: 'סָמֶךְ',  nameEn: 'Samech',  sound: 'S',  tip: 'נשמעת כמו S',                    color: 3 },
-  { id: 'ayin',  heb: 'ע',         nameHe: 'עַיִן',   nameEn: 'Ayin',    sound: '—',  tip: 'אות שקטה (גרונית עתיקה)',        color: 4 },
-  { id: 'pe',    heb: 'פ', final: 'ף', nameHe: 'פֵּא', nameEn: 'Pey',    sound: 'P',  tip: 'נשמעת כמו P — בסוף מילה: ף',     color: 5 },
-  { id: 'tsadi', heb: 'צ', final: 'ץ', nameHe: 'צָדִי', nameEn: 'Tzadi', sound: 'Tz', tip: 'נשמעת כמו Tz ב־Pizza',           color: 6 },
-  { id: 'kof',   heb: 'ק',         nameHe: 'קוֹף',    nameEn: 'Kof',     sound: 'K',  tip: 'גם היא נשמעת כמו K',             color: 1 },
-  { id: 'resh',  heb: 'ר',         nameHe: 'רֵישׁ',   nameEn: 'Resh',    sound: 'R',  tip: 'מתגלגלת בגרון',                  color: 2 },
-  { id: 'shin',  heb: 'ש',         nameHe: 'שִׁין',   nameEn: 'Shin',    sound: 'Sh', tip: 'נשמעת כמו Sh ב־Shoe',            color: 3 },
-  { id: 'tav',   heb: 'ת',         nameHe: 'תָּו',    nameEn: 'Tav',     sound: 'T',  tip: 'גם היא נשמעת כמו T',             color: 4 },
+  { id: 'alef',  heb: 'א',         nameHe: 'אָלֶף',   nameEn: 'Alef',    sound: '—',  tip: 'אות שקטה',                       color: 1, wordId: 'aba' },
+  { id: 'bet',   heb: 'ב',         nameHe: 'בֵּית',   nameEn: 'Bet',     sound: 'B',  tip: 'נשמעת כמו B',                    color: 2, wordId: 'bayit' },
+  { id: 'gimel', heb: 'ג',         nameHe: 'גִּימֶל', nameEn: 'Gimel',   sound: 'G',  tip: 'נשמעת כמו G ב־Go',               color: 3, wordId: 'gamal' },
+  { id: 'dalet', heb: 'ד',         nameHe: 'דָּלֶת',  nameEn: 'Dalet',   sound: 'D',  tip: 'נשמעת כמו D',                    color: 4, wordId: 'dag' },
+  { id: 'he',    heb: 'ה',         nameHe: 'הֵא',     nameEn: 'Hey',     sound: 'H',  tip: 'נשימה קלה',                      color: 5, wordId: 'har' },
+  { id: 'vav',   heb: 'ו',         nameHe: 'וָו',     nameEn: 'Vav',     sound: 'V',  tip: 'נשמעת כמו V',                    color: 6, wordId: 'vered' },
+  { id: 'zayin', heb: 'ז',         nameHe: 'זַיִן',   nameEn: 'Zayin',   sound: 'Z',  tip: 'נשמעת כמו Z ב־Zoo',              color: 1, wordId: 'zahav' },
+  { id: 'het',   heb: 'ח',         nameHe: 'חֵית',    nameEn: 'Chet',    sound: 'Ch', tip: 'גרונית — כמו ח ב־חמש',           color: 2, wordId: 'chatul' },
+  { id: 'tet',   heb: 'ט',         nameHe: 'טֵית',    nameEn: 'Tet',     sound: 'T',  tip: 'נשמעת כמו T',                    color: 3, wordId: 'tov' },
+  { id: 'yod',   heb: 'י',         nameHe: 'יוֹד',    nameEn: 'Yod',     sound: 'Y',  tip: 'נשמעת כמו Y ב־Yes',              color: 4, wordId: 'yam' },
+  { id: 'kaf',   heb: 'כ', final: 'ך', nameHe: 'כַּף', nameEn: 'Kaf',    sound: 'K',  tip: 'נשמעת כמו K — בסוף מילה: ך',     color: 5, wordId: 'kelev' },
+  { id: 'lamed', heb: 'ל',         nameHe: 'לָמֶד',   nameEn: 'Lamed',   sound: 'L',  tip: 'נשמעת כמו L',                    color: 6, wordId: 'lev' },
+  { id: 'mem',   heb: 'מ', final: 'ם', nameHe: 'מֵם',  nameEn: 'Mem',    sound: 'M',  tip: 'נשמעת כמו M — בסוף מילה: ם',     color: 1, wordId: 'mayim' },
+  { id: 'nun',   heb: 'נ', final: 'ן', nameHe: 'נוּן', nameEn: 'Nun',    sound: 'N',  tip: 'נשמעת כמו N — בסוף מילה: ן',     color: 2, wordId: 'namer' },
+  { id: 'samex', heb: 'ס',         nameHe: 'סָמֶךְ',  nameEn: 'Samech',  sound: 'S',  tip: 'נשמעת כמו S',                    color: 3, wordId: 'sus' },
+  { id: 'ayin',  heb: 'ע',         nameHe: 'עַיִן',   nameEn: 'Ayin',    sound: '—',  tip: 'אות שקטה (גרונית עתיקה)',        color: 4, wordId: 'etz' },
+  { id: 'pe',    heb: 'פ', final: 'ף', nameHe: 'פֵּא', nameEn: 'Pey',    sound: 'P',  tip: 'נשמעת כמו P — בסוף מילה: ף',     color: 5, wordId: 'pil' },
+  { id: 'tsadi', heb: 'צ', final: 'ץ', nameHe: 'צָדִי', nameEn: 'Tzadi', sound: 'Tz', tip: 'נשמעת כמו Tz ב־Pizza',           color: 6, wordId: 'tsipor' },
+  { id: 'kof',   heb: 'ק',         nameHe: 'קוֹף',    nameEn: 'Kof',     sound: 'K',  tip: 'גם היא נשמעת כמו K',             color: 1, wordId: 'kof' },
+  { id: 'resh',  heb: 'ר',         nameHe: 'רֵישׁ',   nameEn: 'Resh',    sound: 'R',  tip: 'מתגלגלת בגרון',                  color: 2, wordId: 'rosh' },
+  { id: 'shin',  heb: 'ש',         nameHe: 'שִׁין',   nameEn: 'Shin',    sound: 'Sh', tip: 'נשמעת כמו Sh ב־Shoe',            color: 3, wordId: 'shemesh' },
+  { id: 'tav',   heb: 'ת',         nameHe: 'תָּו',    nameEn: 'Tav',     sound: 'T',  tip: 'גם היא נשמעת כמו T',             color: 4, wordId: 'tapuach' },
 ];
 
 export const ALPHABET_BY_ID = Object.fromEntries(ALPHABET.map(l => [l.id, l]));

@@ -7,16 +7,19 @@ import TopBar from '../components/TopBar.jsx';
 import Stars from '../components/Stars.jsx';
 import Flashcards from '../games/Flashcards.jsx';
 import Listen from '../games/Listen.jsx';
-import Matching from '../games/Matching.jsx';
+import Speak from '../games/Speak.jsx';
 import Spelling from '../games/Spelling.jsx';
 import './Lesson.css';
 
-// A lesson is a sequence of 4 stages (the 4 games). Each stage reports a "score 0..1"
-// when finished. The final star count = round(avg(scores) * 3).
+// A lesson is a sequence of 4 stages. Each stage reports a "score 0..1" when finished.
+// The final star count = round(avg(scores) * 3).
+//
+// Pedagogy: Discover (Flashcards) → Receptive (Listen) → Productive (Speak) → Apply (Spell).
+// Speak puts the kid's voice at the center — they say the word out loud, mic verifies.
 const STAGES = [
   { key: 'flashcards', Component: Flashcards },
   { key: 'listen',     Component: Listen },
-  { key: 'matching',   Component: Matching },
+  { key: 'speak',      Component: Speak },
   { key: 'spelling',   Component: Spelling },
 ];
 

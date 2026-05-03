@@ -1,0 +1,72 @@
+.mic-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.mic {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--r-pill);
+  background: var(--coral);
+  color: #fff;
+  border: 0;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sh-press);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  cursor: pointer;
+}
+.mic:active { transform: scale(0.96); }
+
+.mic--lg { width: 88px; height: 88px; }
+
+.mic--idle { background: var(--coral); }
+.mic--idle:hover { background: #ff6644; }
+
+.mic--listening {
+  background: var(--red);
+  animation: mic-pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(227, 100, 100, 0.6);
+}
+@keyframes mic-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(227,100,100,0.6); transform: scale(1); }
+  60%  { box-shadow: 0 0 0 18px rgba(227,100,100,0);  transform: scale(1.08); }
+  100% { box-shadow: 0 0 0 0 rgba(227,100,100,0);    transform: scale(1); }
+}
+
+.mic--matched {
+  background: var(--green);
+  animation: bounce-in var(--dur-slow) var(--ease) both;
+}
+
+.mic--wrong {
+  background: var(--yellow);
+  color: var(--ink);
+  animation: shake 360ms var(--ease) both;
+}
+
+.mic--error {
+  background: var(--bg-soft);
+  color: var(--ink-mute);
+}
+
+.mic-caption {
+  min-height: 22px;
+  text-align: center;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--ink-soft);
+  max-width: 200px;
+}
+.mic-hint { color: var(--ink-mute); font-weight: 500; }
+.mic-transcript {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  color: var(--ink);
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  display: inline-block;
+}

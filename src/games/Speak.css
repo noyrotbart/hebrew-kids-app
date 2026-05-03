@@ -1,0 +1,55 @@
+.speak { display: flex; flex-direction: column; gap: var(--s-5); padding: var(--s-3) 0; flex: 1; }
+.speak__intro h2 { font-size: var(--t-xl); }
+.speak__intro p  { font-size: var(--t-sm); margin-top: 4px; }
+
+.speak__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+}
+.speak__hero .word-image { max-width: 220px; }
+.speak__word {
+  font-size: 56px;
+  line-height: 1;
+  color: var(--ink);
+  margin-top: var(--s-2);
+}
+.speak__roman {
+  font-size: var(--t-md);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.speak__mic {
+  display: flex;
+  justify-content: center;
+  padding: var(--s-3) 0 var(--s-2);
+}
+.speak__no-mic {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.speak__actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-3);
+}
+
+.speak__progress {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-2);
+}
+.speak__progress .dot {
+  width: 8px; height: 8px;
+  background: var(--bg-soft);
+  border-radius: var(--r-pill);
+  transition: background var(--dur-fast) var(--ease), width var(--dur-fast) var(--ease);
+}
+.speak__progress .dot.on   { background: var(--coral); width: 24px; }
+.speak__progress .dot.done { background: var(--green); }

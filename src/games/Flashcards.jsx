@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { playLetter, playWord } from '../lib/audio.js';
 import { LETTER_COLOR } from '../data/alphabet.js';
-import LetterTile from '../components/LetterTile.jsx';
+import { WORDS_BY_ID } from '../data/words.js';
+import { useMic } from '../lib/useMic.js';
+import { stripNikud } from '../data/alphabet.js';
+import { levenshtein } from '../lib/util.js';
 import WordImage from '../components/WordImage.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
+import MicButton from '../components/MicButton.jsx';
 import Button from '../components/Button.jsx';
 import './Flashcards.css';
 
@@ -12,25 +16,38 @@ import './Flashcards.css';
 //
 // Reports score = 1.0 (this is a learn-only stage; effort is rewarded).
 export default function Flashcards({ lesson, onDone }) {
+  // Each letter pins its own canonical example word — no more brittle lesson.words.find()
+  // that would land on degenerate picks like ב → אבא.
   const cards = lesson.letters.map(letter => ({
     letter,
-    word: lesson.words.find(w => w.letters.includes(letter.heb)) ?? lesson.words[0],
-  }));
+    word: WORDS_BY_ID[letter.wordId],
+  })).filter(c => c.word);
 
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const card = cards[idx];
 
+  // Mic listening for the letter name — kid hears it, then says it back.
+  const targets = card ? [card.letter.nameEn.toLowerCase(), stripNikud(card.letter.nameHe)] : [];
+  const mic = useMic({
+    targets,
+    onMatch: () => {/* visual feedback handled via mic.state */},
+  });
+
   useEffect(() => {
     setFlipped(false);
+    mic.reset();
     const t = setTimeout(() => playLetter(card.letter.id), 250);
     return () => clearTimeout(t);
   }, [idx]);
 
   const next = () => {
+    mic.stop();
     if (idx + 1 >= cards.length) onDone(1);
     else setIdx(idx + 1);
   };
+
+  const matchedLetter = mic.state === 'matched';
 
   return (
     <div className="flashcards">
@@ -64,13 +81,23 @@ export default function Flashcards({ lesson, onDone }) {
       </button>
 
       <div className="flashcards__actions">
-        <SpeakButton
-          label={flipped ? 'שמעו את המילה' : 'שמעו את האות'}
-          size="lg"
-          onClick={() => flipped ? playWord(card.word) : playLetter(card.letter.id)}
-        />
-        <Button variant="accent" size="lg" full onClick={next}>
-          {idx + 1 >= cards.length ? 'הבא' : `אות ${idx + 2} מתוך ${cards.length}`}
+        <div className="flashcards__row">
+          <SpeakButton
+            label={flipped ? 'שמעו' : 'שמעו את האות'}
+            size="md"
+            onClick={() => flipped ? playWord(card.word) : playLetter(card.letter.id)}
+          />
+          {mic.supported && !flipped && (
+            <MicButton
+              state={mic.state}
+              transcript={mic.transcript}
+              hint={`אמרו "${card.letter.nameEn}"`}
+              onClick={mic.toggle}
+            />
+          )}
+        </div>
+        <Button variant={matchedLetter ? 'accent' : 'primary'} size="lg" full onClick={next}>
+          {matchedLetter ? '🎉 ' : ''}{idx + 1 >= cards.length ? 'הבא' : `אות ${idx + 2} מתוך ${cards.length}`}
         </Button>
       </div>
 
