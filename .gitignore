@@ -2,6 +2,7 @@ node_modules/
 .DS_Store
 *.local
 .claude/settings.local.json
-hebrew-kids-app.html
-hebrew-kids-app.jsx
 .vercel
+dist/
+.env
+.env.local
