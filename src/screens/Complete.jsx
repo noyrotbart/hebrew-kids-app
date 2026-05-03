@@ -24,18 +24,16 @@ export default function Complete({ result, onContinue, onHome }) {
 
       {earned > 0 && (
         <div className="complete__xp">
-          <span>+{earned}</span>
+          <span dir="ltr">+{earned}</span>
           <span className="muted">נקודות</span>
         </div>
       )}
-
-      <div className="spacer" />
 
       <div className="complete__actions">
         <Button variant="primary" size="lg" full onClick={onContinue}>
           השיעור הבא
         </Button>
-        <Button variant="ghost" onClick={onHome}>חזרה למסלול</Button>
+        <Button variant="soft" size="md" onClick={onHome}>חזרה למסלול</Button>
       </div>
     </div>
   );
