@@ -1,0 +1,57 @@
+.letter-tile {
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-lg);
+  background: var(--tile-color);
+  color: #fff;
+  position: relative;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  box-shadow: var(--sh-sm);
+  border: 0;
+  font-family: var(--font-display);
+}
+
+.letter-tile--sm  { width: 56px;  height: 56px;  font-size: 30px; border-radius: var(--r-md); }
+.letter-tile--md  { width: 80px;  height: 80px;  font-size: 44px; }
+.letter-tile--lg  { width: 120px; height: 120px; font-size: 68px; }
+.letter-tile--xl  { width: 200px; height: 200px; font-size: 120px; border-radius: var(--r-xl); }
+
+.letter-tile--soft {
+  background: var(--bg-card);
+  color: var(--ink);
+  box-shadow: var(--sh-sm);
+  border: 2px solid var(--line);
+}
+.letter-tile--ghost {
+  background: transparent;
+  color: var(--ink-mute);
+  border: 2px dashed var(--line);
+  box-shadow: none;
+}
+
+.letter-tile--interactive { cursor: pointer; }
+.letter-tile--interactive:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+.letter-tile--interactive:active { transform: translateY(1px) scale(0.97); }
+
+.letter-tile--correct {
+  background: var(--green) !important;
+  color: #fff !important;
+  border-color: var(--green) !important;
+  animation: bounce-in var(--dur-slow) var(--ease) both;
+}
+.letter-tile--wrong {
+  background: var(--red) !important;
+  color: #fff !important;
+  border-color: var(--red) !important;
+  animation: shake 360ms var(--ease) both;
+}
+.letter-tile--selected {
+  outline: 3px solid var(--violet);
+  outline-offset: 3px;
+}
+.letter-tile--placed {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.letter-tile__glyph { line-height: 1; }

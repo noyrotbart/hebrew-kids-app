@@ -1,0 +1,82 @@
+.flashcards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-3) 0;
+  min-height: 100%;
+}
+.flashcards__intro h2 { font-size: var(--t-xl); }
+.flashcards__intro p  { font-size: var(--t-sm); margin-top: 4px; }
+
+.flashcards__card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  perspective: 1200px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+.flashcards__face {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-xl);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform var(--dur-slow) var(--ease);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-5);
+}
+.flashcards__face--front {
+  background: var(--c, var(--coral));
+  color: #fff;
+  box-shadow: var(--sh-lg);
+}
+.flashcards__face--back {
+  background: var(--bg-card);
+  color: var(--ink);
+  box-shadow: var(--sh-lg);
+  transform: rotateY(180deg);
+  gap: var(--s-4);
+}
+.flashcards__card.is-flipped .flashcards__face--front { transform: rotateY(-180deg); }
+.flashcards__card.is-flipped .flashcards__face--back  { transform: rotateY(0); }
+
+.flashcards__nameHe { font-size: var(--t-xl); font-weight: 700; opacity: 0.85; }
+.flashcards__glyph  { font-size: 200px; line-height: 0.95; }
+.flashcards__sound  { font-size: var(--t-md); font-weight: 700; opacity: 0.95; }
+.flashcards__nameEn { font-size: var(--t-sm); letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75; }
+.flashcards__final  {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  background: rgba(255,255,255,0.18);
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  font-size: var(--t-sm);
+}
+.flashcards__final span.heb-display { font-size: var(--t-xl); }
+
+.flashcards__word  { font-size: 56px; line-height: 1; color: var(--ink); }
+.flashcards__roman { font-size: var(--t-md); color: var(--ink-mute); }
+
+.flashcards__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: center;
+}
+
+.flashcards__dots {
+  display: flex; justify-content: center; gap: var(--s-2);
+}
+.flashcards__dots .dot {
+  width: 8px; height: 8px;
+  background: var(--bg-soft);
+  border-radius: var(--r-pill);
+  transition: background var(--dur-fast) var(--ease), width var(--dur-fast) var(--ease);
+}
+.flashcards__dots .dot.on { background: var(--coral); width: 24px; }

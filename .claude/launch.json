@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "hebrew-kids-app",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd /Users/noy/Documents/Claude && . ~/.nvm/nvm.sh && npm run dev -- --port 5173 --host"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5173"],
       "port": 5173
     }
   ]
