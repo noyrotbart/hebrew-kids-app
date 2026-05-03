@@ -60,6 +60,7 @@ export default function App() {
       {route?.name === 'complete' && profile && (
         <Complete
           result={route.result}
+          profile={profile}
           onHome={goHome}
           onContinue={() => continueAfterComplete(route.result)}
         />

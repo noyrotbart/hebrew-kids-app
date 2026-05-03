@@ -16,6 +16,12 @@
 
 import { stripNikud } from '../data/alphabet.js';
 
+// Educational pacing — content audio plays a bit slower so kids can hear each
+// phoneme distinctly. Both for pre-recorded letter m4a and Phonikud TTS audio.
+const CONTENT_RATE = 0.85;
+// Web Speech is more variable across devices; bias slow.
+const NATIVE_RATE  = 0.78;
+
 const cache = new Map();
 let session = 0;
 let current = null;
@@ -35,8 +41,9 @@ const stop = () => {
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
 };
 
-const playAudio = (audio, mySession) => new Promise((resolve, reject) => {
+const playAudio = (audio, mySession, rate = CONTENT_RATE) => new Promise((resolve, reject) => {
   audio.currentTime = 0;
+  audio.playbackRate = rate;
   current = audio;
   audio.onended = () => { if (isCurrent(mySession)) resolve(); };
   audio.onerror = (e) => { if (isCurrent(mySession)) reject(e); };
@@ -94,14 +101,24 @@ const tryTts = async (text, cacheKey, mySession) => {
   return true;
 };
 
-const speakNative = (text, mySession) => new Promise((resolve) => {
+// Pick a stable male Hebrew voice when available — most Apple/Google Hebrew
+// voices are female ("Carmit"); we prefer male if the device exposes one so
+// the host voice doesn't fight the female TTS in any kid's mental model.
+const pickHebrewVoice = () => {
+  if (typeof speechSynthesis === 'undefined') return null;
+  const voices = speechSynthesis.getVoices();
+  const he = voices.filter(v => v.lang?.startsWith('he'));
+  if (!he.length) return null;
+  return he.find(v => /male/i.test(v.name) && !/female/i.test(v.name)) || he[0];
+};
+
+const speakNative = (text, mySession, rate = NATIVE_RATE) => new Promise((resolve) => {
   if (typeof speechSynthesis === 'undefined') return resolve();
   if (!isCurrent(mySession)) return resolve();
   const u = new SpeechSynthesisUtterance(stripNikud(text));
   u.lang = 'he-IL';
-  u.rate = 0.9;
-  const voices = speechSynthesis.getVoices();
-  const heVoice = voices.find(v => v.lang?.startsWith('he'));
+  u.rate = rate;
+  const heVoice = pickHebrewVoice();
   if (heVoice) u.voice = heVoice;
   u.onend = () => resolve();
   u.onerror = () => resolve();
@@ -144,6 +161,22 @@ export const playWord = async (word) => {
 export const speak = async (text) => {
   stop();
   const mySession = session;
+  if (await tryTts(text, `tts:${text}`, mySession)) return;
+  if (!isCurrent(mySession)) return;
+  await speakNative(text, mySession);
+};
+
+// Host commentary — short praise / encouragement. Optimized for instant playback,
+// so prefers Web Speech (no network) when a Hebrew voice exists. Falls back to
+// Phonikud only if the device has no native he-IL voice.
+export const say = async (text) => {
+  stop();
+  const mySession = session;
+  const heVoice = pickHebrewVoice();
+  if (heVoice) {
+    await speakNative(text, mySession, NATIVE_RATE);
+    return;
+  }
   if (await tryTts(text, `tts:${text}`, mySession)) return;
   if (!isCurrent(mySession)) return;
   await speakNative(text, mySession);

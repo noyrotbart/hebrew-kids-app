@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import Stars from '../components/Stars.jsx';
 import Button from '../components/Button.jsx';
+import { sayLessonDone } from '../lib/encourage.js';
 import './Complete.css';
 
 const TITLES = [
@@ -8,10 +10,16 @@ const TITLES = [
   'מושלם!',       // 3 stars
 ];
 
-export default function Complete({ result, onContinue, onHome }) {
+export default function Complete({ result, profile, onContinue, onHome }) {
   const { lesson, stars, earned } = result;
   const title = TITLES[Math.max(0, Math.min(2, stars - 1))];
   const hebLetters = lesson.letters.map(l => l.heb).join(' · ');
+
+  // Speak the celebration once on mount, with the kid's name when we have it.
+  useEffect(() => {
+    const t = setTimeout(() => sayLessonDone(profile?.name), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <div className="screen complete">

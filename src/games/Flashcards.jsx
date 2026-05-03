@@ -4,7 +4,7 @@ import { LETTER_COLOR } from '../data/alphabet.js';
 import { WORDS_BY_ID } from '../data/words.js';
 import { useMic } from '../lib/useMic.js';
 import { stripNikud } from '../data/alphabet.js';
-import { levenshtein } from '../lib/util.js';
+import { sayPraise, sayTryAgain } from '../lib/encourage.js';
 import WordImage from '../components/WordImage.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import MicButton from '../components/MicButton.jsx';
@@ -27,31 +27,47 @@ export default function Flashcards({ lesson, onDone }) {
   const [flipped, setFlipped] = useState(false);
   const card = cards[idx];
 
-  // Mic listening for the letter name — kid hears it, then says it back.
-  // On match we auto-flip the card to reveal the example word, so saying the
-  // letter is its own little reward.
+  // Mic listens automatically: after the letter is spoken, the recognizer fires
+  // with no tap required. Saying the letter correctly auto-flips the card and
+  // unlocks the example word, with vocal praise — the speech IS the interaction.
   const targets = card ? [card.letter.nameEn.toLowerCase(), stripNikud(card.letter.nameHe)] : [];
   const mic = useMic({
     targets,
     onMatch: () => {
-      setTimeout(() => setFlipped(true), 350);
+      setTimeout(() => sayPraise(), 250);
+      setTimeout(() => setFlipped(true), 700);
     },
   });
 
+  // Auto-play the letter audio, then auto-start the mic. Cancellation guard so
+  // a fast "next" doesn't leave a stray mic.start() pointing at the old card.
   useEffect(() => {
     setFlipped(false);
     mic.reset();
-    const t = setTimeout(() => playLetter(card.letter.id), 250);
-    return () => clearTimeout(t);
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      if (cancelled) return;
+      await playLetter(card.letter.id);
+      if (cancelled) return;
+      // Brief pause so the kid hears silence between "letter audio" and "your turn".
+      setTimeout(() => { if (!cancelled) mic.start(); }, 350);
+    }, 250);
+    return () => { cancelled = true; clearTimeout(t); };
   }, [idx]);
 
-  // Speak the example word when the card flips to the back face.
+  // When the card flips to the back face, auto-play the example word.
   useEffect(() => {
     if (flipped) {
-      const t = setTimeout(() => playWord(card.word), 450);
+      const t = setTimeout(() => playWord(card.word), 600);
       return () => clearTimeout(t);
     }
   }, [flipped, idx]);
+
+  // If mic registered something but it didn't match, give one quiet "נסה שוב" cue
+  // — without restarting automatically (kid taps to retry on their own pace).
+  useEffect(() => {
+    if (mic.state === 'wrong') sayTryAgain();
+  }, [mic.state]);
 
   const next = () => {
     mic.stop();

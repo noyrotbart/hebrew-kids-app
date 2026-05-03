@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { playWord } from '../lib/audio.js';
 import { WORDS } from '../data/words.js';
 import { shuffle, sample } from '../lib/util.js';
+import { sayPraise, sayTryAgain } from '../lib/encourage.js';
 import WordImage from '../components/WordImage.jsx';
 import SpeakButton from '../components/SpeakButton.jsx';
 import './Listen.css';
@@ -45,11 +46,16 @@ export default function Listen({ lesson, onDone }) {
     if (picked) return;
     const isCorrect = word.id === round.target.id;
     setPicked({ id: word.id, isCorrect });
-    if (isCorrect) setCorrect(c => c + 1);
+    if (isCorrect) {
+      setCorrect(c => c + 1);
+      setTimeout(() => sayPraise(), 200);
+    } else {
+      setTimeout(() => sayTryAgain(), 200);
+    }
     setTimeout(() => {
       if (idx + 1 >= challenges.length) onDone((correct + (isCorrect ? 1 : 0)) / challenges.length);
       else setIdx(idx + 1);
-    }, 850);
+    }, 1200);
   };
 
   return (
