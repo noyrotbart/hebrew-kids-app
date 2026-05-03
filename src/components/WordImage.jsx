@@ -1,28 +1,71 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { resolveWikiImage } from '../lib/wikiImage.js';
 import './WordImage.css';
 
-// Renders a real photo per vocabulary word. While the image loads (or if it's
-// missing because fetch-images.mjs hasn't been run), a styled placeholder
-// shows the Hebrew letters as a tasteful fallback — no icon shortcuts.
+// Image resolution chain:
+//   1. /images/words/{id}.jpg       — checked-in via scripts/fetch-images.mjs (Pexels)
+//   2. Wikipedia REST API thumbnail — runtime fetch, free, cached in localStorage
+//   3. Gradient placeholder         — neutral fallback that never reveals the answer
 export default function WordImage({ word, size = 'md', rounded = 'lg' }) {
-  const [error, setError] = useState(false);
   const cls = ['word-image', `word-image--${size}`, `word-image--r-${rounded}`];
-  const src = `/images/words/${word.id}.jpg`;
 
-  return (
-    <div className={cls.join(' ')}>
-      {error ? (
-        <Placeholder word={word} />
-      ) : (
-        <img src={src} alt={word.en} loading="lazy" onError={() => setError(true)} />
-      )}
-    </div>
-  );
+  // 'static'  – trying public/images/words/{id}.jpg
+  // 'wiki'    – static failed, trying Wikipedia thumbnail (`wikiSrc`)
+  // 'placeholder' – both failed
+  const [phase, setPhase] = useState('static');
+  const [wikiSrc, setWikiSrc] = useState(null);
+
+  // Reset chain when the word changes (otherwise a stale phase from a prior word
+  // sticks around and shows the wrong placeholder for the new word).
+  useEffect(() => {
+    setPhase('static');
+    setWikiSrc(null);
+  }, [word.id]);
+
+  // When we move into the 'wiki' phase, fetch from the Wikipedia REST endpoint.
+  useEffect(() => {
+    let cancelled = false;
+    if (phase !== 'wiki' || wikiSrc) return;
+    resolveWikiImage(word).then(src => {
+      if (cancelled) return;
+      if (src) setWikiSrc(src);
+      else setPhase('placeholder');
+    });
+    return () => { cancelled = true; };
+  }, [phase, word.id]);
+
+  let content;
+  if (phase === 'placeholder') {
+    content = <Placeholder word={word} />;
+  } else if (phase === 'wiki' && wikiSrc) {
+    content = (
+      <img
+        src={wikiSrc}
+        alt={word.en}
+        loading="lazy"
+        onError={() => setPhase('placeholder')}
+        className="word-image__img word-image__img--wiki"
+      />
+    );
+  } else if (phase === 'wiki') {
+    // Wiki fetch in flight — keep a quiet placeholder visible.
+    content = <Placeholder word={word} loading />;
+  } else {
+    // 'static'
+    content = (
+      <img
+        src={`/images/words/${word.id}.jpg`}
+        alt={word.en}
+        loading="lazy"
+        onError={() => setPhase(word.wiki ? 'wiki' : 'placeholder')}
+        className="word-image__img"
+      />
+    );
+  }
+
+  return <div className={cls.join(' ')}>{content}</div>;
 }
 
-// Each word maps deterministically to one of six gradient slots, so a Listen-stage
-// kid sees four DIFFERENT looking placeholders (and can't read the answer off them)
-// while flashcards/spelling still get a coherent fallback.
 const PLACEHOLDER_GRADIENTS = [
   'linear-gradient(135deg, #FFE5DC, #FFEFC9)',
   'linear-gradient(135deg, #D9F1EF, #FFEFC9)',
@@ -38,7 +81,7 @@ function gradientFor(id) {
   return PLACEHOLDER_GRADIENTS[h % PLACEHOLDER_GRADIENTS.length];
 }
 
-function Placeholder({ word }) {
+function Placeholder({ word, loading }) {
   return (
     <div className="word-image__placeholder" style={{ background: gradientFor(word.id) }}>
       <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden style={{ color: 'rgba(21,25,44,0.18)' }}>
@@ -46,6 +89,7 @@ function Placeholder({ word }) {
         <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
         <path d="M3 17l5-5 4 4 3-3 6 6"/>
       </svg>
+      {loading && <div className="word-image__loading" aria-hidden />}
     </div>
   );
 }

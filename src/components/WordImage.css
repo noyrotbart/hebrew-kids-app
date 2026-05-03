@@ -14,11 +14,28 @@
 .word-image--lg { max-width: 100%; }
 .word-image--xl { max-width: 100%; }
 
-.word-image img {
+.word-image__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  animation: fade-in var(--dur-med) var(--ease) both;
+}
+
+.word-image__loading {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-pill);
+  background: rgba(21,25,44,0.18);
+  animation: speak-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .word-image__placeholder {
