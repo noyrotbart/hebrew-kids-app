@@ -41,13 +41,15 @@ export default function Flashcards({ lesson, onDone }) {
 
   // Auto-play the letter audio, then auto-start the mic. Cancellation guard so
   // a fast "next" doesn't leave a stray mic.start() pointing at the old card.
+  // Audio failures (cold-starts, network) MUST NOT block the mic — the kid
+  // can still try to say the letter even if the host audio glitched.
   useEffect(() => {
     setFlipped(false);
     mic.reset();
     let cancelled = false;
     const t = setTimeout(async () => {
       if (cancelled) return;
-      await playLetter(card.letter.id);
+      try { await playLetter(card.letter.id); } catch {}
       if (cancelled) return;
       // Brief pause so the kid hears silence between "letter audio" and "your turn".
       setTimeout(() => { if (!cancelled) mic.start(); }, 350);

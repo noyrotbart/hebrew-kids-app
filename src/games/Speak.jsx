@@ -37,6 +37,7 @@ export default function Speak({ lesson, onDone }) {
   });
 
   // Auto-play the word, then auto-open the mic — no tap required.
+  // Audio errors don't block the mic.
   useEffect(() => {
     playedRef.current = false;
     mic.reset();
@@ -44,7 +45,7 @@ export default function Speak({ lesson, onDone }) {
     const t = setTimeout(async () => {
       if (cancelled || playedRef.current) return;
       playedRef.current = true;
-      await playWord(word);
+      try { await playWord(word); } catch {}
       if (cancelled) return;
       setTimeout(() => { if (!cancelled) mic.start(); }, 250);
     }, 350);
