@@ -29,7 +29,7 @@ export default function ProfileSelect({ onSelect }) {
           <span className="heb-display">ב</span>
           <span className="heb-display">ג</span>
         </div>
-        <h1>אֶל"ף בֵּי"ת</h1>
+        <h1>אלפבית</h1>
         <p className="muted">לומדים עברית בכיף</p>
       </div>
 
@@ -43,7 +43,7 @@ export default function ProfileSelect({ onSelect }) {
         )}
       </div>
 
-      {adding && <AddProfile onCancel={() => setAdding(false)} onSave={addProfile} />}
+      {adding && <AddProfile onCancel={() => setAdding(false)} onSave={addProfile} canCancel={profiles.length > 0} />}
 
       <div className="spacer" />
       <p className="profile-select__footnote muted">בחרו שחקן כדי להתחיל</p>
@@ -69,7 +69,7 @@ function ProfileCard({ p, onClick }) {
   );
 }
 
-function AddProfile({ onCancel, onSave }) {
+function AddProfile({ onCancel, onSave, canCancel }) {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   useEffect(() => {
@@ -79,10 +79,11 @@ function AddProfile({ onCancel, onSave }) {
   return (
     <div className="profile-add card">
       <input
-        placeholder="השם שלך"
+        placeholder="איך קוראים לך?"
         value={name}
         maxLength={12}
         onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) onSave(name.trim(), color); }}
       />
       <div className="profile-add__colors">
         {COLORS.map(c => (
@@ -96,13 +97,13 @@ function AddProfile({ onCancel, onSave }) {
         ))}
       </div>
       <div className="profile-add__actions">
-        <button className="btn btn--ghost btn--md" onClick={onCancel}>ביטול</button>
+        {canCancel && <button className="btn btn--ghost btn--md" onClick={onCancel}>ביטול</button>}
         <button
           className="btn btn--primary btn--md"
           disabled={!name.trim()}
           onClick={() => onSave(name.trim(), color)}
         >
-          להתחיל
+          להתחיל →
         </button>
       </div>
     </div>
