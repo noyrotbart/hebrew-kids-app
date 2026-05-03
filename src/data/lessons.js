@@ -1,14 +1,15 @@
-// Curriculum: 7 lessons grouping the 22 letters in alphabet order.
-// Each lesson teaches 3–4 letters and ships with two word lists:
-//   - words:           a curated set used by Flashcards / Listen / Matching.
-//                      Prefers words built only from cumulative letters; falls back to
-//                      words that simply *feature* one of the new letters when that's
-//                      too sparse (early lessons), so kids always see meaningful words.
-//   - spellableWords:  strict subset where every letter has been introduced. Used by
-//                      Spelling so kids never have to assemble letters they haven't met.
+// Curriculum: two levels.
+//   Beginner — 7 lessons, each teaching 3-4 letters via the 4-stage flow
+//              (Flashcards → Listen → Speak → Spell).
+//   Intermediate — story composition lessons, each one wrapping a few scenes
+//              that the kid assembles from a tray of word tiles.
+//
+// Intermediate lessons unlock once any beginner lesson has earned at least one
+// star — the kid has met some letters and is ready to build sentences.
 
 import { ALPHABET } from './alphabet.js';
 import { WORDS } from './words.js';
+import { SCENES } from './scenes.js';
 
 const groupLetters = [
   ['alef', 'bet', 'gimel'],
@@ -24,7 +25,7 @@ const MIN_WORDS = 4;
 const MAX_WORDS = 6;
 
 const cumulativeLetters = [];
-export const LESSONS = groupLetters.map((ids, i) => {
+export const BEGINNER_LESSONS = groupLetters.map((ids, i) => {
   const newLetters = ids.map(id => ALPHABET.find(l => l.id === id));
   cumulativeLetters.push(...newLetters.map(l => l.heb));
   const allowed = new Set(cumulativeLetters);
@@ -34,8 +35,6 @@ export const LESSONS = groupLetters.map((ids, i) => {
     .filter(w => w.letters.every(l => allowed.has(l)))
     .sort((a, b) => a.letters.length - b.letters.length);
 
-  // Pad with words that *feature* a new letter, even if other letters aren't yet introduced.
-  // Kids meet those letters as exposure here, then formally learn them in later lessons.
   let words = strict.slice(0, MAX_WORDS);
   if (words.length < MIN_WORDS) {
     const extra = WORDS
@@ -50,6 +49,7 @@ export const LESSONS = groupLetters.map((ids, i) => {
 
   return {
     id: `lesson-${i + 1}`,
+    level: 'beginner',
     index: i,
     number: i + 1,
     title: `שיעור ${i + 1}`,
@@ -60,6 +60,24 @@ export const LESSONS = groupLetters.map((ids, i) => {
   };
 });
 
+// Each intermediate lesson packages 2-3 scenes into a single StoryCompose run.
+const intermediateChunks = chunk(SCENES, 2);
+export const INTERMEDIATE_LESSONS = intermediateChunks.map((scenes, i) => ({
+  id: `int-${i + 1}`,
+  level: 'intermediate',
+  index: i,
+  number: i + 1,
+  title: `סיפור ${i + 1}`,
+  scenes,
+}));
+
+function chunk(arr, size) {
+  const out = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+export const LESSONS = [...BEGINNER_LESSONS, ...INTERMEDIATE_LESSONS];
 export const LESSON_BY_ID = Object.fromEntries(LESSONS.map(l => [l.id, l]));
 
 export const NUM_LESSONS = LESSONS.length;

@@ -9,18 +9,20 @@ import Flashcards from '../games/Flashcards.jsx';
 import Listen from '../games/Listen.jsx';
 import Speak from '../games/Speak.jsx';
 import Spelling from '../games/Spelling.jsx';
+import StoryCompose from '../games/StoryCompose.jsx';
 import './Lesson.css';
 
-// A lesson is a sequence of 4 stages. Each stage reports a "score 0..1" when finished.
-// The final star count = round(avg(scores) * 3).
-//
-// Pedagogy: Discover (Flashcards) → Receptive (Listen) → Productive (Speak) → Apply (Spell).
-// Speak puts the kid's voice at the center — they say the word out loud, mic verifies.
-const STAGES = [
+// Beginner: Discover (Flashcards) → Receptive (Listen) → Productive (Speak) → Apply (Spell).
+// Intermediate: a single StoryCompose run over the lesson's scene set.
+const BEGINNER_STAGES = [
   { key: 'flashcards', Component: Flashcards },
   { key: 'listen',     Component: Listen },
   { key: 'speak',      Component: Speak },
   { key: 'spelling',   Component: Spelling },
+];
+
+const INTERMEDIATE_STAGES = [
+  { key: 'story', Component: StoryCompose },
 ];
 
 export default function Lesson({ lessonId, profile, onExit, onComplete }) {
@@ -32,9 +34,11 @@ export default function Lesson({ lessonId, profile, onExit, onComplete }) {
 
   if (!lesson) return null;
 
+  const stages = lesson.level === 'intermediate' ? INTERMEDIATE_STAGES : BEGINNER_STAGES;
+
   const handleStageDone = (score) => {
     const nextScores = [...scores, score];
-    if (stage + 1 >= STAGES.length) {
+    if (stage + 1 >= stages.length) {
       const avg = nextScores.reduce((s, v) => s + v, 0) / nextScores.length;
       const stars = Math.max(1, Math.min(3, Math.round(avg * 3)));
       const result = recordLessonStars(profile.id, lessonId, stars);
@@ -46,18 +50,21 @@ export default function Lesson({ lessonId, profile, onExit, onComplete }) {
     setScores(nextScores);
   };
 
-  const Stage = STAGES[stage].Component;
-  const totalProgress = stage / STAGES.length;
+  const Stage = stages[stage].Component;
+  const totalProgress = stage / stages.length;
 
   return (
     <div className="screen lesson">
       <TopBar onBack={onExit} progress={totalProgress} right={
         <div className="lesson__hearts">
-          <Stars count={STAGES.length - stage} total={STAGES.length} size="sm" />
+          <Stars count={stages.length - stage} total={stages.length} size="sm" />
         </div>
       } />
       <div className="lesson__stage">
-        <Stage key={STAGES[stage].key} lesson={lesson} onDone={handleStageDone} />
+        {/* StoryCompose takes scenes directly, others take the lesson object */}
+        {lesson.level === 'intermediate'
+          ? <StoryCompose key={stages[stage].key} scenes={lesson.scenes} onDone={handleStageDone} />
+          : <Stage key={stages[stage].key} lesson={lesson} onDone={handleStageDone} />}
       </div>
     </div>
   );

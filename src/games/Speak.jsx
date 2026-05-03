@@ -98,7 +98,6 @@ export default function Speak({ lesson, onDone }) {
           </span>
         </div>
         <div className="speak__word heb-display">{word.he}</div>
-        <div className="speak__roman">{word.roman} · {word.en}</div>
       </button>
 
       <div className="speak__mic">

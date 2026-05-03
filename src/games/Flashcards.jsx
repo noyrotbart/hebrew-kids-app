@@ -101,13 +101,11 @@ export default function Flashcards({ lesson, onDone }) {
           )}
           <div className="flashcards__glyph heb-display">{card.letter.heb}</div>
           <div className="flashcards__sound">{card.letter.sound !== '—' ? `נשמעת ${card.letter.sound}` : 'אות שקטה'}</div>
-          <div className="flashcards__nameEn">{card.letter.nameEn}</div>
           <div className="flashcards__flip-hint" aria-hidden>↻</div>
         </div>
         <div className="flashcards__face flashcards__face--back">
           <WordImage word={card.word} size="lg" rounded="lg" />
           <div className="flashcards__word heb-display">{card.word.he}</div>
-          <div className="flashcards__roman">{card.word.roman} — {card.word.en}</div>
         </div>
       </button>
 
@@ -118,7 +116,7 @@ export default function Flashcards({ lesson, onDone }) {
               size="lg"
               state={mic.state}
               transcript={mic.transcript}
-              hint={mic.state === 'wrong' ? `נסו שוב — "${card.letter.nameEn}"` : `אמרו "${card.letter.nameEn}"`}
+              hint={mic.state === 'wrong' ? 'נסו שוב' : 'אמרו אחרי'}
               onClick={mic.toggle}
             />
             <button className="flashcards__listen-link" onClick={() => playLetter(card.letter.id)} aria-label="שמעו שוב">

@@ -118,7 +118,6 @@ export default function Spelling({ lesson, onDone }) {
             <SpeakerIcon />
           </span>
         </div>
-        <div className="spelling__hint">{word.en}</div>
       </button>
 
       <div className="spelling__direction" aria-hidden>

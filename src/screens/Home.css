@@ -42,12 +42,40 @@
 .home__greeting h1 { font-size: var(--t-2xl); }
 .home__greeting p  { margin-top: 4px; }
 
+.home__section {
+  padding: var(--s-3) 0 var(--s-2);
+}
+.home__section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--s-2) 0;
+}
+.home__section-header h2 {
+  font-size: var(--t-md);
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.home__section-lock {
+  font-size: var(--t-xs);
+  color: var(--ink-mute);
+  font-weight: 500;
+}
+
 .home__path {
   display: flex;
   flex-direction: column;
   gap: var(--s-5);
-  padding: var(--s-3) 0 var(--s-7);
+  padding: var(--s-2) 0 var(--s-5);
   position: relative;
+}
+
+.pathnode__caption {
+  font-size: var(--t-sm);
+  color: var(--ink-mute);
+  font-weight: 600;
 }
 
 .pathnode {

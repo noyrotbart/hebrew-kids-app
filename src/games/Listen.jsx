@@ -85,7 +85,7 @@ export default function Listen({ lesson, onDone }) {
               aria-label={opt.en}
             >
               <WordImage word={opt} size="lg" rounded="lg" />
-              {state && <span className="listen__caption">{opt.en}</span>}
+              {state && <span className="listen__caption heb-display">{opt.bare}</span>}
             </button>
           );
         })}
