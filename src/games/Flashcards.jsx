@@ -65,7 +65,7 @@ export default function Flashcards({ lesson, onDone }) {
     <div className="flashcards">
       <div className="flashcards__intro">
         <h2>{flipped ? 'מילה לדוגמה' : 'אות חדשה'}</h2>
-        <div className="flashcards__counter">{idx + 1} / {cards.length}</div>
+        <div className="flashcards__counter" dir="ltr">{idx + 1} / {cards.length}</div>
       </div>
 
       <button

@@ -72,15 +72,20 @@ export default function Speak({ lesson, onDone }) {
     <div className="speak">
       <div className="speak__intro">
         <h2>אמרו את המילה</h2>
-        <p className="muted">לחצו על המיקרופון ודברו</p>
+        <div className="speak__counter" dir="ltr">{idx + 1} / {rounds.length}</div>
       </div>
 
-      <div className="speak__hero">
-        <WordImage word={word} size="lg" rounded="lg" />
+      {/* The word block is itself the "replay" affordance — tap anywhere on it to hear again. */}
+      <button className="speak__word-block" onClick={() => playWord(word)} aria-label="שמעו שוב">
+        <div className="speak__word-image">
+          <WordImage word={word} size="lg" rounded="lg" />
+          <span className="speak__replay-badge" aria-hidden>
+            <SpeakerIcon />
+          </span>
+        </div>
         <div className="speak__word heb-display">{word.he}</div>
-        <div className="speak__roman">{word.roman} — {word.en}</div>
-        <SpeakButton size="md" label="שמעו שוב" onClick={() => playWord(word)} />
-      </div>
+        <div className="speak__roman">{word.roman} · {word.en}</div>
+      </button>
 
       <div className="speak__mic">
         {mic.supported ? (
@@ -102,9 +107,9 @@ export default function Speak({ lesson, onDone }) {
       {mic.supported && (
         <div className="speak__actions">
           {mic.state === 'wrong' && (
-            <Button variant="soft" onClick={mic.start}>נסו שוב</Button>
+            <Button variant="soft" size="sm" onClick={mic.start}>נסו שוב</Button>
           )}
-          <Button variant="ghost" onClick={skip}>דלגו</Button>
+          <button className="speak__skip" onClick={skip}>דלגו ←</button>
         </div>
       )}
 
@@ -114,5 +119,14 @@ export default function Speak({ lesson, onDone }) {
         ))}
       </div>
     </div>
+  );
+}
+
+function SpeakerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden>
+      <path d="M3 10v4a1 1 0 0 0 1 1h3l4 4a1 1 0 0 0 1.7-.7V5.7A1 1 0 0 0 11 5L7 9H4a1 1 0 0 0-1 1z"/>
+      <path d="M16 8.5a4 4 0 0 1 0 7" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
+    </svg>
   );
 }

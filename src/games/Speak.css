@@ -1,22 +1,65 @@
-.speak { display: flex; flex-direction: column; gap: var(--s-5); padding: var(--s-3) 0; flex: 1; }
-.speak__intro h2 { font-size: var(--t-xl); }
-.speak__intro p  { font-size: var(--t-sm); margin-top: 4px; }
+.speak { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-2) 0 var(--s-4); flex: 1; }
 
-.speak__hero {
+.speak__intro {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.speak__intro h2 { font-size: var(--t-xl); }
+.speak__counter {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  color: var(--ink-mute);
+  background: var(--bg-card);
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  box-shadow: var(--sh-sm);
+}
+
+.speak__word-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--s-3);
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-card);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-sm);
+  border: 0;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
-.speak__hero .word-image { max-width: 220px; }
+.speak__word-block:hover  { transform: translateY(-2px); box-shadow: var(--sh-md); }
+.speak__word-block:active { transform: translateY(1px) scale(0.99); }
+
+.speak__word-image {
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+}
+.speak__replay-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--sh-md);
+}
+
 .speak__word {
-  font-size: 56px;
+  font-size: 48px;
   line-height: 1;
   color: var(--ink);
   margin-top: var(--s-2);
 }
 .speak__roman {
-  font-size: var(--t-md);
+  font-size: var(--t-sm);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-mute);
@@ -25,7 +68,7 @@
 .speak__mic {
   display: flex;
   justify-content: center;
-  padding: var(--s-3) 0 var(--s-2);
+  padding: var(--s-2) 0;
 }
 .speak__no-mic {
   display: flex;
@@ -37,8 +80,20 @@
 .speak__actions {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: var(--s-3);
 }
+.speak__skip {
+  background: transparent;
+  border: 0;
+  color: var(--ink-mute);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+.speak__skip:hover { color: var(--ink); }
 
 .speak__progress {
   display: flex;
