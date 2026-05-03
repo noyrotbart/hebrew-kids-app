@@ -22,7 +22,8 @@ export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
           <span>{profile.name}</span>
         </button>
         <div className="home__xp">
-          <span className="home__xp-stars">⭐ {totalStars}</span>
+          <span className="home__xp-stars" dir="ltr">⭐ {totalStars}</span>
+          <span className="home__xp-divider" aria-hidden>·</span>
           <span className="home__xp-points">{progress.xp ?? 0} נק'</span>
         </div>
       </div>
@@ -35,10 +36,15 @@ export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
       <div className="home__path">
         {LESSONS.map((lesson, i) => {
           const earned = stars[lesson.id] ?? 0;
-          const status = earned >= 3 ? 'done'
+          // Lesson unlocks when the previous one has earned ≥1 star — kids don't need
+          // to 3-star a lesson before moving on. The first <3-star lesson is "current"
+          // (warmly inviting them to perfect it), the rest unlocked behind it.
+          const prevEarned = i === 0 ? 1 : (stars[LESSONS[i - 1].id] ?? 0);
+          const unlocked = i === 0 || prevEarned >= 1;
+          const status = !unlocked ? 'locked'
+                       : earned >= 3 ? 'done'
                        : i === currentIdx ? 'current'
-                       : i < currentIdx ? 'done'
-                       : 'locked';
+                       : 'available';
           return (
             <PathNode
               key={lesson.id}

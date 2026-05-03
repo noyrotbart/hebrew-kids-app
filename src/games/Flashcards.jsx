@@ -100,7 +100,7 @@ export default function Flashcards({ lesson, onDone }) {
               size="lg"
               state={mic.state}
               transcript={mic.transcript}
-              hint={`אמרו "${card.letter.nameEn}"`}
+              hint={mic.state === 'wrong' ? `נסו שוב — "${card.letter.nameEn}"` : `אמרו "${card.letter.nameEn}"`}
               onClick={mic.toggle}
             />
             <button className="flashcards__listen-link" onClick={() => playLetter(card.letter.id)} aria-label="שמעו שוב">

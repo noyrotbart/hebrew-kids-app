@@ -27,7 +27,7 @@
 .home__xp {
   display: inline-flex;
   align-items: center;
-  gap: var(--s-3);
+  gap: var(--s-2);
   background: var(--bg-card);
   padding: 8px 14px;
   border-radius: var(--r-pill);
@@ -35,7 +35,8 @@
   font-weight: 700;
   font-size: var(--t-sm);
 }
-.home__xp-points { color: var(--ink-mute); font-weight: 500; }
+.home__xp-divider { color: var(--line); font-weight: 400; }
+.home__xp-points  { color: var(--ink-mute); font-weight: 500; }
 
 .home__greeting { padding: var(--s-3) 0 var(--s-4); }
 .home__greeting h1 { font-size: var(--t-2xl); }
@@ -73,10 +74,11 @@
   transition: transform var(--dur-fast) var(--ease);
 }
 .pathnode__bubble:active { transform: scale(0.95); }
-.pathnode--done    .pathnode__bubble { background: var(--green); }
-.pathnode--current .pathnode__bubble { background: var(--coral); animation: float 2.4s ease-in-out infinite; }
-.pathnode--locked  .pathnode__bubble { background: var(--bg-soft); color: var(--ink-mute); box-shadow: var(--sh-sm); cursor: not-allowed; }
-.pathnode--locked  .pathnode__num   { display: none; }
+.pathnode--done      .pathnode__bubble { background: var(--green); }
+.pathnode--current   .pathnode__bubble { background: var(--coral); animation: float 2.4s ease-in-out infinite; }
+.pathnode--available .pathnode__bubble { background: var(--teal); }
+.pathnode--locked    .pathnode__bubble { background: var(--bg-soft); color: var(--ink-mute); box-shadow: var(--sh-sm); cursor: not-allowed; }
+.pathnode--locked    .pathnode__num   { display: none; }
 
 .pathnode__card {
   padding: var(--s-4) var(--s-5);
