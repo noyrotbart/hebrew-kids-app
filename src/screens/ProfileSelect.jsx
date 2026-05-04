@@ -6,7 +6,7 @@ const COLORS = ['#FF7A59', '#3DB7B0', '#FFB930', '#7C5CFF', '#3FB87E', '#E36464'
 
 export default function ProfileSelect({ onSelect }) {
   const [profiles, setProfiles] = useState(loadProfiles);
-  const [adding, setAdding] = useState(profiles.length === 0);
+  const [adding, setAdding] = useState(false);
 
   const choose = (id) => {
     saveActiveProfile(id);
@@ -46,7 +46,7 @@ export default function ProfileSelect({ onSelect }) {
       {adding && <AddProfile onCancel={() => setAdding(false)} onSave={addProfile} canCancel={profiles.length > 0} />}
 
       <div className="spacer" />
-      <p className="profile-select__footnote muted">בחרו שחקן כדי להתחיל</p>
+      <p className="profile-select__footnote muted">מי משחק היום?</p>
     </div>
   );
 }

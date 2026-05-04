@@ -59,15 +59,14 @@ export default function StoryCompose({ scenes, onDone }) {
       celebrate('small');
       setTimeout(() => sayPraise(), 250);
     }
-    // Replay the sentence as a sealing reward, then advance.
-    setTimeout(() => playScene(scene), 1100);
+    // No sentence replay — kid heard it on round entry; praise + advance is enough.
     setTimeout(() => {
       if (idx + 1 >= rounds.length) {
         onDone(Math.min(1, (scoreSum + roundScore) / rounds.length));
       } else {
         setIdx(idx + 1);
       }
-    }, 2700);
+    }, 1500);
   };
 
   const tapTray = (item) => {

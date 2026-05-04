@@ -19,8 +19,11 @@ const HINT_AFTER_MISTAKES = 3;
 //
 // Score = correctRounds / totalRounds, with -0.15 per mistake (floored at 0).
 export default function Spelling({ lesson, onDone }) {
+  // Prefer the lesson's broader word set when the strict spellable list is
+  // too small (early lessons only have 1-2 words) — kids see more variety
+  // even if the tray shows letters they haven't formally learned yet.
   const rounds = useMemo(() => {
-    const pool = lesson.spellableWords.length > 0 ? lesson.spellableWords : lesson.words;
+    const pool = lesson.spellableWords.length >= 3 ? lesson.spellableWords : lesson.words;
     return sample(pool, Math.min(ROUNDS, pool.length));
   }, [lesson.id]);
 
@@ -60,7 +63,8 @@ export default function Spelling({ lesson, onDone }) {
       sfxCorrect();
       setTimeout(() => sayPraise(), 200);
     }
-    setTimeout(() => playWord(word), 900);
+    // No replay of the word here — the kid already heard it on round entry,
+    // and the praise voice line is enough auditory closure.
     setTimeout(() => {
       if (idx + 1 >= rounds.length) {
         onDone(Math.min(1, (scoreSum + roundScore) / rounds.length));

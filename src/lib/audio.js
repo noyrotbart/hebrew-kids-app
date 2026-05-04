@@ -142,9 +142,18 @@ export const playLetter = async (id) => {
   await speakNative(id, mySession);
 };
 
+// Phonikud sometimes mangles specific words — use the device's native Hebrew
+// voice for those instead of the pre-baked WAV. Add a word id here when a
+// kid hears it as "badly said" and we'd rather use Carmit than Phonikud.
+const NATIVE_OVERRIDES = new Set(['aba']);
+
 export const playWord = async (word) => {
   stop();
   const mySession = session;
+  if (NATIVE_OVERRIDES.has(word.id) && pickHebrewVoice()) {
+    await speakNative(word.he, mySession);
+    return;
+  }
   const url = `/audio/words/${word.id}.wav`;
   const cached = cache.get(url);
   if (cached) {

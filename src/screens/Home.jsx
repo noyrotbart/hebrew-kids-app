@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { BEGINNER_LESSONS, INTERMEDIATE_LESSONS } from '../data/lessons.js';
 import { getProfileProgress, saveActiveProfile } from '../lib/storage.js';
+import { sayHello, sayLessonIntro } from '../lib/encourage.js';
 import Stars from '../components/Stars.jsx';
 import Mascot from '../components/Mascot.jsx';
 import './Home.css';
@@ -11,6 +12,16 @@ export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
   const totalStars = Object.values(stars).reduce((s, v) => s + v, 0);
 
   const switchProfile = () => { saveActiveProfile(null); onSwitchProfile(); };
+
+  // Spoken greeting once per profile arrival on home — kids hear Hebrew the
+  // moment the screen appears.
+  const greetedRef = useRef(false);
+  useEffect(() => {
+    if (greetedRef.current) return;
+    greetedRef.current = true;
+    const t = setTimeout(() => sayHello(profile.name), 600);
+    return () => clearTimeout(t);
+  }, [profile.id]);
 
   // Intermediate level unlocks once any beginner lesson has earned ≥1 star —
   // the kid has met some letters and is ready to try a sentence.
@@ -35,6 +46,14 @@ export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
                        : earned >= 3 ? 'done'
                        : i === currentIdx ? 'current'
                        : 'available';
+          const handleOpen = () => {
+            if (status === 'locked') return;
+            // Narrate the lesson title BEFORE mounting the lesson screen,
+            // so the audio finishes (or nearly does) by the time the first
+            // flashcard's own audio fires.
+            sayLessonIntro(lesson);
+            onOpenLesson(lesson.id);
+          };
           return (
             <PathNode
               key={lesson.id}
@@ -42,7 +61,7 @@ export default function Home({ profile, onOpenLesson, onSwitchProfile }) {
               status={status}
               stars={earned}
               side={i % 2 === 0 ? 'right' : 'left'}
-              onClick={() => status !== 'locked' && onOpenLesson(lesson.id)}
+              onClick={handleOpen}
             />
           );
         })}

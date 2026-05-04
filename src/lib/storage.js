@@ -13,10 +13,29 @@ const safeSet = (k, v) => {
   try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
 };
 
-const DEFAULT_PROFILES = [];
+// The app always ships with these three characters. Kids pick one as
+// "their" player. Names are short so Hebrew TTS reads them cleanly when
+// greeting / praising.
+const DEFAULT_PROFILES = [
+  { id: 'alma', name: 'עלמה', color: '#FF7A59' },
+  { id: 'max',  name: 'מקס',  color: '#3DB7B0' },
+  { id: 'noah', name: 'נח',   color: '#FFB930' },
+];
 
-export const loadProfiles = () => safeGet(KEY_PROFILES, DEFAULT_PROFILES);
-export const saveProfiles = (p) => safeSet(KEY_PROFILES, p);
+// Migrate older saved state: if profiles don't include all three defaults,
+// splice the missing ones in (preserving custom profiles users may have).
+const ensureDefaults = (saved) => {
+  if (!Array.isArray(saved)) return [...DEFAULT_PROFILES];
+  const haveIds = new Set(saved.map(p => p.id));
+  const missing = DEFAULT_PROFILES.filter(p => !haveIds.has(p.id));
+  if (missing.length === 0) return saved;
+  // Defaults always come first, then any user-added customs.
+  const customs = saved.filter(p => !DEFAULT_PROFILES.some(d => d.id === p.id));
+  return [...DEFAULT_PROFILES, ...customs];
+};
+
+export const loadProfiles = () => ensureDefaults(safeGet(KEY_PROFILES, DEFAULT_PROFILES));
+export const saveProfiles = (p) => safeSet(KEY_PROFILES, ensureDefaults(p));
 
 export const loadActiveProfile = () => safeGet(KEY_ACTIVE, null);
 export const saveActiveProfile = (id) => safeSet(KEY_ACTIVE, id);
@@ -32,7 +51,6 @@ export const getProfileProgress = (profileId) => {
 export const recordLessonStars = (profileId, lessonId, stars) => {
   const all = loadProgress();
   const cur = all[profileId] ?? { stars: {}, xp: 0 };
-  // Only improve, never lower:
   const prev = cur.stars[lessonId] ?? 0;
   const best = Math.max(prev, stars);
   const earned = (best - prev) * 30; // 30 XP per new star earned
