@@ -31,21 +31,36 @@ export const BEGINNER_LESSONS = groupLetters.map((ids, i) => {
   const allowed = new Set(cumulativeLetters);
   const newSet = new Set(newLetters.map(l => l.heb));
 
-  const strict = WORDS
-    .filter(w => w.letters.every(l => allowed.has(l)))
+  // Each lesson's word set should *feature* its new letters first — otherwise
+  // every lesson reuses אבא because that's the only fully-cumulative-spellable
+  // word in the early curriculum. Algorithm:
+  //   1. Take words featuring at least one new letter, sorted shortest first.
+  //   2. If under MIN_WORDS, pad with cumulative-spellable words we haven't
+  //      already used.
+  const featuringNew = WORDS
+    .filter(w => w.letters.some(l => newSet.has(l)))
     .sort((a, b) => a.letters.length - b.letters.length);
 
-  let words = strict.slice(0, MAX_WORDS);
+  let words = featuringNew.slice(0, MAX_WORDS);
+
   if (words.length < MIN_WORDS) {
-    const extra = WORDS
-      .filter(w => !words.some(x => x.id === w.id))
-      .filter(w => w.letters.some(l => newSet.has(l)))
+    const used = new Set(words.map(w => w.id));
+    const cumulativeOnly = WORDS
+      .filter(w => !used.has(w.id))
+      .filter(w => w.letters.every(l => allowed.has(l)))
       .sort((a, b) => a.letters.length - b.letters.length);
-    for (const w of extra) {
+    for (const w of cumulativeOnly) {
       if (words.length >= MIN_WORDS) break;
       words.push(w);
     }
   }
+
+  // Spellable subset: every letter must be cumulative. Used by the Spelling
+  // game so kids never have to pick a letter they haven't seen taught yet.
+  const spellableWords = WORDS
+    .filter(w => w.letters.every(l => allowed.has(l)))
+    .sort((a, b) => a.letters.length - b.letters.length)
+    .slice(0, MAX_WORDS);
 
   return {
     id: `lesson-${i + 1}`,
@@ -56,7 +71,7 @@ export const BEGINNER_LESSONS = groupLetters.map((ids, i) => {
     letters: newLetters,
     cumulativeLetters: [...cumulativeLetters],
     words,
-    spellableWords: strict.slice(0, MAX_WORDS),
+    spellableWords,
   };
 });
 
