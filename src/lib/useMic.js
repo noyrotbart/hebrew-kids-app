@@ -23,20 +23,58 @@ const SR = typeof window !== 'undefined'
 
 const isHeb = (s) => /[֐-׿]/.test(s);
 
-const tolerance = (target) => Math.max(1, Math.floor(target.length / 3));
+// Generous tolerance — kids' pronunciation is approximate and the recognizer
+// itself is noisy. We'd rather pass a close-enough attempt than block the kid.
+// 3-char target → 2 distance, 4 → 2, 5 → 3, 6 → 3, 8 → 4. Combined with the
+// phonetic-normalization step below this lets things like "alef" / "ulef" /
+// "aluf" all match a target of "alef".
+const tolerance = (target) => Math.max(2, Math.ceil(target.length / 2));
+
+// Collapse only consonants kids and the recognizer routinely confuse —
+// vowels stay distinct so "hello" doesn't accidentally match "alef".
+const PHONETIC_MAP = {
+  // Hebrew — variants that share a phoneme post-nikud-strip
+  'ש': 'ס', 'ת': 'ט', 'כ': 'ק',
+  // Latin — collapse only similar consonants, leave vowels alone
+  'q': 'k', 'c': 'k',
+  'z': 's',
+  'd': 't',
+  'b': 'v', 'p': 'v', 'f': 'v',
+  'j': 'y',
+  // Silent-ish: drop h's and punctuation so "ah" can match "alef".
+  'h': '',
+  ' ': '', '-': '', "'": '', '"': '', '.': '', ',': '',
+};
+const phon = (s) => s.split('').map(c => PHONETIC_MAP[c] ?? c).join('');
 
 const matches = (heard, targets) => {
   if (!heard) return false;
   const heardClean = stripNikud(heard).trim().toLowerCase();
+  if (heardClean.length === 0) return false;
+  const heardPhon  = phon(heardClean);
   for (const t of targets) {
     const targetClean = stripNikud(t).trim().toLowerCase();
     if (!targetClean) continue;
-    // Substring fast-path
+    const targetPhon = phon(targetClean);
+
+    // 1. Exact / substring on the raw form.
     if (heardClean.includes(targetClean) || targetClean.includes(heardClean)) return true;
-    // Levenshtein for typos / kid mispronunciation
-    const dist = levenshtein(heardClean, targetClean);
-    if (dist <= tolerance(targetClean)) return true;
-    // Hebrew sometimes adds prefixes (ה־, ב־, ל־); compare without one-letter prefix
+
+    // 2. Substring on the phonetic-normalized form.
+    if (heardPhon && targetPhon && (heardPhon.includes(targetPhon) || targetPhon.includes(heardPhon))) return true;
+
+    // 3. First two characters share + length within 50% — kid started right.
+    if (targetClean.length >= 3 && heardClean.length >= 2
+        && phon(heardClean.slice(0, 2)) === phon(targetClean.slice(0, 2))
+        && Math.abs(heardClean.length - targetClean.length) <= Math.ceil(targetClean.length / 2)) return true;
+
+    // 4. Levenshtein on raw clean strings.
+    if (levenshtein(heardClean, targetClean) <= tolerance(targetClean)) return true;
+
+    // 5. Levenshtein on phonetic-normalized strings — most tolerant pass.
+    if (heardPhon && targetPhon && levenshtein(heardPhon, targetPhon) <= tolerance(targetPhon)) return true;
+
+    // 6. Hebrew prefix tolerance (ה־, ב־, ל־).
     if (isHeb(targetClean) && heardClean.length > 1 && heardClean.slice(1) === targetClean) return true;
     if (isHeb(targetClean) && targetClean.length > 1 && targetClean.slice(1) === heardClean) return true;
   }
