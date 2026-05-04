@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "fetch:images": "node scripts/fetch-images.mjs",
-    "fetch:audio": "node scripts/fetch-audio.mjs"
+    "fetch:audio": "node scripts/fetch-audio.mjs",
+    "fetch:audio:gcp": "node scripts/fetch-audio-gcp.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

@@ -16,11 +16,16 @@
 
 import { stripNikud } from '../data/alphabet.js';
 
-// Educational pacing — content audio plays a bit slower so kids can hear each
-// phoneme distinctly. Both for pre-recorded letter m4a and Phonikud TTS audio.
-const CONTENT_RATE = 0.85;
-// Web Speech is more variable across devices; bias slow.
-const NATIVE_RATE  = 0.78;
+// Audio plays at natural speed — earlier we slowed to 0.85 for "educational
+// pacing" but browsers introduce time-stretch artifacts at non-1.0 rates,
+// which sounded choppy and clipped trailing audio. The pre-baked WAVs are
+// already a kid-friendly cadence; trust the source.
+const CONTENT_RATE = 1.0;
+// Web Speech voices are usually too fast at default; gently slow.
+const NATIVE_RATE  = 0.85;
+// Pad after every playback so trailing audio has a beat to breathe before the
+// next state transition fires.
+const POST_PLAY_PAD_MS = 250;
 
 const cache = new Map();
 let session = 0;
@@ -45,7 +50,12 @@ const playAudio = (audio, mySession, rate = CONTENT_RATE) => new Promise((resolv
   audio.currentTime = 0;
   audio.playbackRate = rate;
   current = audio;
-  audio.onended = () => { if (isCurrent(mySession)) resolve(); };
+  audio.onended = () => {
+    if (!isCurrent(mySession)) return;
+    // Wait a beat before resolving so the next stage's audio doesn't step on
+    // the trailing milliseconds of this one (cropping perception).
+    setTimeout(() => { if (isCurrent(mySession)) resolve(); }, POST_PLAY_PAD_MS);
+  };
   audio.onerror = (e) => { if (isCurrent(mySession)) reject(e); };
   audio.play().catch((e) => { if (isCurrent(mySession)) reject(e); });
 });
