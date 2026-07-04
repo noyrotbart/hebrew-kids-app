@@ -1,31 +1,22 @@
-// Audio playback with single-source guarantee.
+// Audio playback with a single-source guarantee.
 //
-// Resolution order:
-//   1. Pre-generated static file at public/audio/{kind}/{id}.{ext}    (instant, when present)
-//   2. /api/tts (Phonikud serverless proxy)                            (slow first call)
-//   3. Web Speech API 'he-IL'                                          (always available)
+// Sources, in order:
+//   1. Static files under public/audio/ — words/scenes are GCP Wavenet-D
+//      (male), UI lines and newer words are Edge he-IL-AvriNeural (male),
+//      letters are the recorded .m4a set. Probed by Content-Type because SPA
+//      hosts serve index.html for missing files instead of 404.
+//   2. Web Speech API — but ONLY a male he-IL voice. If the device offers no
+//      male Hebrew voice (macOS ships only the female "Carmit"), we stay
+//      silent rather than let a female voice into the app. Every scripted
+//      line is pre-baked, so silence only happens for truly novel text.
 //
-// Anti-doubling: every play() call gets a session id. Any older session is invalidated;
-// in-flight TTS fetches from older sessions are aborted and their results discarded so
-// you never hear two voices at once.
-//
-// Vercel quirk: missing static files don't return 404 — they get the SPA index.html with
-// content-type: text/html. <audio> would happily fail with onerror, so we still rely on
-// that, but we ALSO probe the Content-Type for the static fetch and skip the audio attempt
-// entirely if the response isn't audio/*.
+// Every play() gets a session id; starting a new one invalidates in-flight
+// older plays so two voices never overlap.
 
-import { stripNikud } from '../data/alphabet.js';
+import { stripNikud } from '../data/letters.js';
 
-// Audio plays at natural speed — earlier we slowed to 0.85 for "educational
-// pacing" but browsers introduce time-stretch artifacts at non-1.0 rates,
-// which sounded choppy and clipped trailing audio. The pre-baked WAVs are
-// already a kid-friendly cadence; trust the source.
-const CONTENT_RATE = 1.0;
-// Web Speech voices are usually too fast at default; gently slow.
-const NATIVE_RATE  = 0.85;
-// Pad after every playback so trailing audio has a beat to breathe before the
-// next state transition fires.
-const POST_PLAY_PAD_MS = 250;
+const NATIVE_RATE = 0.85;
+const POST_PLAY_PAD_MS = 200;
 
 const cache = new Map();
 let session = 0;
@@ -35,7 +26,7 @@ let currentAbort = null;
 const isCurrent = (s) => s === session;
 
 const stop = () => {
-  session++; // invalidate any in-flight plays
+  session++;
   if (currentAbort) { try { currentAbort.abort(); } catch {} currentAbort = null; }
   if (current) {
     try { current.pause(); current.currentTime = 0; } catch {}
@@ -46,14 +37,11 @@ const stop = () => {
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
 };
 
-const playAudio = (audio, mySession, rate = CONTENT_RATE) => new Promise((resolve, reject) => {
+const playAudio = (audio, mySession) => new Promise((resolve, reject) => {
   audio.currentTime = 0;
-  audio.playbackRate = rate;
   current = audio;
   audio.onended = () => {
     if (!isCurrent(mySession)) return;
-    // Wait a beat before resolving so the next stage's audio doesn't step on
-    // the trailing milliseconds of this one (cropping perception).
     setTimeout(() => { if (isCurrent(mySession)) resolve(); }, POST_PLAY_PAD_MS);
   };
   audio.onerror = (e) => { if (isCurrent(mySession)) reject(e); };
@@ -61,75 +49,53 @@ const playAudio = (audio, mySession, rate = CONTENT_RATE) => new Promise((resolv
 });
 
 const tryStaticUrl = async (url, mySession) => {
-  // Probe content-type before binding it to <audio>. If the host serves SPA fallback
-  // (text/html) we abort and let the next tier run.
+  const cached = cache.get(url);
+  if (cached) {
+    try { await playAudio(cached, mySession); return true; } catch { return false; }
+  }
   const ac = new AbortController();
   currentAbort = ac;
   let res;
   try {
-    res = await fetch(url, { method: 'GET', signal: ac.signal, cache: 'force-cache' });
+    // no-cache = revalidate with the server (ETag 304 when unchanged), so a
+    // re-recorded clip is picked up immediately instead of a stale cached one.
+    res = await fetch(url, { signal: ac.signal, cache: 'no-cache' });
   } catch {
-    if (!isCurrent(mySession)) return false;
     return false;
   }
-  if (!isCurrent(mySession)) return false;
-  if (!res.ok) return false;
+  if (!isCurrent(mySession) || !res.ok) return false;
   const ct = res.headers.get('content-type') || '';
   if (!ct.startsWith('audio/')) return false;
-  // Use the response as a blob → known-good audio source.
   const blob = await res.blob();
   if (!isCurrent(mySession)) return false;
-  const blobUrl = URL.createObjectURL(blob);
-  const a = new Audio(blobUrl);
+  const a = new Audio(URL.createObjectURL(blob));
   cache.set(url, a);
-  await playAudio(a, mySession);
-  return true;
+  try { await playAudio(a, mySession); return true; } catch { return false; }
 };
 
-const tryTts = async (text, cacheKey, mySession) => {
-  const ac = new AbortController();
-  currentAbort = ac;
-  let res;
-  try {
-    res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: stripNikud(text) }),
-      signal: ac.signal,
-    });
-  } catch {
-    return false;
+const tryStaticUrls = async (urls, mySession) => {
+  for (const url of urls) {
+    if (!isCurrent(mySession)) return false;
+    if (await tryStaticUrl(url, mySession)) return true;
   }
-  if (!isCurrent(mySession)) return false;
-  if (!res.ok) return false;
-  const blob = await res.blob();
-  if (!isCurrent(mySession)) return false;
-  const blobUrl = URL.createObjectURL(blob);
-  const a = new Audio(blobUrl);
-  cache.set(cacheKey, a);
-  await playAudio(a, mySession);
-  return true;
+  return false;
 };
 
-// Pick a stable male Hebrew voice when available — most Apple/Google Hebrew
-// voices are female ("Carmit"); we prefer male if the device exposes one so
-// the host voice doesn't fight the female TTS in any kid's mental model.
-const pickHebrewVoice = () => {
+// STRICT male-only voice pick. Never returns a female voice — returning null
+// (and staying silent) is preferred over the device's female Hebrew voice.
+const pickMaleHebrewVoice = () => {
   if (typeof speechSynthesis === 'undefined') return null;
-  const voices = speechSynthesis.getVoices();
-  const he = voices.filter(v => v.lang?.startsWith('he'));
-  if (!he.length) return null;
-  return he.find(v => /male/i.test(v.name) && !/female/i.test(v.name)) || he[0];
+  const he = speechSynthesis.getVoices().filter(v => v.lang?.startsWith('he'));
+  return he.find(v => /male|avri|guy|asaf/i.test(v.name) && !/female/i.test(v.name)) ?? null;
 };
 
-const speakNative = (text, mySession, rate = NATIVE_RATE) => new Promise((resolve) => {
-  if (typeof speechSynthesis === 'undefined') return resolve();
-  if (!isCurrent(mySession)) return resolve();
+const speakNativeMale = (text, mySession, rate = NATIVE_RATE) => new Promise((resolve) => {
+  const voice = pickMaleHebrewVoice();
+  if (!voice || !isCurrent(mySession)) return resolve();
   const u = new SpeechSynthesisUtterance(stripNikud(text));
   u.lang = 'he-IL';
   u.rate = rate;
-  const heVoice = pickHebrewVoice();
-  if (heVoice) u.voice = heVoice;
+  u.voice = voice;
   u.onend = () => resolve();
   u.onerror = () => resolve();
   speechSynthesis.speak(u);
@@ -137,87 +103,58 @@ const speakNative = (text, mySession, rate = NATIVE_RATE) => new Promise((resolv
 
 // Public API ----------------------------------------------------------------
 
-export const playLetter = async (id) => {
+// Parent-recorded WAVs (made in /#studio) always outrank TTS files, so
+// re-recording a clip instantly changes the app's voice for it.
+
+export const playLetter = async (letterId) => {
   stop();
   const mySession = session;
-  const url = `/audio/letters/${id}.m4a`;
-  // Letters DO ship as real audio files — try cached first, else fetch+probe.
-  const cached = cache.get(url);
-  if (cached) {
-    try { await playAudio(cached, mySession); return; } catch {}
-  }
-  if (!isCurrent(mySession)) return;
-  if (await tryStaticUrl(url, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  await speakNative(id, mySession);
+  const ok = await tryStaticUrls([
+    `/audio/letters/${letterId}.wav`,
+    `/audio/letters/${letterId}.m4a`,
+  ], mySession);
+  if (ok) return;
+  if (isCurrent(mySession)) await speakNativeMale(letterId, mySession);
 };
-
-// Phonikud sometimes mangles specific words — use the device's native Hebrew
-// voice for those instead of the pre-baked WAV. Add a word id here when a
-// kid hears it as "badly said" and we'd rather use Carmit than Phonikud.
-const NATIVE_OVERRIDES = new Set(['aba']);
 
 export const playWord = async (word) => {
   stop();
   const mySession = session;
-  if (NATIVE_OVERRIDES.has(word.id) && pickHebrewVoice()) {
-    await speakNative(word.he, mySession);
-    return;
-  }
-  const url = `/audio/words/${word.id}.wav`;
-  const cached = cache.get(url);
-  if (cached) {
-    try { await playAudio(cached, mySession); return; } catch {}
-  }
-  if (!isCurrent(mySession)) return;
-  if (await tryStaticUrl(url, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  if (await tryTts(word.he, url, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  await speakNative(word.he, mySession);
+  const ok = await tryStaticUrls([
+    `/audio/words/${word.id}.wav`,
+    `/audio/words/${word.id}.mp3`,
+  ], mySession);
+  if (ok) return;
+  if (isCurrent(mySession)) await speakNativeMale(word.he, mySession);
 };
 
-export const speak = async (text) => {
-  stop();
-  const mySession = session;
-  if (await tryTts(text, `tts:${text}`, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  await speakNative(text, mySession);
-};
-
-// Story sentences — try a pre-baked /audio/scenes/{id}.wav first, then fall
-// through the same TTS chain. Saves the cold-start wait when WAVs were
-// committed via scripts/fetch-audio.mjs.
 export const playScene = async (scene) => {
   stop();
   const mySession = session;
-  const url = `/audio/scenes/${scene.id}.wav`;
-  const cached = cache.get(url);
-  if (cached) {
-    try { await playAudio(cached, mySession); return; } catch {}
-  }
-  if (!isCurrent(mySession)) return;
-  if (await tryStaticUrl(url, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  if (await tryTts(scene.sentence, url, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  await speakNative(scene.sentence, mySession);
+  const ok = await tryStaticUrls([
+    `/audio/scenes/${scene.id}.wav`,
+    `/audio/scenes/${scene.id}.mp3`,
+  ], mySession);
+  if (ok) return;
+  if (isCurrent(mySession)) await speakNativeMale(scene.sentence, mySession);
 };
 
-// Host commentary — short praise / encouragement. Optimized for instant playback,
-// so prefers Web Speech (no network) when a Hebrew voice exists. Falls back to
-// Phonikud only if the device has no native he-IL voice.
-export const say = async (text) => {
+// Host commentary — takes a UI line ({id, text} from uiLines.js). Plays the
+// parent recording or pre-baked clip; male native fallback; silence otherwise.
+export const sayLine = async (line) => {
+  if (!line) return;
   stop();
   const mySession = session;
-  const heVoice = pickHebrewVoice();
-  if (heVoice) {
-    await speakNative(text, mySession, NATIVE_RATE);
-    return;
-  }
-  if (await tryTts(text, `tts:${text}`, mySession)) return;
-  if (!isCurrent(mySession)) return;
-  await speakNative(text, mySession);
+  const ok = await tryStaticUrls([
+    `/audio/ui/${line.id}.wav`,
+    `/audio/ui/${line.id}.mp3`,
+  ], mySession);
+  if (ok) return;
+  if (isCurrent(mySession)) await speakNativeMale(line.text, mySession);
 };
+
+// The studio calls this after saving a take so the old blob doesn't keep
+// playing from the in-memory cache.
+export const clearAudioCache = () => cache.clear();
 
 export const stopAudio = stop;

@@ -1,9 +1,8 @@
-// Lightweight typed wrapper around localStorage. Profile is the active player,
-// progress is per-profile (lesson stars + total XP).
+// localStorage persistence. Three fixed player characters; per-player progress
+// is { nodes: { [nodeId]: bestStars 1..3 }, xp, stickers: [worldId] }.
 
-const KEY_PROFILES = 'hka.profiles.v1';
-const KEY_ACTIVE   = 'hka.active.v1';
-const KEY_PROGRESS = 'hka.progress.v1'; // { [profileId]: { stars: { [lessonId]: 0..3 }, xp } }
+const KEY_ACTIVE = 'lk.active.v1';
+const KEY_PROGRESS = 'lk.progress.v1';
 
 const safeGet = (k, fallback) => {
   try { return JSON.parse(localStorage.getItem(k) ?? 'null') ?? fallback; }
@@ -13,52 +12,50 @@ const safeSet = (k, v) => {
   try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
 };
 
-// The app always ships with these three characters. Kids pick one as
-// "their" player. Names are short so Hebrew TTS reads them cleanly when
-// greeting / praising.
-const DEFAULT_PROFILES = [
-  { id: 'alma', name: 'עלמה', color: '#FF7A59' },
-  { id: 'max',  name: 'מקס',  color: '#3DB7B0' },
-  { id: 'noah', name: 'נח',   color: '#FFB930' },
+export const PROFILES = [
+  { id: 'alma', name: 'עַלְמָה', say: 'עלמה', avatar: '🦊', color: '#FF7A59' },
+  { id: 'max',  name: 'מַקְס',   say: 'מקס',  avatar: '🐼', color: '#3DB7B0' },
+  { id: 'noah', name: 'נֹחַ',    say: 'נח',   avatar: '🦖', color: '#FFB930' },
 ];
-
-// Migrate older saved state: if profiles don't include all three defaults,
-// splice the missing ones in (preserving custom profiles users may have).
-const ensureDefaults = (saved) => {
-  if (!Array.isArray(saved)) return [...DEFAULT_PROFILES];
-  const haveIds = new Set(saved.map(p => p.id));
-  const missing = DEFAULT_PROFILES.filter(p => !haveIds.has(p.id));
-  if (missing.length === 0) return saved;
-  // Defaults always come first, then any user-added customs.
-  const customs = saved.filter(p => !DEFAULT_PROFILES.some(d => d.id === p.id));
-  return [...DEFAULT_PROFILES, ...customs];
-};
-
-export const loadProfiles = () => ensureDefaults(safeGet(KEY_PROFILES, DEFAULT_PROFILES));
-export const saveProfiles = (p) => safeSet(KEY_PROFILES, ensureDefaults(p));
+export const PROFILE_BY_ID = Object.fromEntries(PROFILES.map(p => [p.id, p]));
 
 export const loadActiveProfile = () => safeGet(KEY_ACTIVE, null);
 export const saveActiveProfile = (id) => safeSet(KEY_ACTIVE, id);
 
-export const loadProgress = () => safeGet(KEY_PROGRESS, {});
-export const saveProgress = (p) => safeSet(KEY_PROGRESS, p);
+const emptyProgress = () => ({ nodes: {}, xp: 0, stickers: [] });
 
-export const getProfileProgress = (profileId) => {
-  const all = loadProgress();
-  return all[profileId] ?? { stars: {}, xp: 0 };
+export const getProgress = (profileId) => {
+  const all = safeGet(KEY_PROGRESS, {});
+  return all[profileId] ?? emptyProgress();
 };
 
-export const recordLessonStars = (profileId, lessonId, stars) => {
-  const all = loadProgress();
-  const cur = all[profileId] ?? { stars: {}, xp: 0 };
-  const prev = cur.stars[lessonId] ?? 0;
+const putProgress = (profileId, progress) => {
+  const all = safeGet(KEY_PROGRESS, {});
+  safeSet(KEY_PROGRESS, { ...all, [profileId]: progress });
+};
+
+// Record a node run. Stars only ever improve; XP is granted for the delta so
+// replaying a node for a better score still feels rewarding but isn't farmable.
+export const recordNode = (profileId, nodeId, stars, { stickerWorldId } = {}) => {
+  const cur = getProgress(profileId);
+  const prev = cur.nodes[nodeId] ?? 0;
   const best = Math.max(prev, stars);
-  const earned = (best - prev) * 30; // 30 XP per new star earned
+  let earned = (best - prev) * 10;
+
+  const stickers = [...cur.stickers];
+  let newSticker = false;
+  if (stickerWorldId && !stickers.includes(stickerWorldId)) {
+    stickers.push(stickerWorldId);
+    earned += 50;
+    newSticker = true;
+  }
+
   const next = {
     ...cur,
-    stars: { ...cur.stars, [lessonId]: best },
+    nodes: { ...cur.nodes, [nodeId]: best },
     xp: (cur.xp ?? 0) + earned,
+    stickers,
   };
-  saveProgress({ ...all, [profileId]: next });
-  return { earned, total: next.xp, best };
+  putProgress(profileId, next);
+  return { earned, totalXp: next.xp, best, newSticker };
 };

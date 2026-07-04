@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "fetch:images": "node scripts/fetch-images.mjs",
     "fetch:audio": "node scripts/fetch-audio.mjs",
-    "fetch:audio:gcp": "node scripts/fetch-audio-gcp.mjs"
+    "fetch:audio:gcp": "node scripts/fetch-audio-gcp.mjs",
+    "fetch:audio:edge": "node scripts/fetch-audio-edge.mjs",
+    "fetch:audio:11labs": "node scripts/fetch-audio-elevenlabs.mjs",
+    "validate": "node scripts/validate-curriculum.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
@@ -18,6 +21,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "msedge-tts": "^2.0.6",
     "vite": "^5.4.2"
   }
 }

@@ -1,37 +1,28 @@
-import { useEffect, useState } from 'react';
-import {
-  loadActiveProfile,
-  loadProfiles,
-  saveActiveProfile,
-} from './lib/storage.js';
-import { LESSONS, NUM_LESSONS } from './data/lessons.js';
+import { useState } from 'react';
+import { PROFILE_BY_ID, loadActiveProfile, saveActiveProfile, getProgress } from './lib/storage.js';
 import ProfileSelect from './screens/ProfileSelect.jsx';
-import Home from './screens/Home.jsx';
-import Lesson from './screens/Lesson.jsx';
-import Complete from './screens/Complete.jsx';
+import WorldMap from './screens/WorldMap.jsx';
+import NodePlayer from './screens/NodePlayer.jsx';
+import Celebrate from './screens/Celebrate.jsx';
+import StickerBook from './screens/StickerBook.jsx';
+import Studio from './screens/Studio.jsx';
 import './styles/globals.css';
 
 export default function App() {
-  // route shapes: 'profile' | { name: 'home' } | { name: 'lesson', id } | { name: 'complete', result }
+  // route: 'profile' | {name:'map'} | {name:'node', id} | {name:'celebrate', result} | {name:'stickers'}
   const [activeId, setActiveId] = useState(loadActiveProfile);
-  const [route, setRoute] = useState(activeId ? { name: 'home' } : 'profile');
+  const [route, setRoute] = useState(activeId ? { name: 'map' } : 'profile');
+  // Parent recording booth, kept off the kids' path: open /#studio directly.
+  const [studio] = useState(() => window.location.hash === '#studio');
 
-  useEffect(() => {
-    if (!activeId) setRoute('profile');
-  }, [activeId]);
+  if (studio) return <div className="app"><Studio /></div>;
 
-  const profiles = loadProfiles();
-  const profile = profiles.find(p => p.id === activeId) ?? null;
+  const profile = PROFILE_BY_ID[activeId] ?? null;
 
-  const goHome = () => setRoute({ name: 'home' });
-  const openLesson = (id) => setRoute({ name: 'lesson', id });
-  const onLessonComplete = (result) => setRoute({ name: 'complete', result });
-
-  const continueAfterComplete = (result) => {
-    const idx = LESSONS.findIndex(l => l.id === result.lesson.id);
-    const next = LESSONS[Math.min(NUM_LESSONS - 1, idx + 1)];
-    if (next && next.id !== result.lesson.id) openLesson(next.id);
-    else goHome();
+  const selectProfile = (id) => {
+    saveActiveProfile(id);
+    setActiveId(id);
+    setRoute({ name: 'map' });
   };
 
   const switchProfile = () => {
@@ -40,30 +31,38 @@ export default function App() {
     setRoute('profile');
   };
 
+  const goMap = () => setRoute({ name: 'map' });
+  const openNode = (id) => setRoute({ name: 'node', id });
+
+  if (route === 'profile' || !profile) {
+    return <div className="app"><ProfileSelect onSelect={selectProfile} /></div>;
+  }
+
   return (
     <div className="app">
-      {route === 'profile' && (
-        <ProfileSelect onSelect={(id) => { setActiveId(id); setRoute({ name: 'home' }); }} />
+      {route.name === 'map' && (
+        <WorldMap
+          profile={profile}
+          progress={getProgress(profile.id)}
+          onOpenNode={openNode}
+          onOpenStickers={() => setRoute({ name: 'stickers' })}
+          onSwitchProfile={switchProfile}
+        />
       )}
-      {route?.name === 'home' && profile && (
-        <Home profile={profile} onOpenLesson={openLesson} onSwitchProfile={switchProfile} />
-      )}
-      {route?.name === 'lesson' && profile && (
-        <Lesson
+      {route.name === 'node' && (
+        <NodePlayer
           key={route.id}
-          lessonId={route.id}
+          nodeId={route.id}
           profile={profile}
-          onExit={goHome}
-          onComplete={onLessonComplete}
+          onExit={goMap}
+          onComplete={(result) => setRoute({ name: 'celebrate', result })}
         />
       )}
-      {route?.name === 'complete' && profile && (
-        <Complete
-          result={route.result}
-          profile={profile}
-          onHome={goHome}
-          onContinue={() => continueAfterComplete(route.result)}
-        />
+      {route.name === 'celebrate' && (
+        <Celebrate result={route.result} onNext={openNode} onMap={goMap} />
+      )}
+      {route.name === 'stickers' && (
+        <StickerBook progress={getProgress(profile.id)} onBack={goMap} />
       )}
     </div>
   );

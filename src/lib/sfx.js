@@ -69,3 +69,23 @@ export const sfxMicMatch = () => {
   scheduleTone(880, 0.10, 0,    { type: 'triangle' });
   scheduleTone(1320, 0.18, 0.08, { type: 'triangle' });
 };
+
+// Bubbly pop — bursting a bubble in the letter hunt.
+export const sfxPop = () => {
+  scheduleTone(520, 0.05, 0,    { type: 'square', peak: 0.10 });
+  scheduleTone(1040, 0.09, 0.03, { type: 'sine',  peak: 0.14 });
+};
+
+// Soft click — card flip in memory, tile snap in spelling.
+export const sfxFlip = () => {
+  scheduleTone(700, 0.05, 0, { type: 'triangle', peak: 0.10 });
+};
+
+// Longer fanfare — earning a sticker.
+export const sfxSticker = () => {
+  scheduleTone(523, 0.16, 0,    { type: 'triangle' });          // C5
+  scheduleTone(659, 0.16, 0.12, { type: 'triangle' });          // E5
+  scheduleTone(784, 0.16, 0.24, { type: 'triangle' });          // G5
+  scheduleTone(1047, 0.28, 0.36, { type: 'triangle', peak: 0.22 }); // C6
+  scheduleTone(1319, 0.45, 0.52, { type: 'triangle', peak: 0.22 }); // E6
+};

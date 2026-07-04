@@ -1,29 +1,35 @@
+// Small shared helpers.
+
 export const shuffle = (arr) => {
-  const out = arr.slice();
-  for (let i = out.length - 1; i > 0; i--) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return out;
+  return a;
 };
 
 export const sample = (arr, n) => shuffle(arr).slice(0, n);
 
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-// Levenshtein distance for fuzzy speech matching.
+export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
 export const levenshtein = (a, b) => {
-  const dp = Array(b.length + 1).fill(0).map((_, i) => i);
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
-    let prev = dp[0];
-    dp[0] = i;
+    const cur = [i];
     for (let j = 1; j <= b.length; j++) {
-      const cur = dp[j];
-      dp[j] = a[i - 1] === b[j - 1]
-        ? prev
-        : 1 + Math.min(prev, dp[j], dp[j - 1]);
-      prev = cur;
+      cur[j] = Math.min(
+        prev[j] + 1,
+        cur[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
     }
+    prev = cur;
   }
-  return dp[b.length];
+  return prev[b.length];
 };

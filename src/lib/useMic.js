@@ -14,7 +14,7 @@
 //   - allows 1 char of Levenshtein distance per ~3 chars of length
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { stripNikud } from '../data/alphabet.js';
+import { stripNikud } from '../data/letters.js';
 import { levenshtein } from './util.js';
 
 const SR = typeof window !== 'undefined'

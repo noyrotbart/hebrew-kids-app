@@ -1,86 +1,102 @@
 // Vocabulary corpus.
 //
-// Image strategy (in order of preference):
-//   1. Static file at public/images/words/{id}.jpg, downloaded by scripts/fetch-images.mjs
-//      from Pexels. Best quality + offline-friendly.
-//   2. Wikipedia REST API thumbnail at runtime — free, no key, CORS-open, real photo.
-//      Cached in localStorage. Used for words with `wiki` set.
-//   3. Gradient placeholder (ugly but neutral, never reveals the answer).
+// Images: static file at public/images/words/{id}.jpg (fetched from Pexels by
+// scripts/fetch-images.mjs). When missing (noImage) WordCard falls back to the
+// emoji, rendered big on a soft tile — so every word always has a face.
 //
-// Audio: pre-generated WAV at public/audio/words/{id}.wav (scripts/fetch-audio.mjs)
-//   → /api/tts proxy → Web Speech API.
+// Audio: pre-baked WAV at public/audio/words/{id}.wav; words without one
+// (noAudio) speak through the device's native Hebrew voice.
 //
 // Fields:
-//   id           filename-safe key (also used for image and audio filenames)
-//   he           Hebrew with nikud, for display
-//   bare         Hebrew without nikud, the "real" spelling for spelling games
-//   letters      array of bare letters in spelling order (left → right reading order)
-//   roman        romanization, shown as a small caption to help kids say it
-//   en           English meaning
-//   imageQuery   English search query handed to Pexels (build-time)
-//   wiki         Wikipedia article title for the runtime fallback
-//   group        category (used to group lessons later)
+//   id       filename-safe key (image + audio filename)
+//   he       Hebrew with nikud, for display
+//   bare     Hebrew without nikud — the real spelling INCLUDING final forms;
+//            spelling games split this string, so kids build words correctly
+//   letters  base-form letters, used only for curriculum gating (what's learned)
+//   roman    romanization (mic matching + tiny caption)
+//   en       English meaning
+//   emoji    friendly stand-in when the photo is missing or as a decoration
 
 export const WORDS = [
   // — Family —
-  { id: 'aba',    he: 'אַבָּא',   bare: 'אבא',   letters: ['א','ב','א'],     roman: 'Aba',   en: 'Dad',     imageQuery: 'father with child smiling', wiki: 'Father',     group: 'family' },
-  { id: 'ima',    he: 'אִמָּא',   bare: 'אמא',   letters: ['א','מ','א'],     roman: 'Ima',   en: 'Mom',     imageQuery: 'mother with child smiling', wiki: 'Mother',     group: 'family' },
-  { id: 'yeled',  he: 'יֶלֶד',    bare: 'ילד',   letters: ['י','ל','ד'],     roman: 'Yeled', en: 'Boy',     imageQuery: 'happy boy portrait',        wiki: 'Boy',        group: 'family' },
-  { id: 'savta',  he: 'סַבְתָּא', bare: 'סבתא',  letters: ['ס','ב','ת','א'], roman: 'Savta', en: 'Grandma', imageQuery: 'grandmother smiling',       wiki: 'Grandparent', group: 'family' },
+  { id: 'aba',    he: 'אַבָּא',    bare: 'אבא',  letters: ['א','ב','א'],     roman: 'Aba',    en: 'Dad',      emoji: '👨' },
+  { id: 'ima',    he: 'אִמָּא',    bare: 'אמא',  letters: ['א','מ','א'],     roman: 'Ima',    en: 'Mom',      emoji: '👩' },
+  { id: 'yeled',  he: 'יֶלֶד',     bare: 'ילד',  letters: ['י','ל','ד'],     roman: 'Yeled',  en: 'Boy',      emoji: '👦' },
+  { id: 'savta',  he: 'סַבְתָּא',  bare: 'סבתא', letters: ['ס','ב','ת','א'], roman: 'Savta',  en: 'Grandma',  emoji: '👵' },
 
   // — Animals —
-  { id: 'arie',   he: 'אַרְיֵה', bare: 'אריה',  letters: ['א','ר','י','ה'], roman: 'Arie',   en: 'Lion',    imageQuery: 'lion portrait',         wiki: 'Lion',     group: 'animals' },
-  { id: 'kelev',  he: 'כֶּלֶב',  bare: 'כלב',   letters: ['כ','ל','ב'],     roman: 'Kelev',  en: 'Dog',     imageQuery: 'happy dog portrait',    wiki: 'Dog',      group: 'animals' },
-  { id: 'chatul', he: 'חָתוּל',  bare: 'חתול',  letters: ['ח','ת','ו','ל'], roman: 'Chatul', en: 'Cat',     imageQuery: 'cute cat portrait',     wiki: 'Cat',      group: 'animals' },
-  { id: 'sus',    he: 'סוּס',    bare: 'סוס',   letters: ['ס','ו','ס'],     roman: 'Sus',    en: 'Horse',   imageQuery: 'horse in field',        wiki: 'Horse',    group: 'animals' },
-  { id: 'dag',    he: 'דָּג',    bare: 'דג',    letters: ['ד','ג'],         roman: 'Dag',    en: 'Fish',    imageQuery: 'colorful fish underwater', wiki: 'Fish', group: 'animals' },
-  { id: 'kof',    he: 'קוֹף',    bare: 'קוף',   letters: ['ק','ו','פ'],     roman: 'Kof',    en: 'Monkey',  imageQuery: 'monkey portrait',       wiki: 'Monkey',   group: 'animals' },
-  { id: 'pil',    he: 'פִּיל',   bare: 'פיל',   letters: ['פ','י','ל'],     roman: 'Pil',    en: 'Elephant',imageQuery: 'elephant savanna',      wiki: 'Elephant', group: 'animals' },
-  { id: 'tsipor', he: 'צִפּוֹר', bare: 'צפור',  letters: ['צ','פ','ו','ר'], roman: 'Tsipor', en: 'Bird',    imageQuery: 'colorful bird closeup', wiki: 'Bird',     group: 'animals' },
-  { id: 'gamal',  he: 'גָּמָל',  bare: 'גמל',   letters: ['ג','מ','ל'],     roman: 'Gamal',  en: 'Camel',   imageQuery: 'camel desert',          wiki: 'Camel',    group: 'animals' },
-  { id: 'namer',  he: 'נָמֵר',   bare: 'נמר',   letters: ['נ','מ','ר'],     roman: 'Namer',  en: 'Leopard', imageQuery: 'leopard portrait',      wiki: 'Leopard',  group: 'animals' },
+  { id: 'arie',   he: 'אַרְיֵה',  bare: 'אריה', letters: ['א','ר','י','ה'], roman: 'Arye',   en: 'Lion',     emoji: '🦁' },
+  { id: 'kelev',  he: 'כֶּלֶב',   bare: 'כלב',  letters: ['כ','ל','ב'],     roman: 'Kelev',  en: 'Dog',      emoji: '🐶' },
+  { id: 'chatul', he: 'חָתוּל',   bare: 'חתול', letters: ['ח','ת','ו','ל'], roman: 'Chatul', en: 'Cat',      emoji: '🐱' },
+  { id: 'sus',    he: 'סוּס',     bare: 'סוס',  letters: ['ס','ו','ס'],     roman: 'Sus',    en: 'Horse',    emoji: '🐴' },
+  { id: 'dag',    he: 'דָּג',     bare: 'דג',   letters: ['ד','ג'],         roman: 'Dag',    en: 'Fish',     emoji: '🐟' },
+  { id: 'kof',    he: 'קוֹף',     bare: 'קוף',  letters: ['ק','ו','פ'],     roman: 'Kof',    en: 'Monkey',   emoji: '🐵' },
+  { id: 'pil',    he: 'פִּיל',    bare: 'פיל',  letters: ['פ','י','ל'],     roman: 'Pil',    en: 'Elephant', emoji: '🐘' },
+  { id: 'tsipor', he: 'צִפּוֹר',  bare: 'צפור', letters: ['צ','פ','ו','ר'], roman: 'Tsipor', en: 'Bird',     emoji: '🐦' },
+  { id: 'gamal',  he: 'גָּמָל',   bare: 'גמל',  letters: ['ג','מ','ל'],     roman: 'Gamal',  en: 'Camel',    emoji: '🐫' },
+  { id: 'namer',  he: 'נָמֵר',    bare: 'נמר',  letters: ['נ','מ','ר'],     roman: 'Namer',  en: 'Leopard',  emoji: '🐆' },
 
   // — Nature —
-  { id: 'shemesh',he: 'שֶׁמֶשׁ', bare: 'שמש',   letters: ['ש','מ','ש'],     roman: 'Shemesh', en: 'Sun',      imageQuery: 'sun bright sky',       wiki: 'Sun',      group: 'nature' },
-  { id: 'yareach',he: 'יָרֵחַ',  bare: 'ירח',   letters: ['י','ר','ח'],     roman: 'Yareach', en: 'Moon',     imageQuery: 'full moon night sky',  wiki: 'Moon',     group: 'nature' },
-  { id: 'kochav', he: 'כּוֹכָב', bare: 'כוכב',  letters: ['כ','ו','כ','ב'], roman: 'Kochav',  en: 'Star',     imageQuery: 'starry night sky',     wiki: 'Star',     group: 'nature' },
-  { id: 'yam',    he: 'יָם',     bare: 'ים',    letters: ['י','מ'],         roman: 'Yam',     en: 'Sea',      imageQuery: 'turquoise sea waves',  wiki: 'Sea',      group: 'nature' },
-  { id: 'har',    he: 'הַר',     bare: 'הר',    letters: ['ה','ר'],         roman: 'Har',     en: 'Mountain', imageQuery: 'mountain landscape',   wiki: 'Mountain', group: 'nature' },
-  { id: 'etz',    he: 'עֵץ',     bare: 'עץ',    letters: ['ע','צ'],         roman: 'Etz',     en: 'Tree',     imageQuery: 'lone oak tree',        wiki: 'Tree',     group: 'nature' },
-  { id: 'perach', he: 'פֶּרַח',  bare: 'פרח',   letters: ['פ','ר','ח'],     roman: 'Perach',  en: 'Flower',   imageQuery: 'pink flower closeup',  wiki: 'Flower',   group: 'nature' },
-  { id: 'mayim',  he: 'מַיִם',   bare: 'מים',   letters: ['מ','י','מ'],     roman: 'Mayim',   en: 'Water',    imageQuery: 'glass of water',       wiki: 'Water',    group: 'nature' },
+  { id: 'shemesh',he: 'שֶׁמֶשׁ',  bare: 'שמש',  letters: ['ש','מ','ש'],     roman: 'Shemesh', en: 'Sun',      emoji: '☀️' },
+  { id: 'yareach',he: 'יָרֵחַ',   bare: 'ירח',  letters: ['י','ר','ח'],     roman: 'Yareach', en: 'Moon',     emoji: '🌙' },
+  { id: 'kochav', he: 'כּוֹכָב',  bare: 'כוכב', letters: ['כ','ו','כ','ב'], roman: 'Kochav',  en: 'Star',     emoji: '⭐' },
+  { id: 'yam',    he: 'יָם',      bare: 'ים',   letters: ['י','מ'],         roman: 'Yam',     en: 'Sea',      emoji: '🌊' },
+  { id: 'har',    he: 'הַר',      bare: 'הר',   letters: ['ה','ר'],         roman: 'Har',     en: 'Mountain', emoji: '⛰️' },
+  { id: 'etz',    he: 'עֵץ',      bare: 'עץ',   letters: ['ע','צ'],         roman: 'Etz',     en: 'Tree',     emoji: '🌳' },
+  { id: 'perach', he: 'פֶּרַח',   bare: 'פרח',  letters: ['פ','ר','ח'],     roman: 'Perach',  en: 'Flower',   emoji: '🌸' },
+  { id: 'mayim',  he: 'מַיִם',    bare: 'מים',  letters: ['מ','י','מ'],     roman: 'Mayim',   en: 'Water',    emoji: '💧' },
+  { id: 'vered',  he: 'וֶרֶד',    bare: 'ורד',  letters: ['ו','ר','ד'],     roman: 'Vered',   en: 'Rose',     emoji: '🌹' },
 
-  // — House & objects —
-  { id: 'bayit',  he: 'בַּיִת',  bare: 'בית',   letters: ['ב','י','ת'],     roman: 'Bayit', en: 'House',  imageQuery: 'cozy house exterior', wiki: 'House',  group: 'home' },
-  { id: 'delet',  he: 'דֶּלֶת',  bare: 'דלת',   letters: ['ד','ל','ת'],     roman: 'Delet', en: 'Door',   imageQuery: 'colorful front door', wiki: 'Door',   group: 'home' },
-  { id: 'kise',   he: 'כִּסֵּא', bare: 'כסא',   letters: ['כ','ס','א'],     roman: 'Kise',  en: 'Chair',  imageQuery: 'wooden chair simple', wiki: 'Chair',  group: 'home' },
-  { id: 'sefer',  he: 'סֵפֶר',   bare: 'ספר',   letters: ['ס','פ','ר'],     roman: 'Sefer', en: 'Book',   imageQuery: 'open book on table',  wiki: 'Book',   group: 'home' },
-  { id: 'kos',    he: 'כּוֹס',   bare: 'כוס',   letters: ['כ','ו','ס'],     roman: 'Kos',   en: 'Cup',    imageQuery: 'ceramic mug minimal', wiki: 'Mug',    group: 'home' },
+  // — House & things —
+  { id: 'bayit',  he: 'בַּיִת',   bare: 'בית',  letters: ['ב','י','ת'],     roman: 'Bayit', en: 'House', emoji: '🏠' },
+  { id: 'delet',  he: 'דֶּלֶת',   bare: 'דלת',  letters: ['ד','ל','ת'],     roman: 'Delet', en: 'Door',  emoji: '🚪' },
+  { id: 'kise',   he: 'כִּסֵּא',  bare: 'כסא',  letters: ['כ','ס','א'],     roman: 'Kise',  en: 'Chair', emoji: '🪑' },
+  { id: 'sefer',  he: 'סֵפֶר',    bare: 'ספר',  letters: ['ס','פ','ר'],     roman: 'Sefer', en: 'Book',  emoji: '📖' },
+  { id: 'kos',    he: 'כּוֹס',    bare: 'כוס',  letters: ['כ','ו','ס'],     roman: 'Kos',   en: 'Cup',   emoji: '☕' },
 
   // — Food —
-  { id: 'lechem', he: 'לֶחֶם',   bare: 'לחם',   letters: ['ל','ח','מ'],     roman: 'Lechem', en: 'Bread',  imageQuery: 'fresh bread loaf',     wiki: 'Bread',  group: 'food' },
-  { id: 'chalav', he: 'חָלָב',   bare: 'חלב',   letters: ['ח','ל','ב'],     roman: 'Chalav', en: 'Milk',   imageQuery: 'glass of milk',        wiki: 'Milk',   group: 'food' },
-  { id: 'tapuz',  he: 'תַּפּוּז',bare: 'תפוז',  letters: ['ת','פ','ו','ז'], roman: 'Tapuz',  en: 'Orange', imageQuery: 'orange fruit closeup', wiki: 'Orange_(fruit)', group: 'food' },
-  { id: 'tapuach',he: 'תַּפּוּחַ',bare: 'תפוח', letters: ['ת','פ','ו','ח'], roman: 'Tapuach',en: 'Apple',  imageQuery: 'red apple closeup',    wiki: 'Apple',  group: 'food' },
-  { id: 'dvash',  he: 'דְּבַשׁ', bare: 'דבש',   letters: ['ד','ב','ש'],     roman: 'Dvash',  en: 'Honey',  imageQuery: 'honey jar wooden',     wiki: 'Honey',  group: 'food' },
+  { id: 'lechem', he: 'לֶחֶם',    bare: 'לחם',  letters: ['ל','ח','מ'],     roman: 'Lechem',  en: 'Bread',  emoji: '🍞' },
+  { id: 'chalav', he: 'חָלָב',    bare: 'חלב',  letters: ['ח','ל','ב'],     roman: 'Chalav',  en: 'Milk',   emoji: '🥛' },
+  { id: 'tapuz',  he: 'תַּפּוּז', bare: 'תפוז', letters: ['ת','פ','ו','ז'], roman: 'Tapuz',   en: 'Orange', emoji: '🍊' },
+  { id: 'tapuach',he: 'תַּפּוּחַ',bare: 'תפוח', letters: ['ת','פ','ו','ח'], roman: 'Tapuach', en: 'Apple',  emoji: '🍎' },
+  { id: 'dvash',  he: 'דְּבַשׁ',  bare: 'דבש',  letters: ['ד','ב','ש'],     roman: 'Dvash',   en: 'Honey',  emoji: '🍯' },
 
   // — Body —
-  { id: 'rosh',   he: 'רֹאשׁ',   bare: 'ראש',   letters: ['ר','א','ש'],     roman: 'Rosh',  en: 'Head',  imageQuery: 'child smiling face',   wiki: 'Head',       group: 'body' },
-  { id: 'ayin',   he: 'עַיִן',   bare: 'עין',   letters: ['ע','י','נ'],     roman: 'Ayin',  en: 'Eye',   imageQuery: 'human eye macro',      wiki: 'Human_eye',  group: 'body' },
-  { id: 'regel',  he: 'רֶגֶל',   bare: 'רגל',   letters: ['ר','ג','ל'],     roman: 'Regel', en: 'Leg',   imageQuery: 'running shoes legs',   wiki: 'Human_leg',  group: 'body' },
-  { id: 'lev',    he: 'לֵב',     bare: 'לב',    letters: ['ל','ב'],         roman: 'Lev',   en: 'Heart', imageQuery: 'red heart shape',      wiki: 'Heart',      group: 'body' },
+  { id: 'rosh',   he: 'רֹאשׁ',    bare: 'ראש',  letters: ['ר','א','ש'],     roman: 'Rosh',  en: 'Head',  emoji: '🙂' },
+  { id: 'ayin',   he: 'עַיִן',    bare: 'עין',  letters: ['ע','י','נ'],     roman: 'Ayin',  en: 'Eye',   emoji: '👁️' },
+  { id: 'regel',  he: 'רֶגֶל',    bare: 'רגל',  letters: ['ר','ג','ל'],     roman: 'Regel', en: 'Leg',   emoji: '🦵' },
+  { id: 'lev',    he: 'לֵב',      bare: 'לב',   letters: ['ל','ב'],         roman: 'Lev',   en: 'Heart', emoji: '❤️' },
 
-  // — Color/abstract for variety —
-  { id: 'vered',  he: 'וֶרֶד',   bare: 'ורד',   letters: ['ו','ר','ד'],     roman: 'Vered', en: 'Rose',   imageQuery: 'red rose closeup',     wiki: 'Rose',     group: 'nature' },
-  { id: 'or',     he: 'אוֹר',    bare: 'אור',   letters: ['א','ו','ר'],     roman: 'Or',    en: 'Light',  imageQuery: 'sunbeam through window', wiki: 'Sunlight', group: 'abstract' },
-  { id: 'tov',    he: 'טוֹב',    bare: 'טוב',   letters: ['ט','ו','ב'],     roman: 'Tov',   en: 'Good',   imageQuery: 'thumbs up smile',       wiki: 'Thumb_signal', group: 'abstract' },
-  { id: 'zahav',  he: 'זָהָב',   bare: 'זהב',   letters: ['ז','ה','ב'],     roman: 'Zahav', en: 'Gold',   imageQuery: 'gold metal nuggets',    wiki: 'Gold',     group: 'abstract' },
-  { id: 'shir',   he: 'שִׁיר',   bare: 'שיר',   letters: ['ש','י','ר'],     roman: 'Shir',  en: 'Song',   imageQuery: 'kid singing microphone', wiki: 'Singing', group: 'abstract' },
+  // — Sparkle —
+  { id: 'or',     he: 'אוֹר',     bare: 'אור',  letters: ['א','ו','ר'],     roman: 'Or',     en: 'Light', emoji: '💡' },
+  { id: 'tov',    he: 'טוֹב',     bare: 'טוב',  letters: ['ט','ו','ב'],     roman: 'Tov',    en: 'Good',  emoji: '👍' },
+  { id: 'zahav',  he: 'זָהָב',    bare: 'זהב',  letters: ['ז','ה','ב'],     roman: 'Zahav',  en: 'Gold',  emoji: '🥇' },
+  { id: 'shir',   he: 'שִׁיר',    bare: 'שיר',  letters: ['ש','י','ר'],     roman: 'Shir',   en: 'Song',  emoji: '🎵' },
+
+  // — Longer words (4-5 letters), emoji-art cards, Avri-voiced mp3 audio —
+  { id: 'shamayim', he: 'שָׁמַיִם',   bare: 'שמים',  letters: ['ש','מ','י','מ'],     roman: 'Shamayim', en: 'Sky',       emoji: '☁️', noImage: true },
+  { id: 'migdal',   he: 'מִגְדָּל',   bare: 'מגדל',  letters: ['מ','ג','ד','ל'],     roman: 'Migdal',   en: 'Tower',     emoji: '🗼', noImage: true },
+  { id: 'galgal',   he: 'גַּלְגַּל',  bare: 'גלגל',  letters: ['ג','ל','ג','ל'],     roman: 'Galgal',   en: 'Wheel',     emoji: '🛞', noImage: true },
+  { id: 'shablul',  he: 'שַׁבְּלוּל', bare: 'שבלול', letters: ['ש','ב','ל','ו','ל'], roman: 'Shablul',  en: 'Snail',     emoji: '🐌', noImage: true },
+  { id: 'machshev', he: 'מַחְשֵׁב',   bare: 'מחשב',  letters: ['מ','ח','ש','ב'],     roman: 'Machshev', en: 'Computer',  emoji: '💻', noImage: true },
+  { id: 'chamor',   he: 'חֲמוֹר',     bare: 'חמור',  letters: ['ח','מ','ו','ר'],     roman: 'Chamor',   en: 'Donkey',    emoji: '🫏', noImage: true },
+  { id: 'parpar',   he: 'פַּרְפַּר',  bare: 'פרפר',  letters: ['פ','ר','פ','ר'],     roman: 'Parpar',   en: 'Butterfly', emoji: '🦋', noImage: true },
+  { id: 'kadur',    he: 'כַּדּוּר',   bare: 'כדור',  letters: ['כ','ד','ו','ר'],     roman: 'Kadur',    en: 'Ball',      emoji: '⚽', noImage: true },
+  { id: 'kaftor',   he: 'כַּפְתּוֹר', bare: 'כפתור', letters: ['כ','פ','ת','ו','ר'], roman: 'Kaftor',   en: 'Button',    emoji: '🔘', noImage: true },
+  { id: 'banana',   he: 'בָּנָנָה',   bare: 'בננה',  letters: ['ב','נ','נ','ה'],     roman: 'Banana',   en: 'Banana',    emoji: '🍌', noImage: true },
+  { id: 'arnav',    he: 'אַרְנָב',    bare: 'ארנב',  letters: ['א','ר','נ','ב'],     roman: 'Arnav',    en: 'Rabbit',    emoji: '🐰', noImage: true },
+  { id: 'nemala',   he: 'נְמָלָה',    bare: 'נמלה',  letters: ['נ','מ','ל','ה'],     roman: 'Nemala',   en: 'Ant',       emoji: '🐜', noImage: true },
+  { id: 'sfina',    he: 'סְפִינָה',   bare: 'ספינה', letters: ['ס','פ','י','נ','ה'], roman: 'Sfina',    en: 'Boat',      emoji: '🚢', noImage: true },
+  { id: 'karnaf',   he: 'קַרְנַף',    bare: 'קרנף',  letters: ['ק','ר','נ','פ'],     roman: 'Karnaf',   en: 'Rhino',     emoji: '🦏', noImage: true },
+  { id: 'matos',    he: 'מָטוֹס',     bare: 'מטוס',  letters: ['מ','ט','ו','ס'],     roman: 'Matos',    en: 'Airplane',  emoji: '✈️', noImage: true },
+  { id: 'zebra',    he: 'זֶבְּרָה',   bare: 'זברה',  letters: ['ז','ב','ר','ה'],     roman: 'Zebra',    en: 'Zebra',     emoji: '🦓', noImage: true },
+  { id: 'tsfardea', he: 'צְפַרְדֵּעַ', bare: 'צפרדע', letters: ['צ','פ','ר','ד','ע'], roman: 'Tsfardea', en: 'Frog',      emoji: '🐸', noImage: true },
+  { id: 'akavish',  he: 'עַכָּבִישׁ', bare: 'עכביש', letters: ['ע','כ','ב','י','ש'], roman: 'Akavish',  en: 'Spider',    emoji: '🕷️', noImage: true },
+  { id: 'telefon',  he: 'טֵלֵפוֹן',   bare: 'טלפון', letters: ['ט','ל','פ','ו','נ'], roman: 'Telefon',  en: 'Phone',     emoji: '📱', noImage: true },
+  { id: 'atzitz',   he: 'עָצִיץ',     bare: 'עציץ',  letters: ['ע','צ','י','צ'],     roman: 'Atzitz',   en: 'Plant pot', emoji: '🪴', noImage: true },
+
+  // — Story Mountain (teaches ך) —
+  { id: 'melech',   he: 'מֶלֶךְ',     bare: 'מלך',   letters: ['מ','ל','כ'],         roman: 'Melech',   en: 'King',      emoji: '👑', noImage: true },
 ];
 
 export const WORDS_BY_ID = Object.fromEntries(WORDS.map(w => [w.id, w]));
-
-export const wordsUsingOnlyLetters = (allowed) => {
-  const set = new Set(allowed);
-  return WORDS.filter(w => w.letters.every(l => set.has(l)));
-};
