@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { WORLDS, NODE_META, nodeStatus } from '../data/worlds.js';
 import { LETTER_COLOR, ALPHABET_BY_ID } from '../data/letters.js';
+import { TALE_BY_ID } from '../data/tales.js';
 import { sayLine } from '../lib/audio.js';
 import { praiseLine } from '../data/uiLines.js';
 import StarMeter from '../components/StarMeter.jsx';
@@ -12,6 +13,7 @@ import Mascot from '../components/Mascot.jsx';
 
 const nodeIcon = (node) => {
   if (node.type === 'letter') return ALPHABET_BY_ID[node.letterId].heb;
+  if (node.type === 'tale') return TALE_BY_ID[node.taleId].mapEmoji;
   return NODE_META[node.type].icon;
 };
 

@@ -13,6 +13,7 @@
 import { ALPHABET_BY_ID, FINALS } from './letters.js';
 import { WORDS_BY_ID } from './words.js';
 import { SCENES } from './scenes.js';
+import { TALES } from './tales.js';
 
 const defs = [
   {
@@ -67,17 +68,25 @@ const defs = [
     wordIds: ['melech'],
     sticker: { emoji: '👑', name: 'כֶּתֶר הַמְּלוּכָה' },
   },
+  {
+    id: 'dragon',  name: 'אֶרֶץ הַדְּרָקוֹן',     emoji: '🐉', color: '#2E9E82',
+    letterIds: [],
+    wordIds: [],
+    sticker: { emoji: '🐉', name: 'דְּרָקִי הַזָּהָב' },
+  },
 ];
 
 // Node type → map icon + kid-facing label.
 export const NODE_META = {
-  letter: { label: 'אוֹת חֲדָשָׁה' },
-  lab:    { icon: '🧩', label: 'בּוֹנִים מִלִּים' },
-  echo:   { icon: '🎤', label: 'אוֹמְרִים בְּקוֹל' },
-  memory: { icon: '🃏', label: 'מִשְׂחַק זִכָּרוֹן' },
-  boss:   { icon: '👑', label: 'אֶתְגַּר הָאִי' },
-  finals: { icon: '✨', label: 'אוֹתִיּוֹת סוֹפִיּוֹת' },
-  story:  { icon: '📖', label: 'בּוֹנִים סִפּוּר' },
+  letter:   { label: 'אוֹת חֲדָשָׁה' },
+  lab:      { icon: '🧩', label: 'בּוֹנִים מִלִּים' },
+  echo:     { icon: '🎤', label: 'אוֹמְרִים בְּקוֹל' },
+  memory:   { icon: '🃏', label: 'מִשְׂחַק זִכָּרוֹן' },
+  boss:     { icon: '👑', label: 'אֶתְגַּר הָאִי' },
+  finals:   { icon: '✨', label: 'אוֹתִיּוֹת סוֹפִיּוֹת' },
+  story:    { icon: '📖', label: 'בּוֹנִים סִפּוּר' },
+  tale:     { icon: '🐉', label: 'מַקְשִׁיבִים וְעוֹנִים' },
+  taleboss: { icon: '👑', label: 'אֶתְגַּר הַדְּרָקוֹן' },
 };
 
 const cumulativeLetters = [];
@@ -100,7 +109,12 @@ export const WORLDS = defs.map((def, i) => {
     cumulativeWordIds: [...cumulativeWordIds],
   };
 
-  if (def.id === 'stories') {
+  if (def.id === 'dragon') {
+    world.nodes = [
+      ...TALES.map(t => ({ type: 'tale', taleId: t.id })),
+      { type: 'taleboss' },
+    ];
+  } else if (def.id === 'stories') {
     world.nodes = [
       { type: 'finals' },
       { type: 'story', sceneIds: SCENES.slice(0, 2).map(s => s.id) },

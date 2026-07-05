@@ -3,6 +3,7 @@
 
 import { NODE_BY_ID, WORLD_BY_ID, NODE_META } from '../data/worlds.js';
 import { ALPHABET_BY_ID } from '../data/letters.js';
+import { TALE_BY_ID } from '../data/tales.js';
 import { recordNode } from '../lib/storage.js';
 import { stopAudio } from '../lib/audio.js';
 import LetterQuest from '../activities/LetterQuest.jsx';
@@ -12,6 +13,8 @@ import MemoryMatch from '../activities/MemoryMatch.jsx';
 import BossQuiz from '../activities/BossQuiz.jsx';
 import FinalsMeet from '../activities/FinalsMeet.jsx';
 import StoryBuilder from '../activities/StoryBuilder.jsx';
+import TaleTime from '../activities/TaleTime.jsx';
+import TaleBoss from '../activities/TaleBoss.jsx';
 
 const starsFor = (score) => (score >= 0.85 ? 3 : score >= 0.55 ? 2 : 1);
 
@@ -23,14 +26,16 @@ export default function NodePlayer({ nodeId, profile, onExit, onComplete }) {
     stopAudio();
     const stars = starsFor(score);
     const result = recordNode(profile.id, node.id, stars, {
-      stickerWorldId: node.type === 'boss' ? world.id : undefined,
+      stickerWorldId: node.type === 'boss' || node.type === 'taleboss' ? world.id : undefined,
     });
     onComplete({ node, world, stars, ...result });
   };
 
   const title = node.type === 'letter'
     ? `הָאוֹת ${ALPHABET_BY_ID[node.letterId].nameHe}`
-    : NODE_META[node.type].label;
+    : node.type === 'tale'
+      ? TALE_BY_ID[node.taleId].title
+      : NODE_META[node.type].label;
 
   return (
     <div className="screen node-player" style={{ '--island-color': world.color }}>
@@ -50,6 +55,8 @@ export default function NodePlayer({ nodeId, profile, onExit, onComplete }) {
         {node.type === 'boss' && <BossQuiz world={world} onDone={handleDone} />}
         {node.type === 'finals' && <FinalsMeet onDone={handleDone} />}
         {node.type === 'story' && <StoryBuilder node={node} onDone={handleDone} />}
+        {node.type === 'tale' && <TaleTime tale={TALE_BY_ID[node.taleId]} onDone={handleDone} />}
+        {node.type === 'taleboss' && <TaleBoss onDone={handleDone} />}
       </div>
     </div>
   );

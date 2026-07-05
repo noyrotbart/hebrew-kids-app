@@ -153,6 +153,19 @@ export const sayLine = async (line) => {
   if (isCurrent(mySession)) await speakNativeMale(line.text, mySession);
 };
 
+// Generic clip player for the tales world (and any future audio group):
+// parent WAV → TTS mp3 → male native reading of `text` → silence.
+export const playClip = async (dir, clipId, text) => {
+  stop();
+  const mySession = session;
+  const ok = await tryStaticUrls([
+    `/audio/${dir}/${clipId}.wav`,
+    `/audio/${dir}/${clipId}.mp3`,
+  ], mySession);
+  if (ok) return;
+  if (isCurrent(mySession) && text) await speakNativeMale(text, mySession);
+};
+
 // The studio calls this after saving a take so the old blob doesn't keep
 // playing from the in-memory cache.
 export const clearAudioCache = () => cache.clear();

@@ -11,9 +11,26 @@ import { WORDS } from '../data/words.js';
 import { SCENES } from '../data/scenes.js';
 import { UI_LINES } from '../data/uiLines.js';
 import { ALPHABET } from '../data/letters.js';
-import { playWord, playScene, playLetter, sayLine, stopAudio, clearAudioCache } from '../lib/audio.js';
+import { TALES, sentenceClipId, questionClipId, answerClipId } from '../data/tales.js';
+import { playWord, playScene, playLetter, playClip, sayLine, stopAudio, clearAudioCache } from '../lib/audio.js';
+
+const taleItems = TALES.flatMap(tale => [
+  ...tale.sentences.map((s, i) => {
+    const id = sentenceClipId(tale, i);
+    return { dir: 'tales', id, text: s, sub: `${tale.title} · משפט ${i + 1}`, play: () => playClip('tales', id, s) };
+  }),
+  ...tale.questions.flatMap(q => {
+    const qid = questionClipId(tale, q);
+    const aid = answerClipId(tale, q);
+    return [
+      { dir: 'tales', id: qid, text: q.text, sub: `${tale.title} · שאלה`, play: () => playClip('tales', qid, q.text) },
+      { dir: 'tales', id: aid, text: q.answer, sub: `${tale.title} · תשובה`, play: () => playClip('tales', aid, q.answer) },
+    ];
+  }),
+]);
 
 const GROUPS = [
+  { key: 'tales',   label: 'סִפּוּרִים',  items: taleItems },
   { key: 'words',   label: 'מִלִּים',    items: WORDS.map(w => ({ dir: 'words', id: w.id, text: w.he, sub: `${w.roman} · ${w.en}`, play: () => playWord(w) })) },
   { key: 'scenes',  label: 'מִשְׁפָּטִים', items: SCENES.map(s => ({ dir: 'scenes', id: s.id, text: s.sentence, sub: s.id, play: () => playScene(s) })) },
   { key: 'ui',      label: 'קְרִיָּנוּת',  items: UI_LINES.map(l => ({ dir: 'ui', id: l.id, text: l.text, sub: l.id, play: () => sayLine(l) })) },

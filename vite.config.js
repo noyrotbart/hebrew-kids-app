@@ -15,7 +15,7 @@ const studioSave = () => ({
       const url = new URL(req.url, "http://localhost");
       const dir = url.searchParams.get("dir");
       const id = url.searchParams.get("id");
-      if (!/^(words|scenes|ui|letters)$/.test(dir ?? "") || !/^[a-z0-9-]+$/i.test(id ?? "")) {
+      if (!/^(words|scenes|ui|letters|tales)$/.test(dir ?? "") || !/^[a-z0-9-]+$/i.test(id ?? "")) {
         res.statusCode = 400;
         return res.end("bad params");
       }

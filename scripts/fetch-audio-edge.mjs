@@ -13,12 +13,15 @@ import path from 'node:path';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { UI_LINES } from '../src/data/uiLines.js';
 import { WORDS } from '../src/data/words.js';
+import { TALES, sentenceClipId, questionClipId, answerClipId } from '../src/data/tales.js';
 
 const VOICE = 'he-IL-AvriNeural';
 const OUT_UI = path.resolve('public/audio/ui');
 const OUT_WORDS = path.resolve('public/audio/words');
+const OUT_TALES = path.resolve('public/audio/tales');
 await fs.mkdir(OUT_UI, { recursive: true });
 await fs.mkdir(OUT_WORDS, { recursive: true });
+await fs.mkdir(OUT_TALES, { recursive: true });
 
 const exists = (p) => fs.access(p).then(() => true, () => false);
 
@@ -78,7 +81,24 @@ for (const w of WORDS) {
   wordItems.push({ id: w.id, text: w.he, dest: mp3, skip: !force && await exists(mp3) });
 }
 
+// Tale clips (sentences, questions, spoken answers) — skip any the parent
+// already recorded as WAV in the studio.
+const taleClips = TALES.flatMap(tale => [
+  ...tale.sentences.map((s, i) => ({ id: sentenceClipId(tale, i), text: s })),
+  ...tale.questions.flatMap(q => [
+    { id: questionClipId(tale, q), text: q.text },
+    { id: answerClipId(tale, q), text: q.answer },
+  ]),
+]);
+const taleItems = [];
+for (const c of taleClips) {
+  if (await exists(path.join(OUT_TALES, `${c.id}.wav`))) continue;
+  const dest = path.join(OUT_TALES, `${c.id}.mp3`);
+  taleItems.push({ ...c, dest, skip: !force && await exists(dest) });
+}
+
 console.log(`Voice: ${VOICE}`);
 await run('UI lines → public/audio/ui', uiItems);
 await run('Words without WAV → public/audio/words', wordItems);
+await run('Tale clips → public/audio/tales', taleItems);
 console.log('\nDone.');
